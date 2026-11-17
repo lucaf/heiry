@@ -67,16 +67,22 @@ func validateNodeDefinition(levels []nodeLevel) (*validatedNodes, error) {
 		}
 	}
 	contracts := make([]contractLevel, len(levels))
+	var providerErrors []error
 	for level, entry := range levels {
-		contracts[level] = entry.contracts
+		contracts[level] = contractLevel{public: entry.contracts.public, private: entry.contracts.private}
 		for _, binding := range entry.contracts.bindings {
 			if binding.provider != reflect.PointerTo(entry.typ) {
-				return nil, &Error{Code: InvalidProvider, Level: level, Target: target, Path: v.providerPath(level), Capability: binding.capability, Expected: reflect.PointerTo(entry.typ), Actual: binding.provider}
+				providerErrors = append(providerErrors, &Error{Code: InvalidProvider, Level: level, Target: target, Path: v.providerPath(level), Capability: binding.capability, Expected: reflect.PointerTo(entry.typ), Actual: binding.provider})
+				continue
 			}
+			contracts[level].bindings = append(contracts[level].bindings, binding)
 		}
 	}
 	if _, err := validateContracts(contracts, len(contracts)-1); err != nil {
-		return nil, v.withContext(err)
+		providerErrors = append(providerErrors, v.withContext(err))
+	}
+	if len(providerErrors) != 0 {
+		return nil, errors.Join(providerErrors...)
 	}
 	return v, nil
 }

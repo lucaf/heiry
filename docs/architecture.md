@@ -25,7 +25,7 @@ These are three responsibilities with separate inputs and effects. [Specificatio
 
 ### Hierarchy validation
 
-Validation consumes a stable definition snapshot describing **types, paths, contracts, and explicit registrations**. Structural inspection checks parent/provider storage, Node declarations, contract composition, capability signatures, and registration coverage. Its result establishes definition validity or describes errors. It does not associate receivers with the hierarchy or install scopes, and it cannot replace physical checks on a later object.
+Validation consumes a stable definition snapshot describing **types, paths, contracts, and explicit registrations**. Structural inspection checks parent/provider storage, Node declarations, contract composition, capability signatures, and registration coverage. Once the chain is structurally valid, invalid node-provider registrations are reported and omitted from the bindings passed to contract coverage analysis, so they cannot satisfy mandatory methods. Its result establishes definition validity or describes errors. It does not associate receivers with the hierarchy or install scopes, and it cannot replace physical checks on a later object.
 
 ### Plan preparation
 
@@ -41,20 +41,34 @@ The runtime never needs two hierarchies or duplicate level/contract/binding decl
 
 ### Receiver-free schema declaration API
 
-The exact declaration API remains open. The earlier `Define`/`Level`/`At` descriptors and typed-nil provider witnesses were an unapproved proposal, not an established replacement for fluent configuration. [ADR 0006](decisions/0006-receiver-free-schema.md) retains that proposal's history without treating it as accepted. There is currently no Go implementation or compiled API fixture.
+The project owner approved M4's fluent receiver-free declaration design in [ADR 0007](decisions/0007-fluent-receiver-free-declaration.md). [ADR 0006](decisions/0006-receiver-free-schema.md) remains unapproved history. M4's `Definition[Leaf]` owns ordered levels; a concrete `LevelHandle[Leaf]` refers to one stable level. Generic `Level[Node, Public, Private](parentField)` and `Bind[Operation](typedNilProvider, providerPath)` methods keep typed individual registration fluent. `End()` returns the definition. `Validate()` examines the current snapshot without freezing or preparing a Plan. Invalid fluent calls retain only receiver-free structured diagnostics and add no binding; those diagnostics remain visible on later validation. Validation adds only checks that remain safe after an earlier error.
+
+The final node type must equal `Leaf` exactly. Validation checks the complete direct anonymous value-parent chain before deriving leaf-relative node paths from its explicit parent field names. A provider path is relative to its owning level; `"."` names the node itself. M4 validates only node providers. A later edit is included in the next validation; M4 retains no reusable validated result. Preparation in a later milestone freezes a coherent configuration and must validate the current snapshot.
+
+The approved M4 public declaration signatures are:
+
+```go
+func Define[Leaf any]() *Definition[Leaf]
+func (d *Definition[Leaf]) Level[Node, Public, Private any](parentField string) *LevelHandle[Leaf]
+func (l *LevelHandle[Leaf]) Bind[Operation any](provider Operation, providerPath string) *LevelHandle[Leaf]
+func (l *LevelHandle[Leaf]) End() *Definition[Leaf]
+func (d *Definition[Leaf]) Validate() error
+```
+
+The concrete level handle retains its original level after other levels are added. `Bind` reduces a typed-nil witness immediately to type metadata. Invalid capability, pointer witness, or malformed path calls record structured errors without adding a registration; subsequent calls cannot erase those errors. `Validate` reports them with whatever definition checks remain safe. The generic method parameter preserves the compiler's provider/interface check for individual bindings. The declaration surface has no Plan or instance pointers.
 
 The receiver-free declaration design must describe types, storage paths, per-level contracts, and explicit typed registrations without an application object. Its output is a snapshot used by validation, not evidence that validation has already succeeded. Neither the reusable definition nor the resulting Plan may retain live receivers or object-capturing closures.
 
-The design must connect this declaration to the fluent instance configuration without making authors repeat the full hierarchy. It must accommodate eager and lazy preparation, multiple providers at one level, and grouped registration. The exact type-safe syntax, preparation trigger, and way an object chain obtains a validated Plan remain to be resolved; they are not settled by the illustrative chain in the specification.
+The design must connect this declaration to the fluent instance configuration without making authors repeat the full hierarchy. It must accommodate eager and lazy preparation, multiple providers at one level, and grouped registration. The exact grouped-registration syntax, preparation trigger, and way an object chain obtains a validated Plan remain to be resolved; they are not settled by the illustrative chain in the specification.
 
-**Status: awaiting the project owner's design approval.** The following are alternatives for discussion, not selected APIs or implementation instructions:
+The alternatives considered for this approval were:
 
 | Alternative | Fluent declaration approach | Advantages | Costs and unresolved checks |
 | --- | --- | --- | --- |
-| Type and field-path descriptors | A receiver-free hierarchy builder takes level/provider types, structural paths, contracts, and typed operation witnesses; object setup uses the resulting Plan | Explicit metadata can be validated eagerly or lazily without receivers; typed witnesses can check interface satisfaction | Field paths need structural validation; typed-nil witnesses are one possible spelling, not a requirement; grouping and Plan handoff need a readable concrete design |
+| Type and field-path descriptors | A receiver-free hierarchy builder takes level/provider types, structural paths, contracts, and typed operation witnesses; object setup later uses the resulting Plan | Explicit metadata can be validated eagerly or lazily without receivers; typed witnesses can check interface satisfaction | Field paths need structural validation; M4 accepted typed-nil witnesses for individual binding; grouping and Plan handoff remain open |
 | Typed field selectors with explicit schema metadata | A fluent builder associates levels/providers with typed selectors for their subobjects, alongside the types and paths needed for startup validation | Selectors express field access using Go's type system and can identify actual subobjects during instance setup | An arbitrary selector's signature cannot prove ownership, absence of captured objects, or consistency with declared paths; a proposal must resolve these limits without constructing sample objects or weakening validation |
 
-Neither alternative is ready to implement as the public API. The selector alternative in particular needs a defensible restriction or representation before it can satisfy the existing guarantees. A proposal for approval must show one definition used eagerly and lazily, grouped and individual registration, and construction of two independent objects using the same Plan, with explicit compiler-versus-runtime checks. It must also show the chain with and without precomputation. These are review requirements for the open decision, not permission to implement either option.
+The type-and-path alternative was selected for M4. The exact grouped-registration and lifecycle/provider-pointer signatures remain unapproved. M6 extends these same handles rather than introducing another builder; component ownership and binding remain M8 work. The selector alternative cannot establish capture freedom or physical ownership from its signature alone.
 
 ### Instance initialization
 
