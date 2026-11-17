@@ -27,11 +27,15 @@ jobs:
           go-version: ${{ matrix.go }}
           check-latest: true
           cache: false
+      - name: Discover maintained root package
+        run: |
+          test "$(go list -f '{{len .GoFiles}}' .)" -gt 0
+          test "$(go list -f '{{len .TestGoFiles}}' .)" -gt 0
       - name: Formatting
-        run: test -z "$(gofmt -l .)"
+        run: test -z "$(gofmt -l ./*.go)"
       - name: Vet
-        run: go vet ./...
+        run: go vet .
       - name: Package tests
-        run: go test ./...
+        run: go test .
       - name: Race tests
-        run: go test -race ./...
+        run: go test -race .

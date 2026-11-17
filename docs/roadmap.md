@@ -2,7 +2,7 @@
 
 This document tracks implementation of the approved design. [AGENTS.md](../AGENTS.md) governs development; the [specification](specification.md) defines behavior, [architecture](architecture.md) defines responsibilities, and [testing](testing.md) owns implementation order and acceptance criteria. [ADRs](decisions/) preserve rationale. The roadmap does not replace any of them or authorize a new API.
 
-Implementation has not started. No milestone below claims working library code or completed verification.
+M1 is complete with working root-package code and the acceptance evidence recorded below. Later milestones remain pending.
 
 ## Order and dependencies
 
@@ -38,12 +38,13 @@ Code existence, documentation alone, empty package runs, and tests of a separate
 
 ## M1. Minimal inheritance and typed dispatch kernel
 
-- **Status:** Not started.
+- **Status:** Completed.
 - **Objective:** Establish the dynamic inheritance mechanism with ordinary typed calls.
 - **Scope:** Testing stages 1 → 2; [S2](specification.md#s2-native-calls-and-dispatch-boundary), [S7](specification.md#s7-resolution-and-precomputation), and relevant S9 diagnostics.
 - **Deliverables:** Root-package dynamic resolver, focused two-level tests, then A → B → C semantic tests using internal fixtures.
 - **Dependencies:** None; no builder or schema API is needed to begin.
 - **Acceptance criteria:** Stage 1 passes before adding stage 2. Cover signatures, variadics/results, application errors, missing parent versus unknown capability, skipped levels, nested/different-method parent calls, and finite recursion/reentry. Apply the relevant [required matrix](testing.md#required-matrix) and [dispatch rationale](decisions/0004-dispatch-and-parent-semantics.md).
+- **Evidence:** Stage 1 tests first failed to compile for the absent `Scope`/`Method` resolver (after redirecting Go's cache from a sandbox-denied location), then passed after the dynamic backward-search kernel was implemented. Stage 1 passed before Stage 2 tests were added. Stage 2's tests passed immediately against that same general kernel and required no new production feature or behavioral fix; they are acceptance coverage, not a retroactive TDD cycle. A later focused test failed because its fixture had not yet made a different-operation parent call; changing the fixture made it pass. That fixture-only Red is not counted as resolver TDD evidence. On installed Go 1.27.1, `gofmt -l ./*.go` produced no files; `go vet .`, `go test . -count=1`, and `go test -race . -count=1` passed with a writable `GOCACHE`. The CI workflow checks maintained root source and tests and uses scoped commands for its Go 1.27.1/1.27.x Linux matrix. The owner reported on 2026-11-17 that CI ran without issue; this is owner-reported evidence, not a run observed by Codex. The original completion gates remain in force; no approval to change them is implied.
 
 ## M2. Nested embedding and instance scopes
 

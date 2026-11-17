@@ -86,7 +86,7 @@ For larger layouts use Go fuzzing. Bound generated depths and table sizes so inp
 
 ## Quality gates and CI
 
-There is currently no Go implementation to test. CI must discover a nonempty set of applicable maintained library packages, including actual non-test source in the root heiry package, before claiming Go verification. If no applicable packages exist, report Go verification as not run/no implementation; an empty successful tool invocation or unrelated package tests are not evidence. Once the library exists, its source and tests must be included. A no-tests run cannot establish a tested milestone.
+CI must discover a nonempty set of applicable maintained library packages, including actual non-test source in the root heiry package, before claiming Go verification. If no applicable packages exist, report Go verification as not run/no implementation; an empty successful tool invocation or unrelated package tests are not evidence. The existing root-package source and tests must be included. A no-tests run cannot establish a tested milestone.
 
 Select formatting files and test packages explicitly from maintained project sources. Exclude `.ceiling`, archives, prototypes, and unrelated material from discovery, formatting, vet, tests, race checks, fuzzing, and benchmarks. Avoid recursive `gofmt -l .` or unfiltered filesystem globs. For the planned root package, after confirming source exists, the scoped gates are:
 
@@ -97,7 +97,7 @@ go test .
 go test -race .
 ```
 
-Formatting passes only if the command succeeds and reports no files; an empty source selection or tool failure is not success. Extend the explicit selections when maintained library subpackages are added. The package test suite must explicitly run its maintained negative-compilation and negative-vet fixtures: testdata is skipped by ordinary package discovery. Include those fixture files in the maintained formatting selection without treating intentionally failing fixtures as ordinary packages. External consumer tests and compile-only API fixtures belong to the package suite. A milestone is complete only when its focused tests, relevant regressions, and applicable gates pass. These are CI requirements; the workflow is not modified by this documentation-only task.
+Formatting passes only if the command succeeds and reports no files; an empty source selection or tool failure is not success. Extend the explicit selections when maintained library subpackages are added. The package test suite must explicitly run its maintained negative-compilation and negative-vet fixtures: testdata is skipped by ordinary package discovery. Include those fixture files in the maintained formatting selection without treating intentionally failing fixtures as ordinary packages. External consumer tests and compile-only API fixtures belong to the package suite. A milestone is complete only when its focused tests, relevant regressions, and applicable gates pass. These are CI requirements.
 
 Add bounded fuzz campaigns to CI when the resolution fuzz target exists, and compile/run maintained usage examples when milestone 9 adds them. For the planned root-package target, a bounded command is `go test . -run '^$' -fuzz '^FuzzResolution$' -fuzztime=5s -parallel=1`; this is a future gate, not a currently available test. Root-package benchmarks use `go test -run '^$' -bench . -benchmem -count=5 .` once benchmark functions exist; apply the same source/package exclusions when extending these gates.
 
@@ -113,4 +113,4 @@ Measure hierarchy validation, Plan preparation, builder assembly, first lazy use
 
 ## Milestone status
 
-Implementation has **not started**. There is no root Go package code, executable example, or package test suite yet. Record milestone evidence in change descriptions and update this status when that changes. Documentation and test plans alone do not establish completed behavior.
+M1 is **Completed**: the root package contains the dynamic resolver and focused two-/three-level tests. [The roadmap](roadmap.md#m1-minimal-inheritance-and-typed-dispatch-kernel) records the observed Red/Green cycle, Stage 2 acceptance coverage, local gates, and owner-reported CI result. M2–M9 remain unimplemented; there are no usage examples. Record later milestone evidence in change descriptions and update this status when that changes. Documentation and test plans alone do not establish completed behavior.

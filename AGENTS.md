@@ -37,8 +37,8 @@ Run the applicable gates in docs/testing.md. Report implemented behavior, tests 
 
 ### Milestone completion
 
-If acceptance criteria cannot be satisfied, mark the milestone as Blocked, 
-document the reason, and stop. Do not mark it Completed, bypass the failing 
+If acceptance criteria cannot be satisfied, mark the milestone as Blocked,
+document the reason, and stop. Do not mark it Completed, bypass the failing
 criteria, or proceed to another milestone.
 
 Before declaring a milestone complete:
