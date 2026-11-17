@@ -1,6 +1,6 @@
 # ADR 0008 — Dynamic Plan preparation and instance binding
 
-Status: accepted by the project owner for M5. Grouped registration, component factories, concurrent first-use preparation, caching, and precomputation signatures remain open.
+Status: accepted by the project owner for M5. Grouped registration was later approved in [ADR 0009](0009-grouped-fluent-registration.md); component factories, concurrent first-use preparation, caching, and precomputation signatures remain open.
 
 Decision: `Definition[Leaf]` has `Prepare() (*Plan[Leaf], error)`, `MustPrepare() *Plan[Leaf]`, `Init(*Leaf, ...ProviderRef[Leaf]) error`, and `MustInit(*Leaf, ...ProviderRef[Leaf]) *Leaf`. A prepared `Plan[Leaf]` has the same Init/MustInit pair. Both Definition and Plan have a generic `NodeProvider[Node any](*Node) ProviderRef[Leaf]` method. ProviderRef and Plan have unexported fields. Must operations panic with the error from their underlying operation; successful MustInit returns the original leaf pointer.
 

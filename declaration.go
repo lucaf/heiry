@@ -28,6 +28,12 @@ type declaredBinding struct {
 	providerPath string
 }
 
+// OperationToken identifies one explicitly selected capability without a receiver.
+type OperationToken struct{ capability reflect.Type }
+
+// Of creates a receiver-free capability token for grouped registration.
+func Of[T any]() OperationToken { return OperationToken{capability: reflect.TypeFor[T]()} }
+
 // LevelHandle identifies one stable level in its definition.
 type LevelHandle[Leaf any] struct {
 	definition *Definition[Leaf]
@@ -69,7 +75,7 @@ func (l *LevelHandle[Leaf]) Bind[Operation any](provider Operation, providerPath
 		return l
 	}
 	capability := reflect.TypeFor[Operation]()
-	if capability.Kind() != reflect.Interface || capability.NumMethod() != 1 || capability.Method(0).PkgPath != "" {
+	if !validCapability(capability) {
 		l.definition.recorded = append(l.definition.recorded, &Error{
 			Code: InvalidCapability, Target: reflect.TypeFor[Leaf](), Level: l.level.index,
 			Capability: capability, Path: providerPath,
@@ -89,6 +95,49 @@ func (l *LevelHandle[Leaf]) Bind[Operation any](provider Operation, providerPath
 		providerPath:    providerPath,
 	})
 	return l
+}
+
+// BindGroup records several explicit operations for one typed-nil provider.
+// It stores only type metadata and never retains the caller's token slice.
+func (l *LevelHandle[Leaf]) BindGroup[Provider any](provider *Provider, providerPath string, operations ...OperationToken) *LevelHandle[Leaf] {
+	if l.rejected {
+		return l
+	}
+	target := reflect.TypeFor[Leaf]()
+	level := l.level.index
+	if l.definition.plan != nil {
+		l.definition.recorded = append(l.definition.recorded, &Error{Code: InvalidDeclaration, Target: target, Level: level, Path: providerPath})
+		return l
+	}
+	var invalid []error
+	if len(operations) == 0 {
+		invalid = append(invalid, &Error{Code: InvalidDeclaration, Target: target, Level: level, Path: providerPath})
+	}
+	providerType := reflect.TypeOf(provider)
+	if provider != nil || !validProviderPath(providerPath) {
+		invalid = append(invalid, &Error{Code: InvalidProvider, Target: target, Level: level, Path: providerPath, Expected: reflect.PointerTo(l.level.typ), Actual: providerType})
+	}
+	for _, operation := range operations {
+		capability := operation.capability
+		if !validCapability(capability) {
+			invalid = append(invalid, &Error{Code: InvalidCapability, Target: target, Level: level, Path: providerPath, Capability: capability})
+		}
+	}
+	if len(invalid) != 0 {
+		l.definition.recorded = append(l.definition.recorded, invalid...)
+		return l
+	}
+	for _, operation := range operations {
+		l.level.bindings = append(l.level.bindings, declaredBinding{
+			contractBinding: contractBinding{capability: operation.capability, provider: providerType},
+			providerPath:    providerPath,
+		})
+	}
+	return l
+}
+
+func validCapability(capability reflect.Type) bool {
+	return capability != nil && capability.Kind() == reflect.Interface && capability.NumMethod() == 1 && capability.Method(0).PkgPath == ""
 }
 
 func validProviderPath(path string) bool {

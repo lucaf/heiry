@@ -1,6 +1,6 @@
 # ADR 0007 — Fluent receiver-free declaration
 
-Status: accepted for M4 by the project owner on 2026-11-17. Grouped registration and lifecycle/provider-pointer signatures remain open.
+Status: accepted for M4 by the project owner on 2026-11-17. Grouped registration was later approved in [ADR 0009](0009-grouped-fluent-registration.md); component and precomputed lifecycle signatures remain open.
 
 Decision: M4 declares one receiver-free hierarchy through a concrete generic `Definition[Leaf]` and stable `LevelHandle[Leaf]` values. A generic `Level[Node, Public, Private](parentField)` method adds a level. A generic `Bind[Operation](typedNilProvider, providerPath)` method adds an individual registration with the compiler's provider/interface check. `End()` returns the same definition. `Validate()` checks the current snapshot without freezing or creating a Plan. The final node type must equal `Leaf` exactly; validated direct value-parent edges derive leaf-relative node paths. The node provider uses the explicit path `"."`.
 
@@ -8,4 +8,4 @@ Fluent calls that detect invalid witnesses or inputs record receiver-free struct
 
 Alternatives: separate `Add(Bind[T](...))` descriptors offer the same compiler check with more syntax; explicit leaf-relative node paths repeat information derivable from validated parent edges; typed field selectors cannot establish capture freedom or ownership. [ADR 0006](0006-receiver-free-schema.md) remains unapproved historical context, not the selected API.
 
-M4 implements only single-node-provider declaration. M6 extends the same handles with grouped registration and the complete fluent lifecycle. M5–M8 own Plan reuse, initialization, precomputation, and component-provider binding under their respective gates; this decision does not select their unresolved public signatures.
+M4 implements only single-node-provider declaration. [ADR 0009](0009-grouped-fluent-registration.md) later approved grouped registration on the same handles and reuse of M5's dynamic lifecycle. M5–M8 own Plan reuse, initialization, precomputation, and component-provider binding under their respective gates; this decision did not select their later public signatures.

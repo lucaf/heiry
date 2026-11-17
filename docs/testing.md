@@ -24,7 +24,7 @@ Dynamic dispatch is the initial reference implementation. Prove it with the kern
 
 Shared immutable schema metadata exists conceptually before stage 7; stage 7 proves reuse/concurrency and adds optimized resolution after the lifecycle is tested. Internal fixtures may assemble data for early tests, but must not masquerade as a stable public builder.
 
-Milestones order the implementation; placing the builder after the kernel and component providers at stage 8 does not exclude them from the release. Stage 8 is required to satisfy specification S5. The declaration and dynamic Plan APIs are recorded in [ADR 0007](decisions/0007-fluent-receiver-free-declaration.md) and [ADR 0008](decisions/0008-dynamic-plan-lifecycle.md); implementation fixtures must not silently settle open grouped, complete fluent-lifecycle, component, or precomputation signatures.
+Milestones order the implementation; placing the builder after the kernel and component providers at stage 8 does not exclude them from the release. Stage 8 is required to satisfy specification S5. The declaration, dynamic Plan, and grouped registration APIs are recorded in [ADR 0007](decisions/0007-fluent-receiver-free-declaration.md), [ADR 0008](decisions/0008-dynamic-plan-lifecycle.md), and [ADR 0009](decisions/0009-grouped-fluent-registration.md); implementation fixtures must not silently settle open component or precomputation signatures.
 
 ## Fluent configuration acceptance
 
@@ -94,7 +94,9 @@ For M2 only, the owner approved completion from successful scoped local formatti
 
 For M4 only, the owner directed completion when the declaration milestone's scoped local code and documentation gates pass. The authorization and actual evidence are recorded in the [M4 roadmap entry](roadmap.md#m4-reusable-schema-declaration-api). Report this local-gate exception separately from remote CI evidence; do not describe an unrun remote job as successful.
 
-For M5 only, the owner directed a green CI designation and milestone completion from passing scoped local code and documentation gates, as for previous milestones. The authorization and observed checks are recorded in the [M5 roadmap entry](roadmap.md#m5-immutable-dynamic-plans-and-instance-binding). This local-gate exception does not assert that remote CI ran. Other milestones retain their CI gates.
+For M5 only, the owner directed a green CI designation and milestone completion from passing scoped local code and documentation gates, as for previous milestones. The authorization and observed checks are recorded in the [M5 roadmap entry](roadmap.md#m5-immutable-dynamic-plans-and-instance-binding). This local-gate exception does not assert that remote CI ran.
+
+For M6 only, the owner directed a green CI designation and milestone completion when its scoped local code and documentation gates pass. The authorization and observed checks are recorded in the [M6 roadmap entry](roadmap.md#m6-fluent-hierarchy-configuration). This local-gate exception does not assert that remote CI ran. Other milestones retain their CI gates.
 
 Select formatting files and test packages explicitly from maintained project sources. Exclude `.ceiling`, archives, prototypes, and unrelated material from discovery, formatting, vet, tests, race checks, fuzzing, and benchmarks. Avoid recursive `gofmt -l .` or unfiltered filesystem globs. For the planned root package, after confirming source exists, the scoped gates are:
 

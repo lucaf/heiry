@@ -1,0 +1,11 @@
+# ADR 0009 — Grouped fluent registration
+
+Status: accepted by the project owner for M6. Component-provider and precomputed lifecycle signatures remain open.
+
+Decision: a receiver-free `OperationToken` with unexported metadata is created by `Of[T any]() OperationToken`. `(*LevelHandle[Leaf]).BindGroup[Provider any](provider *Provider, providerPath string, operations ...OperationToken) *LevelHandle[Leaf]` records several explicitly selected capabilities for one typed-nil pointer witness. The generic pointer parameter lets the compiler reject nonpointer witnesses; it does not prove that the provider implements every token's interface. Individual `Bind[T]` retains that compiler check. Both styles feed the same per-operation metadata, validators, and typed dynamic resolver.
+
+`Of[T]` does not panic for an unsuitable T. An empty group records sticky InvalidDeclaration. A zero or invalid token records sticky InvalidCapability; a nonnil witness or malformed path records sticky InvalidProvider. The group reports detectable malformed inputs in deterministic order and adds no bindings from that call. A rejected post-freeze Level handle remains inert; a previously valid frozen handle records InvalidDeclaration without changing the prepared Plan. Accepted calls extract capability types immediately and do not retain the caller's token slice or a provider object.
+
+For a well-formed call, definition validation checks each provider/interface assertion, operation declaration, canonical identity, signature, duplicate, path, and contract coverage through the existing validators. Valid entries can contribute coverage even if another entry fails; an invalid definition never prepares a Plan. Duplicate operations within one group or across individual and grouped calls are rejected by the same validation path. The approved M5 Definition and Plan methods provide the dynamic fluent lifecycle; M6 adds no lifecycle handle or separate engine.
+
+Alternatives: `provider any` would omit the pointer check; repeated individual descriptors would preserve per-operation compiler checks but repeat provider and path arguments; another lifecycle builder would duplicate the already chainable M5 operations. Component references and ownership remain M8 work. Concurrent lazy preparation and precomputation remain M7 work.

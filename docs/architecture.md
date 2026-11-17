@@ -41,12 +41,15 @@ The runtime never needs two hierarchies or duplicate level/contract/binding decl
 
 ### Receiver-free schema declaration API
 
-The receiver-free declaration uses the signatures approved in [ADR 0007](decisions/0007-fluent-receiver-free-declaration.md):
+The receiver-free declaration uses the individual signatures approved in [ADR 0007](decisions/0007-fluent-receiver-free-declaration.md) and grouped signatures approved in [ADR 0009](decisions/0009-grouped-fluent-registration.md):
 
 ```go
 func Define[Leaf any]() *Definition[Leaf]
 func (d *Definition[Leaf]) Level[Node, Public, Private any](parentField string) *LevelHandle[Leaf]
 func (l *LevelHandle[Leaf]) Bind[Operation any](provider Operation, providerPath string) *LevelHandle[Leaf]
+type OperationToken struct { /* unexported capability metadata */ }
+func Of[T any]() OperationToken
+func (l *LevelHandle[Leaf]) BindGroup[Provider any](provider *Provider, providerPath string, operations ...OperationToken) *LevelHandle[Leaf]
 func (l *LevelHandle[Leaf]) End() *Definition[Leaf]
 func (d *Definition[Leaf]) Validate() error
 ```
@@ -55,9 +58,9 @@ func (d *Definition[Leaf]) Validate() error
 
 The final node type must equal `Leaf` exactly. After validating the complete direct anonymous value-parent chain, validation derives leaf-relative node paths from its explicit parent field names. Provider paths are relative to the owning level; `"."` identifies the node itself. The declaration stores types, paths, contracts, and operation metadata, never receivers, bound methods, or object-capturing closures. Its validated snapshot feeds the existing hierarchy and contract validators, then the same Plan and instance-binding machinery. Validation of the declaration alone does not publish a Plan or install scopes.
 
-Grouped registration, the complete fluent lifecycle, and component-provider signatures remain unresolved. The same handles must accommodate grouped registrations and multiple providers without a second configuration engine. [ADR 0007](decisions/0007-fluent-receiver-free-declaration.md) records the descriptor and selector alternatives; [ADR 0006](decisions/0006-receiver-free-schema.md) remains unapproved history.
+Grouped registration uses the same handle and expands accepted token types into the existing per-operation entries. The group checks malformed call inputs atomically and stores only extracted type metadata; the existing validator checks provider/interface assertions and duplicates. [ADR 0009](decisions/0009-grouped-fluent-registration.md) records its approved signatures and failure rules. The dynamic fluent lifecycle uses the Definition and Plan operations approved in [ADR 0008](decisions/0008-dynamic-plan-lifecycle.md). Component-provider and precomputed lifecycle signatures remain unresolved. [ADR 0007](decisions/0007-fluent-receiver-free-declaration.md) records earlier descriptor and selector alternatives; [ADR 0006](decisions/0006-receiver-free-schema.md) remains unapproved history.
 
-[ADR 0008](decisions/0008-dynamic-plan-lifecycle.md) approves the dynamic preparation and node-provider lifecycle signatures. A definition reference records lineage and node type without validating or freezing; a Plan reference uses the same lineage. Plan preparation consumes one validated snapshot and shares its capability identities and registration layout. Instance binding supplies actual receivers and checks ownership before installing scopes. Prepared Plan methods read only immutable metadata and instance inputs. Grouped registration, component factories, precomputation, and concurrent first-use coordination remain separate decisions.
+[ADR 0008](decisions/0008-dynamic-plan-lifecycle.md) approves the dynamic preparation and node-provider lifecycle signatures. A definition reference records lineage and node type without validating or freezing; a Plan reference uses the same lineage. Plan preparation consumes one validated snapshot and shares its capability identities and registration layout. Instance binding supplies actual receivers and checks ownership before installing scopes. Prepared Plan methods read only immutable metadata and instance inputs. Component factories, precomputation, and concurrent first-use coordination remain separate decisions.
 
 ### Instance initialization
 
@@ -103,11 +106,11 @@ The synchronization primitive, cache key representation, lifetime/eviction polic
 
 The design goal and illustrative syntax belong to [specification S1](specification.md#fluent-configuration). The builder is a configuration layer over the same schema validator, instance binder, and dispatch kernel. It does not introduce a separate inheritance engine.
 
-The declaration's `Definition[Leaf]` and `LevelHandle[Leaf]` support chaining and separate statements over the same metadata. Later lifecycle handles may represent preparation and instance setup stages; their exact types and transitions remain open. Both styles feed the same validators and dispatch kernel.
+The declaration's `Definition[Leaf]` and `LevelHandle[Leaf]` support chaining and separate statements over the same metadata. The dynamic path chains through their existing End, Prepare/MustPrepare, and Init/MustInit operations. Future precomputed lifecycle handles remain undecided. Both styles feed the same validators and dispatch kernel.
 
-Public and private contracts remain per-level metadata, so the chain can describe their independent extension through the hierarchy. A level can hold several provider descriptions, each associated with its explicitly selected operations. Grouped registration, in the spirit of `AddBinds`, expands into the same per-operation entries as individual registration; it does not create a different resolver or change override precedence. Both paths use the same duplicate, contract, and ownership validation.
+Public and private contracts remain per-level metadata, so the chain can describe their independent extension through the hierarchy. A level can hold several provider descriptions, each associated with its explicitly selected operations. `BindGroup` expands into the same per-operation entries as individual registration; it does not create a different resolver or change override precedence. Both paths use the same duplicate, contract, and ownership validation.
 
-Individual `Bind[Operation]` has the compiler's provider/interface check. The exact grouped signature remains open; a provider-any/token form would require validation-time interface checks for each token. Runtime invocation remains typed in either form.
+Individual `Bind[Operation]` has the compiler's provider/interface check. `BindGroup` checks pointer syntax at compile time and provider/interface compatibility through definition validation. Runtime invocation remains typed in either form.
 
 Preparation freezes a coherent configuration. Lifecycle operations return the current context or a handle for the next stage, allowing preparation, optional precomputation, and initialization to compose. Exact handle types are open; returning the same pointer from every operation is not a requirement. Error-returning paths and Must variants expose the same setup failures, and a failed stage must not allow later stages to publish an initialized object.
 
