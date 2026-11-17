@@ -1,6 +1,6 @@
 # Testing and implementation plan
 
-This document owns implementation order, required tests, and acceptance criteria. Apply the development process in [AGENTS.md](../AGENTS.md); do not treat the milestones below as an alternative process. Behavioral expectations come from the [specification](specification.md), and the representations/state transitions come from [architecture](architecture.md).
+This document owns implementation order, required tests, and acceptance criteria. Apply the development process in [AGENTS.md](../AGENTS.md); do not treat the milestones below as an alternative process. Behavioral expectations come from the [specification](specification.md), representations/state transitions from [architecture](architecture.md), and milestone status and check results from the [roadmap](roadmap.md).
 
 ## Package before examples
 
@@ -24,7 +24,7 @@ Dynamic dispatch is the initial reference implementation. Prove it with the kern
 
 Shared immutable schema metadata exists conceptually before stage 7; stage 7 proves reuse/concurrency and adds optimized resolution after the lifecycle is tested. Internal fixtures may assemble data for early tests, but must not masquerade as a stable public builder.
 
-Milestones order the implementation; placing the builder after the kernel and component providers at stage 8 does not exclude them from the release. Stage 8 is required to satisfy specification S5. M4's receiver-free declaration API is approved in [architecture](architecture.md#receiver-free-schema-declaration-api); preparation and instance lifecycle signatures remain pending approval. Implementation fixtures must not silently settle those later APIs.
+Milestones order the implementation; placing the builder after the kernel and component providers at stage 8 does not exclude them from the release. Stage 8 is required to satisfy specification S5. The declaration API is described in [architecture](architecture.md#receiver-free-schema-declaration-api); implementation fixtures must not silently settle open grouped, preparation, or instance-lifecycle signatures.
 
 ## Fluent configuration acceptance
 
@@ -37,6 +37,7 @@ At stages 6 and 7, test the design goal in [specification S1](specification.md#f
 - Verify equivalence between a chain and the same sequence split across variables; assert handle identity only where the chosen API promises it. Stage-specific return types must permit the documented next operation.
 - Exercise error-returning paths and Must variants. A failed stage must report the same underlying setup error and prevent partial initialization. Reject edits after preparation while preserving the prepared result.
 - When a provider registration is invalid but the hierarchy and contracts remain analyzable, report its diagnostic together with every missing mandatory method. An invalid registration contributes no method coverage.
+- When a later contract is invalid, retain earlier registration diagnostics alongside the contract error without continuing coverage analysis through the invalid contract.
 - Exercise the same hierarchy definition through eager preparation and lazy first use, then reuse its Plan in fluent object setup. First use without an already prepared Plan must succeed through valid lazy preparation; attempting to bind without ever obtaining a valid Plan must fail. Ensure neither chaining nor precomputation captures receivers in shared metadata.
 - Use negative compilation fixtures to prove typed binding remains enforced through the builder. For the approved grouped API, test every promised compiler check and any explicitly documented validation-time check; do not count runtime rejection as compile-time safety. Include successful controls so syntax or environment failures cannot count as type-safety evidence.
 
@@ -89,9 +90,9 @@ For larger layouts use Go fuzzing. Bound generated depths and table sizes so inp
 
 CI must discover a nonempty set of applicable maintained library packages, including actual non-test source in the root heiry package, before claiming Go verification. If no applicable packages exist, report Go verification as not run/no implementation; an empty successful tool invocation or unrelated package tests are not evidence. The existing root-package source and tests must be included. A no-tests run cannot establish a tested milestone.
 
-For M2, the owner approved marking the milestone Completed from successful scoped local formatting, vet, unit, race, and documentation checks on the M2 source. An M2 CI run is not a completion prerequisite under this explicit exception. Report local and CI evidence separately; do not describe an unrun CI job as successful.
+For M2 only, the owner approved completion from successful scoped local formatting, vet, unit, race, and documentation checks on the M2 source. An M2 CI run is not a completion prerequisite under this exception. The authorization and actual evidence are recorded in the [M2 roadmap entry](roadmap.md#m2-nested-embedding-and-instance-scopes). Report local and CI evidence separately; do not describe an unrun CI job as successful.
 
-For M4 only, the owner explicitly directed marking the declaration milestone green when its scoped local code and documentation gates pass. Report this as an owner-approved local-gate completion exception, separate from remote CI evidence. Do not describe an unrun remote job as successful. Other milestones retain their CI gates.
+For M4 only, the owner directed completion when the declaration milestone's scoped local code and documentation gates pass. The authorization and actual evidence are recorded in the [M4 roadmap entry](roadmap.md#m4-reusable-schema-declaration-api). Report this local-gate exception separately from remote CI evidence; do not describe an unrun remote job as successful. Other milestones retain their CI gates.
 
 Select formatting files and test packages explicitly from maintained project sources. Exclude `.ceiling`, archives, prototypes, and unrelated material from discovery, formatting, vet, tests, race checks, fuzzing, and benchmarks. Avoid recursive `gofmt -l .` or unfiltered filesystem globs. For the planned root package, after confirming source exists, the scoped gates are:
 
@@ -115,7 +116,3 @@ For documentation/layout-only changes, check local links, document ownership, ob
 Compare ordinary interface dispatch, dynamic lookup, and precomputed lookup at depths 1/3/10 with the same bodies and consumed results. Include inherited root methods, sparse overrides, parent calls to another operation, and public-to-private delegation. Vary method count and eventually component count; use mixed receivers as well as monomorphic cases to expose devirtualization effects.
 
 Measure hierarchy validation, Plan preparation, builder assembly, first lazy use, warm Plan reuse, optional conversion, and per-object checks/binding separately from steady-state invocation. Distinguish eager startup cost from lazy first-use cost; do not count revalidation on every object as warm reuse. Record ns/op, B/op, allocs/op, Go version, architecture, and setup; distinguish shared-plan memory from per-object storage. Benchmarks provide evidence, not arbitrary acceptance thresholds. No arbitrary speed or allocation thresholds until measured baselines justify them.
-
-## Milestone status
-
-M1 is **Completed**: the root package contains the dynamic resolver and focused two-/three-level tests. [The roadmap](roadmap.md#m1-minimal-inheritance-and-typed-dispatch-kernel) records the observed Red/Green cycle, Stage 2 acceptance coverage, local gates, and owner-reported CI result. M2 is **Completed** under the owner-approved local-gate exception above; [the roadmap](roadmap.md#m2-nested-embedding-and-instance-scopes) records its Red/Green and local check results and the owner's report of a successful M2 CI run. M3 is **Completed**; [the roadmap](roadmap.md#m3-publicprivate-contracts-and-hierarchy-validation) records its Red/Green, local checks, and owner-reported successful CI result. M4 is **Completed** under the owner-directed local-gate treatment above; [the roadmap](roadmap.md#m4-reusable-schema-declaration-api) records approval, Red/Green, local tests, and the owner-reported CI-green result. M5–M9 remain unimplemented; there are no usage examples. Documentation and test plans alone do not establish completed behavior.

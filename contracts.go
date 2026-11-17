@@ -34,14 +34,21 @@ func validateContracts(levels []contractLevel, target int) (*contractResult, err
 	var previous map[string]contractOperation
 	canonical := make(map[string]reflect.Type)
 	bound := make(map[string]bool)
+	var diagnostics []error
+	fail := func(err error) (*contractResult, error) {
+		if len(diagnostics) == 0 {
+			return nil, err
+		}
+		return nil, errors.Join(append(diagnostics, err)...)
+	}
 	var effectivePublic, effectivePrivate reflect.Type
 	for level := 0; level <= target; level++ {
 		entry := levels[level]
 		if level == 0 && (entry.public == nil || entry.private == nil) {
-			return nil, &Error{Code: InvalidContract, Level: level}
+			return fail(&Error{Code: InvalidContract, Level: level})
 		}
 		if (entry.public == nil) != (entry.private == nil) {
-			return nil, &Error{Code: InvalidContract, Level: level}
+			return fail(&Error{Code: InvalidContract, Level: level})
 		}
 		if entry.public != nil {
 			effectivePublic, effectivePrivate = entry.public, entry.private
@@ -52,15 +59,15 @@ func validateContracts(levels []contractLevel, target int) (*contractResult, err
 			typeOf reflect.Type
 		}{{"public", effectivePublic}, {"private", effectivePrivate}} {
 			if category.typeOf == nil || category.typeOf.Kind() != reflect.Interface {
-				return nil, &Error{Code: InvalidContract, Category: category.name, Level: level}
+				return fail(&Error{Code: InvalidContract, Category: category.name, Level: level})
 			}
 			for i := 0; i < category.typeOf.NumMethod(); i++ {
 				method := category.typeOf.Method(i)
 				if method.PkgPath != "" {
-					return nil, &Error{Code: InvalidContract, Name: method.Name, Category: category.name, Level: level}
+					return fail(&Error{Code: InvalidContract, Name: method.Name, Category: category.name, Level: level})
 				}
 				if _, exists := operations[method.Name]; exists {
-					return nil, &Error{Code: ContractCollision, Name: method.Name, Level: level}
+					return fail(&Error{Code: ContractCollision, Name: method.Name, Level: level})
 				}
 				operations[method.Name] = contractOperation{method: method, category: category.name}
 			}
@@ -74,31 +81,37 @@ func validateContracts(levels []contractLevel, target int) (*contractResult, err
 			old := previous[name]
 			current, ok := operations[name]
 			if !ok || current.category != old.category || current.method.Type != old.method.Type {
-				return nil, &Error{Code: ContractExtension, Name: name, Category: old.category, Level: level, Expected: old.method.Type, Actual: current.method.Type}
+				return fail(&Error{Code: ContractExtension, Name: name, Category: old.category, Level: level, Expected: old.method.Type, Actual: current.method.Type})
 			}
 		}
 		seen := make(map[string]bool)
 		for _, binding := range entry.bindings {
 			capability := binding.capability
 			if capability == nil || capability.Kind() != reflect.Interface || capability.NumMethod() != 1 || capability.Method(0).PkgPath != "" {
-				return nil, &Error{Code: InvalidCapability, Capability: capability, Level: level}
+				diagnostics = append(diagnostics, &Error{Code: InvalidCapability, Capability: capability, Level: level})
+				continue
 			}
 			method := capability.Method(0)
 			operation, ok := operations[method.Name]
 			if !ok {
-				return nil, &Error{Code: UndeclaredOperation, Name: method.Name, Capability: capability, Level: level}
+				diagnostics = append(diagnostics, &Error{Code: UndeclaredOperation, Name: method.Name, Capability: capability, Level: level})
+				continue
 			}
 			if method.Type != operation.method.Type {
-				return nil, &Error{Code: SignatureMismatch, Name: method.Name, Capability: capability, Level: level, Expected: operation.method.Type, Actual: method.Type}
+				diagnostics = append(diagnostics, &Error{Code: SignatureMismatch, Name: method.Name, Capability: capability, Level: level, Expected: operation.method.Type, Actual: method.Type})
+				continue
 			}
 			if prior, exists := canonical[method.Name]; exists && prior != capability {
-				return nil, &Error{Code: CapabilityIdentity, Name: method.Name, Capability: capability, Level: level, Expected: prior, Actual: capability}
+				diagnostics = append(diagnostics, &Error{Code: CapabilityIdentity, Name: method.Name, Capability: capability, Level: level, Expected: prior, Actual: capability})
+				continue
 			}
 			if seen[method.Name] {
-				return nil, &Error{Code: DuplicateBinding, Name: method.Name, Capability: capability, Level: level}
+				diagnostics = append(diagnostics, &Error{Code: DuplicateBinding, Name: method.Name, Capability: capability, Level: level})
+				continue
 			}
 			if binding.provider == nil || binding.provider.Kind() != reflect.Pointer || !binding.provider.Implements(capability) {
-				return nil, &Error{Code: SignatureMismatch, Name: method.Name, Capability: capability, Level: level, Expected: capability, Actual: binding.provider}
+				diagnostics = append(diagnostics, &Error{Code: SignatureMismatch, Name: method.Name, Capability: capability, Level: level, Expected: capability, Actual: binding.provider})
+				continue
 			}
 			seen[method.Name], bound[method.Name] = true, true
 			canonical[method.Name] = capability
@@ -113,7 +126,6 @@ func validateContracts(levels []contractLevel, target int) (*contractResult, err
 		}
 	}
 	sort.Strings(missing)
-	var diagnostics []error
 	for _, name := range missing {
 		diagnostics = append(diagnostics, &Error{Code: MissingMethods, Name: name, Category: previous[name].category, Capability: canonical[name], Level: target, Expected: previous[name].method.Type})
 	}

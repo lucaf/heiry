@@ -93,3 +93,19 @@ func TestM4CurrentSnapshotRejectsInvalidParentAndProviderPath(t *testing.T) {
 		t.Fatalf("safe structural and provider errors = %v", err)
 	}
 }
+
+func TestM4EarlierRegistrationErrorSurvivesLaterContractFailure(t *testing.T) {
+	definition := Define[m4B]()
+	definition.Level[m4A, m4APublic, m4APrivate]("").
+		Bind[m4Read]((*m4A)(nil), ".").
+		Bind[m4Read]((*m4A)(nil), ".").End().
+		Level[m4B, contractEmpty, m4APrivate]("m4A").End()
+
+	err := definition.Validate()
+	if !errors.Is(err, &Error{Code: DuplicateBinding}) || !errors.Is(err, &Error{Code: ContractExtension}) {
+		t.Fatalf("registration and later contract diagnostics = %v", err)
+	}
+	if errors.Is(err, &Error{Code: MissingMethods}) {
+		t.Fatalf("coverage should stop at invalid contract: %v", err)
+	}
+}

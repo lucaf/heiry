@@ -8,7 +8,7 @@ The typed resolution kernel receives immutable level/capability/provider informa
 
 | Component | Contents | Lifetime |
 | --- | --- | --- |
-| Schema definition | Target type; ordered level types; explicit parent/provider value-field paths; effective contracts at each level; canonical capability types; provider owner assertions | Mutable while being described |
+| Schema definition | Target type; ordered level types; direct parent fields; provider-relative paths; effective contracts at each level; canonical capability types; provider owner assertions | Mutable while being described |
 | Hierarchy validation | Checks of an immutable definition snapshot, independent of live receiver identity | Definition-level work before a usable Plan is published |
 | Plan | Validated schema metadata, including types and paths; optional destination indices | Immutable, receiver-free, shareable |
 | Fluent configuration handles | Hierarchy/level configuration and the selected lifecycle stage | Mutable during configuration; prepared configuration is frozen |
@@ -25,7 +25,7 @@ These are three responsibilities with separate inputs and effects. [Specificatio
 
 ### Hierarchy validation
 
-Validation consumes a stable definition snapshot describing **types, paths, contracts, and explicit registrations**. Structural inspection checks parent/provider storage, Node declarations, contract composition, capability signatures, and registration coverage. Once the chain is structurally valid, invalid node-provider registrations are reported and omitted from the bindings passed to contract coverage analysis, so they cannot satisfy mandatory methods. Its result establishes definition validity or describes errors. It does not associate receivers with the hierarchy or install scopes, and it cannot replace physical checks on a later object.
+Validation consumes a stable definition snapshot describing **types, paths, contracts, and explicit registrations**. Structural inspection checks parent/provider storage, Node declarations, contract composition, capability signatures, and registration coverage. Once the chain is structurally valid, invalid node-provider registrations are reported and omitted from contract analysis. Contract validation records invalid registrations and counts only valid bindings toward coverage, so it can report missing methods alongside registration errors when the contracts remain analyzable. If a later contract is invalid, analysis stops but retains established registration diagnostics. Its result establishes definition validity or describes errors. It does not associate receivers with the hierarchy or install scopes, and it cannot replace physical checks on a later object.
 
 ### Plan preparation
 
@@ -41,11 +41,7 @@ The runtime never needs two hierarchies or duplicate level/contract/binding decl
 
 ### Receiver-free schema declaration API
 
-The project owner approved M4's fluent receiver-free declaration design in [ADR 0007](decisions/0007-fluent-receiver-free-declaration.md). [ADR 0006](decisions/0006-receiver-free-schema.md) remains unapproved history. M4's `Definition[Leaf]` owns ordered levels; a concrete `LevelHandle[Leaf]` refers to one stable level. Generic `Level[Node, Public, Private](parentField)` and `Bind[Operation](typedNilProvider, providerPath)` methods keep typed individual registration fluent. `End()` returns the definition. `Validate()` examines the current snapshot without freezing or preparing a Plan. Invalid fluent calls retain only receiver-free structured diagnostics and add no binding; those diagnostics remain visible on later validation. Validation adds only checks that remain safe after an earlier error.
-
-The final node type must equal `Leaf` exactly. Validation checks the complete direct anonymous value-parent chain before deriving leaf-relative node paths from its explicit parent field names. A provider path is relative to its owning level; `"."` names the node itself. M4 validates only node providers. A later edit is included in the next validation; M4 retains no reusable validated result. Preparation in a later milestone freezes a coherent configuration and must validate the current snapshot.
-
-The approved M4 public declaration signatures are:
+The receiver-free declaration uses the signatures approved in [ADR 0007](decisions/0007-fluent-receiver-free-declaration.md):
 
 ```go
 func Define[Leaf any]() *Definition[Leaf]
@@ -55,20 +51,11 @@ func (l *LevelHandle[Leaf]) End() *Definition[Leaf]
 func (d *Definition[Leaf]) Validate() error
 ```
 
-The concrete level handle retains its original level after other levels are added. `Bind` reduces a typed-nil witness immediately to type metadata. Invalid capability, pointer witness, or malformed path calls record structured errors without adding a registration; subsequent calls cannot erase those errors. `Validate` reports them with whatever definition checks remain safe. The generic method parameter preserves the compiler's provider/interface check for individual bindings. The declaration surface has no Plan or instance pointers.
+`Definition[Leaf]` owns ordered levels; each concrete `LevelHandle[Leaf]` retains its original level after later levels are added. `End` returns the definition. `Bind` accepts a typed-nil witness, immediately reduces it to provider type metadata, and uses its generic parameter for the compiler's provider/interface check. Invalid capability, nonnil witness, or malformed path calls add no registration and retain receiver-free structured diagnostics. `Validate` checks the current configuration without freezing it or preparing a Plan; later edits are checked afresh. Recorded errors remain visible, while further checks run only when safe. In particular, invalid provider registrations are omitted from contract coverage so missing operations remain reportable when the contracts can be analyzed.
 
-The receiver-free declaration design must describe types, storage paths, per-level contracts, and explicit typed registrations without an application object. Its output is a snapshot used by validation, not evidence that validation has already succeeded. Neither the reusable definition nor the resulting Plan may retain live receivers or object-capturing closures.
+The final node type must equal `Leaf` exactly. After validating the complete direct anonymous value-parent chain, validation derives leaf-relative node paths from its explicit parent field names. Provider paths are relative to the owning level; `"."` identifies the node itself. The declaration stores types, paths, contracts, and operation metadata, never receivers, bound methods, or object-capturing closures. Its validated snapshot feeds the existing hierarchy and contract validators, then the same Plan and instance-binding machinery. Validation of the declaration alone does not publish a Plan or install scopes.
 
-The design must connect this declaration to the fluent instance configuration without making authors repeat the full hierarchy. It must accommodate eager and lazy preparation, multiple providers at one level, and grouped registration. The exact grouped-registration syntax, preparation trigger, and way an object chain obtains a validated Plan remain to be resolved; they are not settled by the illustrative chain in the specification.
-
-The alternatives considered for this approval were:
-
-| Alternative | Fluent declaration approach | Advantages | Costs and unresolved checks |
-| --- | --- | --- | --- |
-| Type and field-path descriptors | A receiver-free hierarchy builder takes level/provider types, structural paths, contracts, and typed operation witnesses; object setup later uses the resulting Plan | Explicit metadata can be validated eagerly or lazily without receivers; typed witnesses can check interface satisfaction | Field paths need structural validation; M4 accepted typed-nil witnesses for individual binding; grouping and Plan handoff remain open |
-| Typed field selectors with explicit schema metadata | A fluent builder associates levels/providers with typed selectors for their subobjects, alongside the types and paths needed for startup validation | Selectors express field access using Go's type system and can identify actual subobjects during instance setup | An arbitrary selector's signature cannot prove ownership, absence of captured objects, or consistency with declared paths; a proposal must resolve these limits without constructing sample objects or weakening validation |
-
-The type-and-path alternative was selected for M4. The exact grouped-registration and lifecycle/provider-pointer signatures remain unapproved. M6 extends these same handles rather than introducing another builder; component ownership and binding remain M8 work. The selector alternative cannot establish capture freedom or physical ownership from its signature alone.
+Grouped registration, preparation triggers, lifecycle handoff, and per-instance provider-pointer signatures remain unresolved. The same handles must accommodate grouped registrations and multiple providers without a second configuration engine. [ADR 0007](decisions/0007-fluent-receiver-free-declaration.md) records the descriptor and selector alternatives; [ADR 0006](decisions/0006-receiver-free-schema.md) remains unapproved history.
 
 ### Instance initialization
 
@@ -114,11 +101,11 @@ The synchronization primitive, cache key representation, lifetime/eviction polic
 
 The design goal and illustrative syntax belong to [specification S1](specification.md#fluent-configuration). The builder is a configuration layer over the same schema validator, instance binder, and dispatch kernel. It does not introduce a separate inheritance engine.
 
-A hierarchy handle owns the ordered configuration. A level handle identifies one particular level and attaches its contracts and typed bindings there. In the illustrated style, `NewLevel` enters that context, configuration operations return it for chaining, and `End` returns the hierarchy handle. A saved level handle stays attached to its original level even after another level is added; a mutable last-level pointer must not redirect it. Names are illustrative, while the context relationships explain how the chain remains readable and unambiguous.
+The declaration's `Definition[Leaf]` and `LevelHandle[Leaf]` support chaining and separate statements over the same metadata. Later lifecycle handles may represent preparation and instance setup stages; their exact types and transitions remain open. Both styles feed the same validators and dispatch kernel.
 
 Public and private contracts remain per-level metadata, so the chain can describe their independent extension through the hierarchy. A level can hold several provider descriptions, each associated with its explicitly selected operations. Grouped registration, in the spirit of `AddBinds`, expands into the same per-operation entries as individual registration; it does not create a different resolver or change override precedence. Both paths use the same duplicate, contract, and ownership validation.
 
-Typed binding helpers retain the compiler's provider/interface check. The exact grouped syntax and its type-checking boundary remain part of API design under specification S1. An illustrative `.Bind(...)` or `.AddBinds(...)` does not prescribe how type parameters appear in the final Go API or imply that arbitrary type tokens prove interface satisfaction.
+Individual `Bind[Operation]` has the compiler's provider/interface check. The exact grouped signature remains open; a provider-any/token form would require validation-time interface checks for each token. Runtime invocation remains typed in either form.
 
 Preparation freezes a coherent configuration. Lifecycle operations return the current context or a handle for the next stage, allowing preparation, optional precomputation, and initialization to compose. Exact handle types are open; returning the same pointer from every operation is not a requirement. Error-returning paths and Must variants expose the same setup failures, and a failed stage must not allow later stages to publish an initialized object.
 
@@ -179,13 +166,13 @@ Instance binding follows those paths from the target and compares the resulting 
 
 An unexported component field can be addressable without being interfaceable or settable. `CanAddr` does not imply `CanInterface` or `CanSet`: `Interface()` and setters can panic on values reached through unexported fields, and taking `Addr()` does not remove that restriction. An exported Node reached through a named unexported component can inherit the restriction. Check validity, kind, and the relevant capability before using reflection operations. See the [reflection access checks](https://pkg.go.dev/reflect#Value.CanInterface), [CanSet](https://pkg.go.dev/reflect#Value.CanSet), and [Addr implementation](https://go.dev/src/reflect/value.go).
 
-**Feasibility finding from documentation and Go source inspection, not an executed prototype:** code in the component's package can explicitly supply its provider pointer, for example `&object.hiddenComponent`. Ownership inspection can compare the expected field's exact type and `Addr().Pointer()` with that supplied pointer, without extracting the restricted field through `Interface()`. Keep the owning object and provider strongly reachable during address comparisons; never convert numeric addresses back into pointers or retain them as reusable Plan metadata. Address/type checks must still enforce the declared path and parent-subtree exclusion. See [Value.Pointer](https://pkg.go.dev/reflect#Value.Pointer).
+For a named unexported component, code in its declaring package can supply a provider pointer, for example `&object.hiddenComponent`. Ownership inspection could compare the expected field's exact type and `Addr().Pointer()` with that supplied pointer, without extracting the restricted field through `Interface()`. Keep the owning object and provider strongly reachable during address comparisons; never convert numeric addresses back into pointers or retain them as reusable Plan metadata. Address/type checks must still enforce the declared path and parent-subtree exclusion. See [Value.Pointer](https://pkg.go.dev/reflect#Value.Pointer). This is a feasibility inference, not a validated integration path.
 
-Scope installation can then start from the independently supplied pointer through `reflect.ValueOf(provider).Elem()`, rather than the restricted value obtained by traversing the containing object. The directly declared exported Node can provide a checked `*Node` for ordinary library-side scope assignment; its unexported internals must not be set through reflection. This is an inference from the [ValueOf and Field implementation](https://go.dev/src/reflect/value.go), to be verified by the acceptance cases in testing.md. It neither requires `unsafe` nor justifies excluding unexported components.
+Scope installation could then start from the independently supplied pointer through `reflect.ValueOf(provider).Elem()`, rather than the restricted value obtained by traversing the containing object. The directly declared exported Node can provide a checked `*Node` for ordinary library-side scope assignment; its unexported internals must not be set through reflection. This inference from the [ValueOf and Field implementation](https://go.dev/src/reflect/value.go) requires the [ownership/component acceptance cases](testing.md#required-matrix). It neither requires `unsafe` nor justifies excluding unexported components.
 
 **Open integration question:** how the eventual initialization API supplies those legitimate per-instance pointers alongside a receiver-free Plan remains undecided. Type/path metadata alone is not proof that reflection can extract a callable provider from an unexported field. The future API must address that gap without retaining instances in Plans, weakening ownership checks, or using `unsafe`; no new accessor or signature is selected here.
 
-Each participating receiver has a directly declared Node. Node stores a scope value with the complete-object dispatch reference and a fixed level index. Its provisional accessor is `receiver.Node.Scope()`, making the infrastructure holder explicit and avoiding a promoted ancestor holder.
+Each participating receiver has a directly declared Node. Node stores a scope value with the complete-object dispatch reference and a fixed level index. The receiver's `Node.Scope()` accessor makes the holder explicit and avoids a promoted ancestor holder.
 
 ## Public boundary
 
@@ -201,15 +188,4 @@ Node contains a **named, unexported** noCopy field whose type has pointer Lock/U
 
 ## Design rationale
 
-| Choice | Reason |
-| --- | --- |
-| Nested value embedding | Separate ancestors would duplicate state and disconnect inherited methods from the leaf's fields |
-| Explicit capability registrations | A reflected method set cannot reliably distinguish direct bodies from promoted methods or forwarders |
-| Fixed per-receiver scopes | A mutable current-level cursor would confuse recursion, callbacks, or overlapping calls |
-| Public-only wrapper | Returning a concrete implementation through a smaller interface would still allow private capability assertions |
-| Receiver-free Plan plus per-object bindings | Metadata can be shared without accidentally sharing application state |
-| Plan-based conversion behind the fluent lifecycle | One conversion mechanism selects the mode before binding; chainable configuration does not require duplicated resolution logic |
-| Stable level handles | A saved handle to A cannot silently start registering methods on B |
-| Fluent configuration over the kernel | Keeps levels, contracts, bindings, and lifecycle steps readable without entangling dispatch with builder syntax |
-
-Pointer inheritance, generation, and other excluded features remain outside the release scope defined by the specification. This rationale explains the current design; it does not introduce another source of requirements.
+The [ADRs](decisions/) retain the rationale and rejected alternatives for nested embedding, explicit registrations, public/private separation, fixed dispatch scopes, receiver-free Plans, and fluent declaration. The [specification](specification.md) defines release scope and exclusions.

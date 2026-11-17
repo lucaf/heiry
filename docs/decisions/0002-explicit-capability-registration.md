@@ -11,4 +11,4 @@ Alternatives considered:
 - An earlier revision rejected token-only registration and removed grouped registration with it. That exclusion was too broad: grouping is an authoring goal, while compile-time versus validation-time checking is a separate API design question. The original name and signature are not fixed, and no token-based replacement has been approved.
 - Resolving an aggregate interface: rejected because different methods can be supplied by different levels.
 
-Consequence: grouped calls must feed the same validation and resolution machinery as individual calls. Bad ownership assertions, especially registered forwarders, can recurse. Typed nil witnesses were proposed in [ADR 0006](0006-receiver-free-schema.md), but were not approved as the declaration API.
+Consequence: grouped calls must feed the same validation and resolution machinery as individual calls. Bad ownership assertions, especially registered forwarders, can recurse. [ADR 0007](0007-fluent-receiver-free-declaration.md) approves typed-nil witnesses for individual declaration; the earlier design in [ADR 0006](0006-receiver-free-schema.md) remains unapproved.

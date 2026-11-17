@@ -8,6 +8,14 @@ import (
 	"testing"
 )
 
+type registrationDiagnosticNode struct{ Node }
+
+func (*registrationDiagnosticNode) Read() int       { return 1 }
+func (*registrationDiagnosticNode) Write(int) error { return nil }
+func (*registrationDiagnosticNode) Extra()          {}
+
+type registrationExtra interface{ Extra() }
+
 func TestM4EmptyDefinitionAndExactLeaf(t *testing.T) {
 	definition := Define[stage3C]()
 	var diagnostic *Error
@@ -146,5 +154,63 @@ func TestM4InvalidProviderAlsoReportsAllMissingMethods(t *testing.T) {
 	collect(err)
 	if !slices.Equal(missing, []string{"Read", "Write"}) {
 		t.Fatalf("missing methods = %v, want Read and Write", missing)
+	}
+}
+
+func TestM4InvalidRegistrationsAlsoReportMissingMethods(t *testing.T) {
+	tests := []struct {
+		name        string
+		register    func(*LevelHandle[registrationDiagnosticNode])
+		code        Code
+		wantMissing []string
+	}{
+		{
+			name: "duplicate",
+			register: func(level *LevelHandle[registrationDiagnosticNode]) {
+				level.Bind[contractRead]((*registrationDiagnosticNode)(nil), ".")
+				level.Bind[contractRead]((*registrationDiagnosticNode)(nil), ".")
+			},
+			code:        DuplicateBinding,
+			wantMissing: []string{"Write"},
+		},
+		{
+			name: "undeclared",
+			register: func(level *LevelHandle[registrationDiagnosticNode]) {
+				level.Bind[registrationExtra]((*registrationDiagnosticNode)(nil), ".")
+			},
+			code:        UndeclaredOperation,
+			wantMissing: []string{"Read", "Write"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			definition := Define[registrationDiagnosticNode]()
+			level := definition.Level[registrationDiagnosticNode, contractPublicB, contractEmpty]("")
+			tt.register(level)
+			err := definition.Validate()
+			if !errors.Is(err, &Error{Code: tt.code}) || !errors.Is(err, &Error{Code: MissingMethods}) {
+				t.Fatalf("registration and coverage diagnostics = %v", err)
+			}
+			var missing []string
+			var collect func(error)
+			collect = func(item error) {
+				if joined, ok := item.(interface{ Unwrap() []error }); ok {
+					for _, child := range joined.Unwrap() {
+						collect(child)
+					}
+					return
+				}
+				if diagnostic, ok := item.(*Error); ok && diagnostic.Code == MissingMethods {
+					if diagnostic.Target != reflect.TypeFor[registrationDiagnosticNode]() || diagnostic.Category != "public" || diagnostic.Expected == nil {
+						t.Errorf("missing-method context = %+v", diagnostic)
+					}
+					missing = append(missing, diagnostic.Name)
+				}
+			}
+			collect(err)
+			if !slices.Equal(missing, tt.wantMissing) {
+				t.Fatalf("missing methods = %v, want %v", missing, tt.wantMissing)
+			}
+		})
 	}
 }

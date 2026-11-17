@@ -1,18 +1,20 @@
 # Functional specification
 
-This is the normative behavior for the first reusable heiry release. [Architecture](architecture.md) describes enforcement and lifecycle; [testing](testing.md) defines implementation gates. Implementation status and acceptance evidence are tracked in testing.md.
+This is the normative behavior for the first reusable heiry release. [Architecture](architecture.md) describes enforcement and lifecycle; [testing](testing.md) defines implementation gates. [Roadmap](roadmap.md) tracks implementation status and evidence.
 
 ## S1. Scope and authoring costs
 
 Use one leaf object containing its ancestors through anonymous value embedding. Support single inheritance, typed virtual and parent dispatch, extensible public/private interfaces, and independent objects with shared immutable schemas. Application constructors retain arbitrary signatures; object allocation and inheritance setup are separate.
 
-Both individual typed registration and grouped registration remain supported design goals. With a provider parameter typed as T, `Bind[T](provider)` can enforce interface satisfaction at compile time. In a grouped form such as `AddBinds(provider, Of[X](), Of[Y]())`, the tokens generally do not let the compiler prove that the provider implements X and Y; hierarchy validation must check each declared provider type against its selected capability interface before publishing a usable Plan. Instance-specific pointer and ownership checks still apply to both styles. The grouped name and signature are illustrative, not mandatory API choices.
+Hierarchy declarations are receiver-free: their reusable metadata contains types, paths, contracts, and explicit operation registrations, never an application object, bound method, or object-capturing closure. Individual `Bind[T]` registration takes a typed-nil provider witness and retains the compiler check that the provider satisfies T. Grouped registration remains required as a concise, chainable way to associate one provider with several explicitly selected operations. In a form such as `AddBinds(provider, Of[X](), Of[Y]())`, the tokens do not prove that the provider implements X and Y; validation must check each provider type against each selected capability interface. The grouped name and signature are illustrative. Instance-specific pointer and ownership checks apply to both styles.
 
-Grouped registration associates one provider with several explicitly selected operations in a concise, chainable step. It describes the same per-operation bindings as individual registration and must not infer overrides from all methods in the provider's method set. **Registration-time validation does not weaken invocation typing:** either style must resolve to typed interfaces through `Method[T]` and `ParentMethod[T]`, preserving compile-time argument/result checks and ordinary calls under S2, without reflective invocation. M4's typed-nil individual declaration is approved in [architecture](architecture.md#receiver-free-schema-declaration-api); the grouped and lifecycle signatures remain open. The earlier proposal in ADR 0006 remains unapproved history.
+Grouped and individual registration describe the same per-operation bindings and must not infer overrides from a provider's method set. **Validation-time grouped checks do not weaken invocation typing:** either style resolves to typed interfaces through `Method[T]` and `ParentMethod[T]`, preserving compile-time argument/result checks and ordinary calls under S2, without reflective invocation.
+
+Level handles stay attached to the level where they were created, including after later levels are added. Invalid fluent calls add no binding, retain only receiver-free structured diagnostics, and keep those errors visible on later validation; a corrected definition is needed to clear them. `Validate()` examines the current configuration without freezing it or creating a Plan. Later edits are checked on the next validation and cannot reuse an earlier validation result. The final declared node type must equal `Leaf` exactly, and the complete direct value-parent chain must be valid before leaf-relative node paths are accepted. Validation reports recorded diagnostics together with further errors that can safely be established. Invalid registrations do not satisfy contract coverage; when contract analysis is possible, every missing mandatory public and private method is reported. [Architecture](architecture.md#receiver-free-schema-declaration-api) defines the declaration signatures and enforcement.
 
 Authors supply canonical single-method interfaces, explicit registrations, bodies, directly embedded Node holders, and manually written public forwarders. Every public operation needs a forwarder on the public wrapper. Private operations need no public forwarder. This is an explicit cost, not a hidden promise to synthesize aggregate interfaces. Code generation is deferred.
 
-The first reusable release must support multiple providers at one inheritance level, such as A1 and A2 supplying different operations. Fluent configuration, including grouped registration, remains a design goal. Starting with a single-provider kernel is an implementation step, not a release restriction; sequencing belongs to the testing plan.
+The first reusable release must support multiple providers at one inheritance level, such as A1 and A2 supplying different operations. Fluent configuration must accommodate them.
 
 ### Fluent configuration
 
@@ -37,9 +39,9 @@ NewHierarchy(c).
     MustPrepare().MustPrecompute().MustInit()
 ```
 
-Exact names, signatures, and return types may be refined during implementation while preserving this principle and the agreed functionality. Return the same configuration handle where appropriate, or a handle for the next stage so the chain can continue. Fluent syntax must accommodate individual and grouped registration, multiple providers per level, per-level contract extension, ordinary error handling, and both dynamic and precomputed dispatch.
+The illustration does not replace the declaration signatures in [architecture](architecture.md#receiver-free-schema-declaration-api) or select later lifecycle and grouped-registration signatures. Return the same configuration handle where appropriate, or a handle for the next stage so the chain can continue. Fluent syntax must accommodate individual and grouped registration, multiple providers per level, per-level contract extension, ordinary error handling, and both dynamic and precomputed dispatch.
 
-The illustration does not select how a reusable hierarchy definition supplies a Plan to the object chain. That Plan may be prepared eagerly or lazily under [S6](#s6-validation-plan-preparation-and-reuse). The receiver-free preparation API and its connection to the chain remain open design points in architecture.md; the illustration does not require a second hierarchy definition for either strategy.
+The illustration does not select how a reusable hierarchy definition supplies a Plan to the object chain. That Plan may be prepared eagerly or lazily under [S6](#s6-validation-plan-preparation-and-reuse), without requiring a second hierarchy definition.
 
 ## S2. Native calls and dispatch boundary
 
@@ -118,7 +120,7 @@ Cache identity must account for the complete definition: selected target, ordere
 
 Cached Plans must be safe for concurrent reuse. Concurrent first use must coordinate preparation/publication so no caller sees incomplete metadata or another object's bindings. A cache hit never bypasses per-instance validation of actual type/address ownership, nils, directly embedded holders, or prior initialization. A failure for one instance must not invalidate a valid shared Plan or alter another object.
 
-Do not mandate a global cache, a particular synchronization mechanism, or a cache lifetime/eviction policy. Precomputation remains optional under S7. The lifecycle and ownership responsibilities are described in [architecture](architecture.md#validation-plan-preparation-and-instance-initialization); public preparation signatures remain unapproved.
+Do not mandate a global cache, a particular synchronization mechanism, or a cache lifetime/eviction policy. Precomputation remains optional under S7. The lifecycle and ownership responsibilities are described in [architecture](architecture.md#validation-plan-preparation-and-instance-initialization).
 
 ## S7. Resolution and precomputation
 
@@ -138,7 +140,7 @@ Production precomputation operates on Plan, before binding an instance. A fluent
 
 Constructors publish a dedicated unexported public wrapper with named unexported storage, never an embedded implementation or Node. Its dynamic method set contains only final public operations. Private type assertions must fail. Internal leaked implementation/provider pointers retain their exported methods. External consumers are supported; cross-package derivation is deferred.
 
-The lifecycle separates hierarchy validation, reusable Plan preparation, and initialization of an allocated leaf. Preparation may be eager or lazy under S6. The fluent builder presents these concerns coherently; its exact public handles are not prescribed. Invalid setup changes no existing scopes, including those already initialized and causing rejection. See the state transitions in architecture.md.
+The lifecycle separates hierarchy validation, reusable Plan preparation, and initialization of an allocated leaf. Preparation may be eager or lazy under S6. Fluent configuration presents these concerns coherently. Invalid setup changes no existing scopes, including those already initialized and causing rejection. See the state transitions in architecture.md.
 
 Install all scopes exactly once under exclusive instance initialization access, then publish. A second Init, even through another alias of the same object, returns AlreadyInitialized without replacement. Concurrent setup of the same target is unsupported; concurrent setup of different targets sharing one Plan or triggering lazy preparation of the same definition is supported.
 

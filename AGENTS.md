@@ -24,6 +24,8 @@ Do not silently remove, weaken, reinterpret, or replace design decisions made by
 
 Keep the four authoritative documents consistent without repeating their requirements. Update the document that owns an approved behavior or design change. Continue independent work only within the authorized scope.
 
+Implementation progress and bug fixes do not by themselves require edits to the specification, architecture, or testing plan; record their status and verification evidence in the roadmap. Update those baseline documents only to reflect an owner-approved substantive decision or a separately authorized documentation correction or cleanup.
+
 Run the applicable gates in docs/testing.md. Report implemented behavior, tests added, observed Red/Green results, check results, and remaining limitations. Do not claim a milestone complete without its acceptance evidence or broaden the task's scope silently.
 
 ## Execution Protocol

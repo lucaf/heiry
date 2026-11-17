@@ -2,11 +2,10 @@
 
 A Go library under development for single inheritance through nested struct embedding, explicit capability registration, and typed method resolution.
 
-**Status:** M1–M4 provide typed dispatch, embedded-state binding, contract and hierarchy validation, and a receiver-free fluent declaration API. Public initialization, grouped registration, and usage examples remain planned for later milestones.
+For current implementation status and remaining work, see the [roadmap](docs/roadmap.md).
 
 - [Specification](docs/specification.md): what the library must do.
 - [Architecture](docs/architecture.md): how it is designed, with rationale.
 - [Testing](docs/testing.md): implementation milestones, tests, and acceptance criteria.
+- [Decisions](docs/decisions/): approved choices and design history.
 - [AGENTS.md](AGENTS.md): mandatory working rules for Codex.
-
-These documents are the sources of requirements; this README is an introduction and navigation page.
