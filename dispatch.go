@@ -11,8 +11,7 @@ type Scope struct {
 	level    int
 }
 
-// dispatch holds the capabilities and actual providers of one object.
-// Later lifecycle work constructs it from a validated hierarchy definition.
+// dispatch holds one object's receivers and the prepared capability set.
 type dispatch struct {
 	known  map[reflect.Type]struct{}
 	levels []map[reflect.Type]any

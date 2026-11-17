@@ -9,6 +9,7 @@ import (
 type Code string
 
 const (
+	InvalidDeclaration  Code = "InvalidDeclaration"
 	InvalidContract     Code = "InvalidContract"
 	ContractExtension   Code = "ContractExtension"
 	ContractCollision   Code = "ContractCollision"
@@ -22,6 +23,7 @@ const (
 	MissingNode         Code = "MissingNode"
 	ProviderOwnership   Code = "ProviderOwnership"
 	BindingMismatch     Code = "BindingMismatch"
+	InvalidPlan         Code = "InvalidPlan"
 	AlreadyInitialized  Code = "AlreadyInitialized"
 	// MissingMethods means a known capability has no registered implementation.
 	MissingMethods Code = "MissingMethods"

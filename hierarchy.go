@@ -17,6 +17,7 @@ type validatedNodes struct {
 	levels       []nodeLevel
 	parentFields []int
 	nodeFields   []int
+	known        map[reflect.Type]struct{}
 }
 
 // validateNodeDefinition checks a single-provider value-embedded chain without
@@ -78,12 +79,14 @@ func validateNodeDefinition(levels []nodeLevel) (*validatedNodes, error) {
 			contracts[level].bindings = append(contracts[level].bindings, binding)
 		}
 	}
-	if _, err := validateContracts(contracts, len(contracts)-1); err != nil {
+	result, err := validateContracts(contracts, len(contracts)-1)
+	if err != nil {
 		providerErrors = append(providerErrors, v.withContext(err))
 	}
 	if len(providerErrors) != 0 {
 		return nil, errors.Join(providerErrors...)
 	}
+	v.known = result.known
 	return v, nil
 }
 
@@ -125,7 +128,7 @@ func bindValidatedNodes(v *validatedNodes, leaf any, providers []any) error {
 	for level := len(values) - 1; level > 0; level-- {
 		values[level-1] = values[level].Field(v.parentFields[level])
 	}
-	bindings := make([]nodeBinding, len(values))
+	holders := make([]*Node, len(values))
 	for level, expected := range values {
 		provider := reflect.ValueOf(providers[level])
 		if !provider.IsValid() || provider.Kind() != reflect.Pointer || provider.IsNil() || provider.Type() != reflect.PointerTo(v.levels[level].typ) {
@@ -136,21 +139,28 @@ func bindValidatedNodes(v *validatedNodes, leaf any, providers []any) error {
 		}
 		holder := provider.Elem().Field(v.nodeFields[level])
 		if !holder.IsValid() || !holder.CanAddr() || !holder.Addr().CanInterface() {
-			return &Error{Code: MissingNode, Target: target, Level: level}
+			return &Error{Code: MissingNode, Target: target, Level: level, Path: v.nodePath(level)}
 		}
 		node, ok := holder.Addr().Interface().(*Node)
 		if !ok {
-			return &Error{Code: MissingNode, Target: target, Level: level}
+			return &Error{Code: MissingNode, Target: target, Level: level, Path: v.nodePath(level)}
 		}
 		if node.Scope().dispatch != nil {
-			return &Error{Code: AlreadyInitialized, Target: target, Level: level}
+			return &Error{Code: AlreadyInitialized, Target: target, Level: level, Path: v.providerPath(level)}
 		}
-		bindings[level] = nodeBinding{node: node, provider: providers[level]}
-		for _, binding := range v.levels[level].contracts.bindings {
-			bindings[level].capabilities = append(bindings[level].capabilities, binding.capability)
-		}
+		holders[level] = node
 	}
-	bindNodeLevels(bindings)
+	d := &dispatch{known: v.known, levels: make([]map[reflect.Type]any, len(values))}
+	for level, entry := range v.levels {
+		methods := make(map[reflect.Type]any, len(entry.contracts.bindings))
+		for _, binding := range entry.contracts.bindings {
+			methods[binding.capability] = providers[level]
+		}
+		d.levels[level] = methods
+	}
+	for level, holder := range holders {
+		holder.scope = Scope{dispatch: d, level: level}
+	}
 	return nil
 }
 

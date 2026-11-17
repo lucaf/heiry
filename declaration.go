@@ -12,6 +12,8 @@ import (
 type Definition[Leaf any] struct {
 	levels   []*declaredLevel
 	recorded []error
+	plan     *Plan[Leaf]
+	lineage  *definitionLineage
 }
 
 type declaredLevel struct {
@@ -30,14 +32,21 @@ type declaredBinding struct {
 type LevelHandle[Leaf any] struct {
 	definition *Definition[Leaf]
 	level      *declaredLevel
+	rejected   bool
 }
 
 // Define begins one receiver-free hierarchy declaration.
-func Define[Leaf any]() *Definition[Leaf] { return &Definition[Leaf]{} }
+func Define[Leaf any]() *Definition[Leaf] {
+	return &Definition[Leaf]{lineage: &definitionLineage{marker: 1}}
+}
 
 // Level appends a level, with its direct anonymous parent field name.
 // The root uses an empty parent field.
 func (d *Definition[Leaf]) Level[Node, Public, Private any](parentField string) *LevelHandle[Leaf] {
+	if d.plan != nil {
+		d.recorded = append(d.recorded, &Error{Code: InvalidDeclaration, Target: reflect.TypeFor[Leaf](), Level: len(d.levels), Path: parentField})
+		return &LevelHandle[Leaf]{definition: d, rejected: true}
+	}
 	level := &declaredLevel{
 		typ: reflect.TypeFor[Node](), public: reflect.TypeFor[Public](),
 		private: reflect.TypeFor[Private](), parentField: parentField, index: len(d.levels),
@@ -52,6 +61,13 @@ func (l *LevelHandle[Leaf]) End() *Definition[Leaf] { return l.definition }
 // Bind records an explicit typed operation for this level. The witness value
 // is reduced to type metadata and is never retained.
 func (l *LevelHandle[Leaf]) Bind[Operation any](provider Operation, providerPath string) *LevelHandle[Leaf] {
+	if l.rejected {
+		return l
+	}
+	if l.definition.plan != nil {
+		l.definition.recorded = append(l.definition.recorded, &Error{Code: InvalidDeclaration, Target: reflect.TypeFor[Leaf](), Level: l.level.index, Path: providerPath, Capability: reflect.TypeFor[Operation]()})
+		return l
+	}
 	capability := reflect.TypeFor[Operation]()
 	if capability.Kind() != reflect.Interface || capability.NumMethod() != 1 || capability.Method(0).PkgPath != "" {
 		l.definition.recorded = append(l.definition.recorded, &Error{
@@ -89,13 +105,18 @@ func validProviderPath(path string) bool {
 
 // Validate checks the current declaration without freezing or preparing it.
 func (d *Definition[Leaf]) Validate() error {
+	_, err := d.validatedSnapshot()
+	return d.withRecorded(err)
+}
+
+func (d *Definition[Leaf]) validatedSnapshot() (*validatedNodes, error) {
 	target := reflect.TypeFor[Leaf]()
 	if len(d.levels) == 0 {
-		return d.withRecorded(&Error{Code: InvalidHierarchy, Target: target})
+		return nil, &Error{Code: InvalidHierarchy, Target: target}
 	}
 	last := d.levels[len(d.levels)-1].typ
 	if last != target {
-		return d.withRecorded(&Error{Code: InvalidHierarchy, Target: target, Level: len(d.levels) - 1, Expected: target, Actual: last})
+		return nil, &Error{Code: InvalidHierarchy, Target: target, Level: len(d.levels) - 1, Expected: target, Actual: last}
 	}
 	levels := make([]nodeLevel, len(d.levels))
 	var localErrors []error
@@ -109,9 +130,12 @@ func (d *Definition[Leaf]) Validate() error {
 			levels[index].contracts.bindings = append(levels[index].contracts.bindings, binding.contractBinding)
 		}
 	}
-	_, err := validateNodeDefinition(levels)
+	validated, err := validateNodeDefinition(levels)
 	localErrors = append(localErrors, err)
-	return d.withRecorded(errors.Join(localErrors...))
+	if joined := errors.Join(localErrors...); joined != nil {
+		return nil, joined
+	}
+	return validated, nil
 }
 
 func (d *Definition[Leaf]) withRecorded(validation error) error {
