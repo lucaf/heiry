@@ -88,6 +88,8 @@ For larger layouts use Go fuzzing. Bound generated depths and table sizes so inp
 
 CI must discover a nonempty set of applicable maintained library packages, including actual non-test source in the root heiry package, before claiming Go verification. If no applicable packages exist, report Go verification as not run/no implementation; an empty successful tool invocation or unrelated package tests are not evidence. The existing root-package source and tests must be included. A no-tests run cannot establish a tested milestone.
 
+For M2 only, the owner approved marking the milestone Completed from successful scoped local formatting, vet, unit, race, and documentation checks on the M2 source. An M2 CI run is not a completion prerequisite under this explicit exception. Report local and CI evidence separately; do not describe an unrun CI job as successful. All other milestones retain their CI gates.
+
 Select formatting files and test packages explicitly from maintained project sources. Exclude `.ceiling`, archives, prototypes, and unrelated material from discovery, formatting, vet, tests, race checks, fuzzing, and benchmarks. Avoid recursive `gofmt -l .` or unfiltered filesystem globs. For the planned root package, after confirming source exists, the scoped gates are:
 
 ```sh
@@ -113,4 +115,4 @@ Measure hierarchy validation, Plan preparation, builder assembly, first lazy use
 
 ## Milestone status
 
-M1 is **Completed**: the root package contains the dynamic resolver and focused two-/three-level tests. [The roadmap](roadmap.md#m1-minimal-inheritance-and-typed-dispatch-kernel) records the observed Red/Green cycle, Stage 2 acceptance coverage, local gates, and owner-reported CI result. M2–M9 remain unimplemented; there are no usage examples. Record later milestone evidence in change descriptions and update this status when that changes. Documentation and test plans alone do not establish completed behavior.
+M1 is **Completed**: the root package contains the dynamic resolver and focused two-/three-level tests. [The roadmap](roadmap.md#m1-minimal-inheritance-and-typed-dispatch-kernel) records the observed Red/Green cycle, Stage 2 acceptance coverage, local gates, and owner-reported CI result. M2 is **Completed** under the owner-approved local-gate exception above; [the roadmap](roadmap.md#m2-nested-embedding-and-instance-scopes) records its Red/Green and local check results and the owner's report of a successful M2 CI run. M3–M9 remain unimplemented; there are no usage examples. Documentation and test plans alone do not establish completed behavior.

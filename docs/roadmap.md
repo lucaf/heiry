@@ -2,7 +2,7 @@
 
 This document tracks implementation of the approved design. [AGENTS.md](../AGENTS.md) governs development; the [specification](specification.md) defines behavior, [architecture](architecture.md) defines responsibilities, and [testing](testing.md) owns implementation order and acceptance criteria. [ADRs](decisions/) preserve rationale. The roadmap does not replace any of them or authorize a new API.
 
-M1 is complete with working root-package code and the acceptance evidence recorded below. Later milestones remain pending.
+M1 and M2 are complete with working root-package code and the acceptance evidence recorded below. Later milestones remain pending.
 
 ## Order and dependencies
 
@@ -30,7 +30,7 @@ Every implementation milestone follows **Red → Green → Refactor** as require
 
 - [ ] Focused acceptance tests pass after an observed, meaningful Red result.
 - [ ] Existing regression tests remain green.
-- [ ] Applicable [static, test, race, and CI gates](testing.md#quality-gates-and-ci) pass on actual maintained source.
+- [ ] Applicable [static, test, race, and CI gates](testing.md#quality-gates-and-ci) pass on actual maintained source, with the explicit owner-approved M2 local-gate exception recorded there.
 - [ ] Documentation accurately describes the delivered behavior and remaining later milestones.
 - [ ] Required owner decisions are recorded and no unresolved blocker affects the delivered functionality.
 
@@ -48,12 +48,14 @@ Code existence, documentation alone, empty package runs, and tests of a separate
 
 ## M2. Nested embedding and instance scopes
 
-- **Status:** Not started.
+- **Status:** Completed — owner approved completion from passing local gates for M2 specifically.
 - **Objective:** Make inherited bodies operate on the actual subobjects of one leaf.
 - **Scope:** Testing stage 3; [S5](specification.md#s5-state-structure-and-providers) and [S8](specification.md#s8-visibility-lifecycle-and-concurrency), initially with one node provider per level.
 - **Deliverables:** Actual embedded receiver bindings and fixed per-receiver scopes exercised through package tests.
 - **Dependencies:** M1.
 - **Acceptance criteria:** Stage 3 and the matrix's ownership/reentrancy cases prove pointer identity, shared embedded state, independent objects, uninitialized-scope errors, and concurrent invocation with suitable application bodies. Preserve [nested state](decisions/0001-nested-embedding.md); no public initialization API is selected by these internal fixtures.
+- **Local evidence:** `Node` now holds an immutable-after-binding scope and a named noCopy marker. An internal single-provider-per-level binding path installs fixed scopes and registers pointers supplied by the nested A → B → C fixture. Tests check the selected provider pointer against each actual embedded address, mutation visible through the leaf, independent objects and dispatch bindings, typed `Uninitialized` panics for virtual and parent lookup, recursive virtual reentry and parent descent, and concurrent read-only dispatch. The first focused Red failed to compile because `Node` was absent; after adding it, the zero-scope test passed. The next focused Red failed to compile because `bindNodeLevels`/`nodeBinding` were absent; after adding them, all stage 3 tests passed. These are missing library capabilities, not fixture-only failures. On local Go 1.27.1, `gofmt -l ./*.go` reported no files; `go vet .`, `go test . -count=1`, `go test -race . -count=1`, documentation-checker unit tests, and `scripts/check_docs.py` passed. Go commands used writable `/tmp/heiry-go-cache` after the default cache was denied by the sandbox. The full package tests include the M1 regression tests.
+- **CI evidence and limitation:** The owner reported on 2026-11-17 that CI ran successfully for M2; this is owner-reported evidence, not a run observed by Codex. The [M2 local-gate exception](testing.md#quality-gates-and-ci) remains in place. Internal fixture binding does not perform later structural/lifecycle validation and defines no public initializer.
 
 ## M3. Public/private contracts and hierarchy validation
 
