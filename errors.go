@@ -9,6 +9,20 @@ import (
 type Code string
 
 const (
+	InvalidContract     Code = "InvalidContract"
+	ContractExtension   Code = "ContractExtension"
+	ContractCollision   Code = "ContractCollision"
+	InvalidCapability   Code = "InvalidCapability"
+	CapabilityIdentity  Code = "CapabilityIdentity"
+	SignatureMismatch   Code = "SignatureMismatch"
+	UndeclaredOperation Code = "UndeclaredOperation"
+	DuplicateBinding    Code = "DuplicateBinding"
+	InvalidHierarchy    Code = "InvalidHierarchy"
+	InvalidProvider     Code = "InvalidProvider"
+	MissingNode         Code = "MissingNode"
+	ProviderOwnership   Code = "ProviderOwnership"
+	BindingMismatch     Code = "BindingMismatch"
+	AlreadyInitialized  Code = "AlreadyInitialized"
 	// MissingMethods means a known capability has no registered implementation.
 	MissingMethods Code = "MissingMethods"
 	// Uninitialized means a resolution was attempted through an unset scope.
@@ -24,6 +38,12 @@ type Error struct {
 	Code       Code
 	Capability reflect.Type
 	Level      int
+	Name       string
+	Category   string
+	Target     reflect.Type
+	Path       string
+	Expected   reflect.Type
+	Actual     reflect.Type
 	Cause      error
 }
 
@@ -31,10 +51,7 @@ func (e *Error) Error() string {
 	if e == nil {
 		return "<nil>"
 	}
-	if e.Capability == nil {
-		return string(e.Code)
-	}
-	return fmt.Sprintf("%s: capability %s at level %d", e.Code, e.Capability, e.Level)
+	return fmt.Sprintf("%s: %s %s capability %v at level %d (expected %v, actual %v)", e.Code, e.Category, e.Name, e.Capability, e.Level, e.Expected, e.Actual)
 }
 
 // Is matches errors by stable code, including a code-only target.

@@ -32,7 +32,7 @@ jobs:
           test "$(go list -f '{{len .GoFiles}}' .)" -gt 0
           test "$(go list -f '{{len .TestGoFiles}}' .)" -gt 0
       - name: Formatting
-        run: test -z "$(gofmt -l ./*.go)"
+        run: test -z "$(gofmt -l ./*.go testdata/stage4boundary/*.go testdata/stage4positive/*.go testdata/stage4negative/*.go testdata/stage5vet/*.go)"
       - name: Vet
         run: go vet .
       - name: Package tests
