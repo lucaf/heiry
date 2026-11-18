@@ -1,0 +1,64 @@
+package heiry
+
+import (
+	"fmt"
+	"runtime"
+	"testing"
+)
+
+// One-off measurement, not part of the repository: heap bytes that stay
+// reachable per initialized object (binding only, the leaf itself subtracted),
+// and heap bytes held by one converted Plan's table.
+
+func zzHeap() uint64 {
+	runtime.GC()
+	runtime.GC()
+	var m runtime.MemStats
+	runtime.ReadMemStats(&m)
+	return m.HeapAlloc
+}
+
+func zzRetained[Leaf any](t *testing.T, chain pbChain[Leaf], shape pbShape) {
+	const n = 20000
+	dynamic := pbDefinition[Leaf](chain.depth, shape.ops, shape.layout).MustPrepare()
+	before := zzHeap()
+	fast := dynamic.MustPrecompute()
+	table := zzHeap() - before
+	bare := make([]*Leaf, n)
+	before = zzHeap()
+	for i := range bare {
+		bare[i] = new(Leaf)
+	}
+	leafBytes := float64(zzHeap()-before) / n
+	line := fmt.Sprintf("depth%d/ops%d/%s: leaf %.0f B, table %d B", chain.depth, shape.ops, shape.layout, leafBytes, table)
+	for _, mode := range []struct {
+		name string
+		plan *Plan[Leaf]
+	}{{"dynamic", dynamic}, {"precomputed", fast}} {
+		keep := make([]*Leaf, n)
+		refs := make([][]ProviderRef[Leaf], n)
+		for i := range keep {
+			keep[i] = new(Leaf)
+			refs[i] = chain.refs(mode.plan, keep[i], false)
+		}
+		before = zzHeap()
+		for i := range keep {
+			mode.plan.MustInit(keep[i], refs[i]...)
+		}
+		after := zzHeap()
+		line += fmt.Sprintf(", %s binding %.0f B/object", mode.name, float64(after-before)/n)
+		runtime.KeepAlive(keep)
+		runtime.KeepAlive(refs)
+	}
+	runtime.KeepAlive(bare)
+	runtime.KeepAlive(fast)
+	t.Log(line)
+}
+
+func TestZZRetained(t *testing.T) {
+	zzRetained(t, pbChain1, pbShape{ops: 4, layout: "dense"})
+	zzRetained(t, pbChain3, pbShape{ops: 4, layout: "dense"})
+	zzRetained(t, pbChain3, pbShape{ops: 16, layout: "dense"})
+	zzRetained(t, pbChain10, pbShape{ops: 4, layout: "root"})
+	zzRetained(t, pbChain10, pbShape{ops: 4, layout: "busy"})
+}

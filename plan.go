@@ -9,7 +9,7 @@ type Plan[Leaf any] struct {
 	validated *validatedNodes
 	lineage   *definitionLineage
 	nodes     map[reflect.Type]int
-	owners    map[reflect.Type][]int
+	owners    map[reflect.Type]ownerRow
 }
 
 // Precompute returns an immutable resolution variant without changing p.
@@ -21,22 +21,44 @@ func (p *Plan[Leaf]) Precompute() (*Plan[Leaf], error) {
 		return p, nil
 	}
 	depth := len(p.validated.levels)
-	owners := make(map[reflect.Type][]int, len(p.validated.known))
-	current := make(map[reflect.Type]int, len(p.validated.known))
+	count := len(p.validated.known)
+	// Two backing arrays hold every row. Each row is capped at its own
+	// segment and nothing writes to them after this function returns.
+	owner := make([]int, count*(depth+1))
+	slot := make([]int, count*depth)
+	for index := range slot {
+		slot[index] = -1
+	}
+	owners := make(map[reflect.Type]ownerRow, count)
 	for capability := range p.validated.known {
-		owners[capability] = make([]int, depth+1)
-		current[capability] = -1
+		index := len(owners)
+		owners[capability] = ownerRow{
+			owner: owner[index*(depth+1) : (index+1)*(depth+1) : (index+1)*(depth+1)],
+			slot:  slot[index*depth : (index+1)*depth : (index+1)*depth],
+		}
 	}
+	// Number the registrations in level and declaration order. Init fills
+	// each object's provider slice by the same numbers.
+	next := 0
 	for level, entry := range p.validated.levels {
-		for capability, destination := range current {
-			owners[capability][level] = destination
-		}
 		for _, binding := range entry.contracts.bindings {
-			current[binding.capability] = level
+			if row, known := owners[binding.capability]; known {
+				row.slot[level] = next
+			}
+			next++
 		}
 	}
-	for capability, destination := range current {
-		owners[capability][depth] = destination
+	// One forward pass per capability records the previous owner before
+	// taking in each level's own registration.
+	for _, row := range owners {
+		current := -1
+		for level := 0; level < depth; level++ {
+			row.owner[level] = current
+			if row.slot[level] >= 0 {
+				current = level
+			}
+		}
+		row.owner[depth] = current
 	}
 	return &Plan[Leaf]{validated: p.validated, lineage: p.lineage, nodes: p.nodes, owners: owners}, nil
 }

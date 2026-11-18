@@ -88,7 +88,7 @@ func m7BenchmarkDispatch(depth, methods int, layout string) (m7BenchRead, Scope,
 	}
 	plan := (&Plan[stage3C]{validated: &validatedNodes{levels: metadata, known: known}, lineage: &definitionLineage{marker: 1}}).MustPrecompute()
 	dynamic := &dispatch{known: known, levels: levels}
-	fast := &dispatch{known: known, levels: levels, owners: plan.owners}
+	fast := m7TableDispatch(plan, levels)
 	return direct, Scope{dispatch: dynamic, level: depth - 1}, Scope{dispatch: fast, level: depth - 1}
 }
 
@@ -133,6 +133,7 @@ func BenchmarkMixedReceivers(b *testing.B) {
 			other := &m7BenchOtherProvider{value: i + 10}
 			capability := reflect.TypeFor[m7BenchRead]()
 			dynamic[i].dispatch.levels[9][capability] = other
+			fast[i].dispatch.providers[fast[i].dispatch.owners[capability].slot[9]] = other
 			direct[i] = other
 		}
 	}

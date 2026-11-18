@@ -1,0 +1,34 @@
+BenchmarkPrecomputeLookup/depth3/ops4/dense/virtual/dynamic-8         	130804971	        31.61 ns/op
+File: heiry_base.test
+Type: cpu
+Time: 2026-11-18 21:48:26 CET
+Duration: 7.03s, Total samples = 5.61s (79.79%)
+Showing nodes accounting for 5.55s, 98.93% of 5.61s total
+Dropped 11 nodes (cum <= 0.03s)
+Showing top 25 nodes out of 30
+      flat  flat%   sum%        cum   cum%
+     0.84s 14.97% 14.97%      1.89s 33.69%  internal/runtime/maps.(*Map).getWithKeySmall
+     0.64s 11.41% 26.38%      4.05s 72.19%  runtime.mapaccess2
+     0.59s 10.52% 36.90%      1.06s 18.89%  runtime.typehash
+     0.55s  9.80% 46.70%      4.60s 82.00%  github.com/lucaf/heiry.resolve
+     0.43s  7.66% 54.37%      0.46s  8.20%  runtime.ifaceeq
+     0.38s  6.77% 61.14%      1.51s 26.92%  runtime.interhash
+     0.29s  5.17% 66.31%      0.55s  9.80%  runtime.getitab
+     0.26s  4.63% 70.94%      0.72s 12.83%  runtime.interequal
+     0.24s  4.28% 75.22%      0.24s  4.28%  internal/abi.(*MapType).IndirectKey (inline)
+     0.23s  4.10% 79.32%      0.23s  4.10%  internal/runtime/maps.memHash64AES
+     0.22s  3.92% 83.24%      0.45s  8.02%  internal/runtime/maps.MemHash64
+     0.21s  3.74% 86.99%      0.26s  4.63%  runtime.(*itabTableType).find
+     0.18s  3.21% 90.20%      5.46s 97.33%  github.com/lucaf/heiry.Method[go.shape.interface { Op0 int }]
+     0.13s  2.32% 92.51%      0.68s 12.12%  runtime.assertE2I
+     0.10s  1.78% 94.30%      0.10s  1.78%  internal/abi.(*Type).IsDirectIface (inline)
+     0.07s  1.25% 95.54%      5.53s 98.57%  github.com/lucaf/heiry.pbLookup[go.shape.struct { github.com/lucaf/heiry.pbL1; github.com/lucaf/heiry.Node; Part github.com/lucaf/heiry.pbPart }].func1
+     0.07s  1.25% 96.79%      0.07s  1.25%  internal/abi.(*MapType).IndirectElem (inline)
+     0.07s  1.25% 98.04%      0.07s  1.25%  runtime.pthread_cond_signal
+     0.05s  0.89% 98.93%      0.05s  0.89%  runtime.itabHashFunc (inline)
+         0     0% 98.93%      0.07s  1.25%  runtime.gopreempt_m (inline)
+         0     0% 98.93%      0.07s  1.25%  runtime.goschedImpl
+         0     0% 98.93%      0.47s  8.38%  runtime.memhash64 (inline)
+         0     0% 98.93%      0.07s  1.25%  runtime.morestack
+         0     0% 98.93%      0.07s  1.25%  runtime.newstack
+         0     0% 98.93%      0.07s  1.25%  runtime.notewakeup

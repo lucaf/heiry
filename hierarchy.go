@@ -245,7 +245,7 @@ func bindValidatedNodes(v *validatedNodes, leaf any, providers []any) error {
 	return bindValidatedNodesWithOwners(v, leaf, providers, nil)
 }
 
-func bindValidatedNodesWithOwners(v *validatedNodes, leaf any, providers []any, owners map[reflect.Type][]int) error {
+func bindValidatedNodesWithOwners(v *validatedNodes, leaf any, providers []any, owners map[reflect.Type]ownerRow) error {
 	if v == nil || len(v.levels) == 0 {
 		return &Error{Code: BindingMismatch}
 	}
@@ -259,7 +259,7 @@ func bindValidatedNodesWithOwners(v *validatedNodes, leaf any, providers []any, 
 	return bindValidatedProviders(v, leaf, bySlot, owners)
 }
 
-func bindValidatedProviders(v *validatedNodes, leaf any, providers []map[string]any, owners map[reflect.Type][]int) error {
+func bindValidatedProviders(v *validatedNodes, leaf any, providers []map[string]any, owners map[reflect.Type]ownerRow) error {
 	if v == nil || len(v.levels) == 0 {
 		return &Error{Code: BindingMismatch}
 	}
@@ -325,17 +325,37 @@ func bindValidatedProviders(v *validatedNodes, leaf any, providers []map[string]
 			installations = append(installations, installation{holder: node, level: level})
 		}
 	}
-	d := &dispatch{known: v.known, levels: make([]map[reflect.Type]any, len(values)), owners: owners}
+	d := &dispatch{known: v.known, owners: owners}
+	if owners == nil {
+		d.levels = make([]map[reflect.Type]any, len(values))
+	} else {
+		registrations := 0
+		for _, entry := range v.levels {
+			registrations += len(entry.contracts.bindings)
+		}
+		d.providers = make([]any, registrations)
+	}
+	next := 0
 	for level, entry := range v.levels {
-		methods := make(map[reflect.Type]any, len(entry.contracts.bindings))
+		var methods map[reflect.Type]any
+		if owners == nil {
+			methods = make(map[reflect.Type]any, len(entry.contracts.bindings))
+			d.levels[level] = methods
+		}
 		for _, binding := range entry.contracts.bindings {
 			path := binding.providerPath
 			if path == "" {
 				path = "."
 			}
-			methods[binding.capability] = providers[level][path]
+			if owners == nil {
+				methods[binding.capability] = providers[level][path]
+			} else {
+				// Registrations are numbered in level and declaration
+				// order, as Precompute numbered the table's slots.
+				d.providers[next] = providers[level][path]
+				next++
+			}
 		}
-		d.levels[level] = methods
 	}
 	for _, site := range installations {
 		site.holder.scope = Scope{dispatch: d, level: site.level}

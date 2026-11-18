@@ -61,6 +61,23 @@ func m7OraclePlan(depth int, masks []uint16) *Plan[stage3C] {
 	return &Plan[stage3C]{validated: &validatedNodes{levels: levels, known: known}, lineage: &definitionLineage{marker: 1}}
 }
 
+// m7TableDispatch attaches synthetic level rows to a converted Plan's table:
+// each registered provider goes to the slot the table names for its level.
+// It decides no destination; expected results come from the backward oracle.
+func m7TableDispatch[Leaf any](fast *Plan[Leaf], levels []map[reflect.Type]any) *dispatch {
+	registrations := 0
+	for _, methods := range levels {
+		registrations += len(methods)
+	}
+	d := &dispatch{known: fast.validated.known, owners: fast.owners, providers: make([]any, registrations)}
+	for level, methods := range levels {
+		for capability, provider := range methods {
+			d.providers[fast.owners[capability].slot[level]] = provider
+		}
+	}
+	return d
+}
+
 // The oracle searches the supplied bitset backward; it does not use the
 // conversion algorithm or read its table.
 func m7BackwardOracle(mask uint16, depth, position int) int {
@@ -91,12 +108,12 @@ func m7CheckOracle(t *testing.T, depth int, masks []uint16) {
 		}
 	}
 	dynamicDispatch := &dispatch{known: fast.validated.known, levels: levels}
-	precomputedDispatch := &dispatch{known: fast.validated.known, levels: levels, owners: fast.owners}
+	precomputedDispatch := m7TableDispatch(fast, levels)
 	for operation, mask := range masks {
 		capability := m7OracleCapabilities[operation]
 		for position := 0; position <= depth; position++ {
 			want := m7BackwardOracle(mask, depth, position)
-			if got := fast.owners[capability][position]; got != want {
+			if got := fast.owners[capability].owner[position]; got != want {
 				t.Fatalf("depth=%d masks=%v operation=%d position=%d: owner=%d, want %d", depth, masks, operation, position, got, want)
 			}
 			// Every parent start is distinct; the last table slot is virtual.
@@ -227,13 +244,13 @@ func m8CheckComponentOracle(t *testing.T, depth int, masks []uint16, choices [][
 		name string
 		d    *dispatch
 	}{{"dynamic", &dispatch{known: fast.validated.known, levels: levels}},
-		{"precomputed", &dispatch{known: fast.validated.known, levels: levels, owners: fast.owners}}} {
+		{"precomputed", m7TableDispatch(fast, levels)}} {
 		for operation, mask := range masks {
 			capability := m7OracleCapabilities[operation]
 			for position := 0; position <= depth; position++ {
 				wantLevel := m7BackwardOracle(mask, depth, position)
-				if mode.name == "precomputed" && fast.owners[capability][position] != wantLevel {
-					t.Fatalf("table owner=%d, want %d", fast.owners[capability][position], wantLevel)
+				if mode.name == "precomputed" && fast.owners[capability].owner[position] != wantLevel {
+					t.Fatalf("table owner=%d, want %d", fast.owners[capability].owner[position], wantLevel)
 				}
 				starts := []int{position}
 				if position == depth {

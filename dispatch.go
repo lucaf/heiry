@@ -12,10 +12,24 @@ type Scope struct {
 }
 
 // dispatch holds one object's receivers and the prepared capability set.
+// A dynamic object keeps one provider map per level. A precomputed object
+// keeps the shared owner table and a flat provider slice instead; it has no
+// level maps, so its lookups cannot scan.
 type dispatch struct {
-	known  map[reflect.Type]struct{}
-	levels []map[reflect.Type]any
-	owners map[reflect.Type][]int
+	known     map[reflect.Type]struct{}
+	levels    []map[reflect.Type]any
+	owners    map[reflect.Type]ownerRow
+	providers []any
+}
+
+// ownerRow is the receiver-free precomputed metadata of one capability.
+type ownerRow struct {
+	// owner holds the parent destination level for each executing level,
+	// followed by the virtual destination. A negative entry means none.
+	owner []int
+	// slot maps a level that registers the capability to the position of its
+	// provider in each object's provider slice. Other levels are negative.
+	slot []int
 }
 
 // nodeBinding is an internal stage-3 input for one node provider at a level.
@@ -64,19 +78,25 @@ func resolve(scope Scope, capability reflect.Type, parent bool) any {
 		panic(&Error{Code: Uninitialized, Capability: capability})
 	}
 	d := scope.dispatch
-	if _, ok := d.known[capability]; !ok {
-		panic(&Error{Code: UnknownCapability, Capability: capability, Level: scope.level})
-	}
 	if d.owners != nil {
-		position := len(d.levels)
+		// The table has one row per known capability, so this single lookup
+		// also answers whether the capability is known.
+		row, ok := d.owners[capability]
+		if !ok {
+			panic(&Error{Code: UnknownCapability, Capability: capability, Level: scope.level})
+		}
+		position := len(row.owner) - 1
 		if parent {
 			position = scope.level
 		}
-		level := d.owners[capability][position]
+		level := row.owner[position]
 		if level < 0 {
 			panic(&Error{Code: NoParentImplementation, Capability: capability, Level: scope.level})
 		}
-		return d.levels[level][capability]
+		return d.providers[row.slot[level]]
+	}
+	if _, ok := d.known[capability]; !ok {
+		panic(&Error{Code: UnknownCapability, Capability: capability, Level: scope.level})
 	}
 
 	start := len(d.levels) - 1

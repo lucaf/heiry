@@ -1,0 +1,5 @@
+depth1/ops4/dense: leaf 48 B, table 5848 B, dynamic binding 392 B/object, precomputed binding 392 B/object
+depth3/ops4/dense: leaf 128 B, table 560 B, dynamic binding 1080 B/object, precomputed binding 1080 B/object
+depth3/ops16/dense: leaf 128 B, table 2152 B, dynamic binding 3792 B/object, precomputed binding 3792 B/object
+depth10/ops4/root: leaf 416 B, table 928 B, dynamic binding 896 B/object, precomputed binding 896 B/object
+depth10/ops4/busy: leaf 416 B, table 816 B, dynamic binding 3488 B/object, precomputed binding 3488 B/object

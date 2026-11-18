@@ -1,0 +1,48 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/lucaf/heiry/examples/comparison
+cpu: Apple M2
+BenchmarkRender/self-interface-8         	25988744	        46.32 ns/op	      16 B/op	       2 allocs/op
+BenchmarkRender/heiry-dynamic-8          	 6814533	       203.9 ns/op	      16 B/op	       2 allocs/op
+BenchmarkRender/heiry-precomputed-8      	 4230348	       255.0 ns/op	      16 B/op	       2 allocs/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/lucaf/heiry/examples/comparison
+cpu: Apple M2
+BenchmarkRender/self-interface-8         	24084133	        46.61 ns/op	      16 B/op	       2 allocs/op
+BenchmarkRender/heiry-dynamic-8          	 6822306	       176.7 ns/op	      16 B/op	       2 allocs/op
+BenchmarkRender/heiry-precomputed-8      	 5113560	       243.1 ns/op	      16 B/op	       2 allocs/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/lucaf/heiry/examples/comparison
+cpu: Apple M2
+BenchmarkRender/self-interface-8         	26895652	        44.07 ns/op	      16 B/op	       2 allocs/op
+BenchmarkRender/heiry-dynamic-8          	 6515068	       178.3 ns/op	      16 B/op	       2 allocs/op
+BenchmarkRender/heiry-precomputed-8      	 5069437	       235.7 ns/op	      16 B/op	       2 allocs/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/lucaf/heiry/examples/comparison
+cpu: Apple M2
+BenchmarkRender/self-interface-8         	25902564	        46.64 ns/op	      16 B/op	       2 allocs/op
+BenchmarkRender/heiry-dynamic-8          	 6613353	       178.5 ns/op	      16 B/op	       2 allocs/op
+BenchmarkRender/heiry-precomputed-8      	 5149954	       242.9 ns/op	      16 B/op	       2 allocs/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/lucaf/heiry/examples/comparison
+cpu: Apple M2
+BenchmarkRender/self-interface-8         	26204377	        46.25 ns/op	      16 B/op	       2 allocs/op
+BenchmarkRender/heiry-dynamic-8          	 6792080	       176.4 ns/op	      16 B/op	       2 allocs/op
+BenchmarkRender/heiry-precomputed-8      	 4933510	       253.3 ns/op	      16 B/op	       2 allocs/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/lucaf/heiry/examples/comparison
+cpu: Apple M2
+BenchmarkRender/self-interface-8         	26133730	        47.35 ns/op	      16 B/op	       2 allocs/op
+BenchmarkRender/heiry-dynamic-8          	 6577053	       190.1 ns/op	      16 B/op	       2 allocs/op
+BenchmarkRender/heiry-precomputed-8      	 4970472	       292.3 ns/op	      16 B/op	       2 allocs/op
+PASS

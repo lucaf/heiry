@@ -1,0 +1,360 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/lucaf/heiry
+cpu: Apple M2
+BenchmarkPrecomputeLookup/depth1/ops1/dense/virtual/dynamic-8         	40480480	        27.30 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth1/ops1/dense/virtual/precomputed-8     	54919068	        19.61 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth1/ops4/dense/virtual/dynamic-8         	49073313	        24.34 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth1/ops4/dense/virtual/precomputed-8     	60101044	        29.79 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth1/ops16/dense/virtual/dynamic-8        	48220850	        31.40 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth1/ops16/dense/virtual/precomputed-8    	49378396	        22.75 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/root/virtual/dynamic-8          	32767711	        46.62 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/root/parent/dynamic-8           	26693730	        38.21 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/root/virtual/precomputed-8      	51417460	        21.20 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/root/parent/precomputed-8       	40372322	        40.56 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/busy/virtual/dynamic-8          	20725828	        58.71 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/busy/virtual/precomputed-8      	62937747	        24.73 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/dense/virtual/dynamic-8         	31803314	        40.31 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/dense/parent/dynamic-8          	39572889	        35.82 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/dense/virtual/precomputed-8     	67378350	        20.91 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/dense/parent/precomputed-8      	60932649	        22.78 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/mixed/virtual/dynamic-8         	30260154	        57.73 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/mixed/virtual/precomputed-8     	48857364	        20.94 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops16/busy/virtual/dynamic-8         	30737409	        51.69 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops16/busy/virtual/precomputed-8     	54079528	        20.58 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/root/virtual/dynamic-8         	17873488	        78.01 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/root/parent/dynamic-8          	17737320	        76.65 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/root/virtual/precomputed-8     	60903657	        21.06 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/root/parent/precomputed-8      	65221527	        18.43 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/busy/virtual/dynamic-8         	11063814	       106.1 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/busy/parent/dynamic-8          	12141789	        95.37 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/busy/virtual/precomputed-8     	65988904	        18.59 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/busy/parent/precomputed-8      	66818556	        19.52 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/mid/virtual/dynamic-8          	20539342	        83.62 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/mid/virtual/precomputed-8      	65954300	        19.69 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/dense/virtual/dynamic-8        	50005208	        27.36 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/dense/parent/dynamic-8         	46613104	        33.86 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/dense/virtual/precomputed-8    	61053166	        18.11 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/dense/parent/precomputed-8     	70770710	        17.89 ns/op	       0 B/op	       0 allocs/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/lucaf/heiry
+cpu: Apple M2
+BenchmarkResolution/depth1/root/methods1/dynamic-8         	49662429	        29.79 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth1/root/methods1/precomputed-8     	63957048	        18.20 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth1/root/methods5/dynamic-8         	49710366	        23.72 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth1/root/methods5/precomputed-8     	66886216	        18.13 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth1/dense/methods1/dynamic-8        	51801260	        24.16 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth1/dense/methods1/precomputed-8    	64684795	        18.12 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth1/dense/methods5/dynamic-8        	49254344	        25.17 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth1/dense/methods5/precomputed-8    	68240947	        17.62 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/root/methods1/dynamic-8        	17772468	        65.15 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/root/methods1/precomputed-8    	68239328	        17.32 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/root/methods5/dynamic-8        	18501470	        64.11 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/root/methods5/precomputed-8    	70756627	        18.12 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/dense/methods1/dynamic-8       	49294472	        25.61 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/dense/methods1/precomputed-8   	61165597	        18.80 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/dense/methods5/dynamic-8       	50912534	        24.35 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/dense/methods5/precomputed-8   	70981590	        18.61 ns/op	       0 B/op	       0 allocs/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/lucaf/heiry
+cpu: Apple M2
+BenchmarkPrecomputeLookup/depth1/ops1/dense/virtual/dynamic-8         	51235369	        25.39 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth1/ops1/dense/virtual/precomputed-8     	66407797	        17.94 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth1/ops4/dense/virtual/dynamic-8         	50187680	        24.11 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth1/ops4/dense/virtual/precomputed-8     	70532916	        18.42 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth1/ops16/dense/virtual/dynamic-8        	48454502	        25.48 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth1/ops16/dense/virtual/precomputed-8    	68809804	        18.08 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/root/virtual/dynamic-8          	32644437	        36.04 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/root/parent/dynamic-8           	38679004	        29.64 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/root/virtual/precomputed-8      	69228604	        22.47 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/root/parent/precomputed-8       	53407766	        19.91 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/busy/virtual/dynamic-8          	25682457	        44.56 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/busy/virtual/precomputed-8      	61649246	        18.40 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/dense/virtual/dynamic-8         	49655514	        23.32 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/dense/parent/dynamic-8          	52587564	        23.75 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/dense/virtual/precomputed-8     	67997660	        17.44 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/dense/parent/precomputed-8      	68296940	        17.48 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/mixed/virtual/dynamic-8         	35511975	        34.11 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/mixed/virtual/precomputed-8     	65169870	        18.68 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops16/busy/virtual/dynamic-8         	32578447	        38.96 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops16/busy/virtual/precomputed-8     	67920520	        17.84 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/root/virtual/dynamic-8         	18521614	        64.02 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/root/parent/dynamic-8          	20219961	        62.81 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/root/virtual/precomputed-8     	61853810	        18.63 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/root/parent/precomputed-8      	67183136	        18.45 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/busy/virtual/dynamic-8         	11657176	       104.1 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/busy/parent/dynamic-8          	12421084	        97.31 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/busy/virtual/precomputed-8     	65104900	        21.06 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/busy/parent/precomputed-8      	52160872	        21.65 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/mid/virtual/dynamic-8          	20054257	        59.03 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/mid/virtual/precomputed-8      	59130048	        21.04 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/dense/virtual/dynamic-8        	42711021	        26.97 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/dense/parent/dynamic-8         	47267200	        25.40 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/dense/virtual/precomputed-8    	61902601	        19.02 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/dense/parent/precomputed-8     	64869832	        19.20 ns/op	       0 B/op	       0 allocs/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/lucaf/heiry
+cpu: Apple M2
+BenchmarkResolution/depth1/root/methods1/dynamic-8         	41700633	        27.38 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth1/root/methods1/precomputed-8     	61262650	        19.96 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth1/root/methods5/dynamic-8         	46061794	        26.13 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth1/root/methods5/precomputed-8     	61151949	        19.39 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth1/dense/methods1/dynamic-8        	45907461	        28.42 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth1/dense/methods1/precomputed-8    	58929446	        19.70 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth1/dense/methods5/dynamic-8        	45162930	        26.84 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth1/dense/methods5/precomputed-8    	59389890	        19.57 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/root/methods1/dynamic-8        	17405314	        71.37 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/root/methods1/precomputed-8    	51755833	        22.13 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/root/methods5/dynamic-8        	15711826	        78.98 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/root/methods5/precomputed-8    	57720174	        22.55 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/dense/methods1/dynamic-8       	30850807	        36.09 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/dense/methods1/precomputed-8   	52069398	        21.76 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/dense/methods5/dynamic-8       	44197740	        27.56 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/dense/methods5/precomputed-8   	61834423	        20.08 ns/op	       0 B/op	       0 allocs/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/lucaf/heiry
+cpu: Apple M2
+BenchmarkPrecomputeLookup/depth1/ops1/dense/virtual/dynamic-8         	44585287	        26.33 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth1/ops1/dense/virtual/precomputed-8     	58762078	        19.88 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth1/ops4/dense/virtual/dynamic-8         	46326456	        27.90 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth1/ops4/dense/virtual/precomputed-8     	55558340	        22.69 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth1/ops16/dense/virtual/dynamic-8        	43789694	        27.29 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth1/ops16/dense/virtual/precomputed-8    	57375319	        20.24 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/root/virtual/dynamic-8          	31240068	        39.87 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/root/parent/dynamic-8           	36025216	        33.67 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/root/virtual/precomputed-8      	59915743	        19.94 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/root/parent/precomputed-8       	62081810	        19.97 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/busy/virtual/dynamic-8          	27893110	        44.64 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/busy/virtual/precomputed-8      	59562338	        20.66 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/dense/virtual/dynamic-8         	45680930	        26.50 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/dense/parent/dynamic-8          	45263162	        25.89 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/dense/virtual/precomputed-8     	60166963	        19.62 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/dense/parent/precomputed-8      	60380650	        19.71 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/mixed/virtual/dynamic-8         	32672360	        42.15 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/mixed/virtual/precomputed-8     	45288927	        24.16 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops16/busy/virtual/dynamic-8         	26985924	        44.41 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops16/busy/virtual/precomputed-8     	56422130	        21.46 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/root/virtual/dynamic-8         	14319516	        75.30 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/root/parent/dynamic-8          	17369570	        66.49 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/root/virtual/precomputed-8     	60096656	        20.69 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/root/parent/precomputed-8      	60595348	        20.34 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/busy/virtual/dynamic-8         	10852672	       110.3 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/busy/parent/dynamic-8          	11912620	       102.7 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/busy/virtual/precomputed-8     	59337276	        20.03 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/busy/parent/precomputed-8      	61092019	        19.53 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/mid/virtual/dynamic-8          	20952494	        61.73 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/mid/virtual/precomputed-8      	55777738	        21.75 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/dense/virtual/dynamic-8        	46661514	        26.12 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/dense/parent/dynamic-8         	44680810	        26.67 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/dense/virtual/precomputed-8    	59375197	        19.92 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/dense/parent/precomputed-8     	61705778	        19.68 ns/op	       0 B/op	       0 allocs/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/lucaf/heiry
+cpu: Apple M2
+BenchmarkResolution/depth1/root/methods1/dynamic-8         	44041747	        26.65 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth1/root/methods1/precomputed-8     	58909800	        20.33 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth1/root/methods5/dynamic-8         	43019745	        32.34 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth1/root/methods5/precomputed-8     	56095626	        19.94 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth1/dense/methods1/dynamic-8        	43231884	        26.28 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth1/dense/methods1/precomputed-8    	61999082	        19.46 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth1/dense/methods5/dynamic-8        	45803055	        26.62 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth1/dense/methods5/precomputed-8    	62470852	        19.60 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/root/methods1/dynamic-8        	15002719	        72.70 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/root/methods1/precomputed-8    	65088716	        19.51 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/root/methods5/dynamic-8        	16533526	        73.96 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/root/methods5/precomputed-8    	56777966	        21.13 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/dense/methods1/dynamic-8       	43048039	        30.98 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/dense/methods1/precomputed-8   	59394790	        19.69 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/dense/methods5/dynamic-8       	44671178	        26.90 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/dense/methods5/precomputed-8   	59589700	        21.87 ns/op	       0 B/op	       0 allocs/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/lucaf/heiry
+cpu: Apple M2
+BenchmarkPrecomputeLookup/depth1/ops1/dense/virtual/dynamic-8         	41120593	        29.26 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth1/ops1/dense/virtual/precomputed-8     	62656774	        20.16 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth1/ops4/dense/virtual/dynamic-8         	47408655	        26.30 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth1/ops4/dense/virtual/precomputed-8     	59609186	        19.17 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth1/ops16/dense/virtual/dynamic-8        	47798132	        26.07 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth1/ops16/dense/virtual/precomputed-8    	63817905	        18.86 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/root/virtual/dynamic-8          	32291556	        37.06 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/root/parent/dynamic-8           	38017543	        32.14 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/root/virtual/precomputed-8      	64099711	        18.76 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/root/parent/precomputed-8       	66729844	        19.35 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/busy/virtual/dynamic-8          	27834450	        42.28 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/busy/virtual/precomputed-8      	62433338	        18.92 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/dense/virtual/dynamic-8         	49321488	        24.54 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/dense/parent/dynamic-8          	50308489	        24.02 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/dense/virtual/precomputed-8     	65775200	        18.24 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/dense/parent/precomputed-8      	63566896	        18.72 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/mixed/virtual/dynamic-8         	32443648	        37.58 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/mixed/virtual/precomputed-8     	58646608	        21.27 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops16/busy/virtual/dynamic-8         	26422720	        48.16 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops16/busy/virtual/precomputed-8     	53605330	        22.91 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/root/virtual/dynamic-8         	16031653	        71.36 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/root/parent/dynamic-8          	18419821	        63.39 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/root/virtual/precomputed-8     	61860717	        18.59 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/root/parent/precomputed-8      	66127389	        18.66 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/busy/virtual/dynamic-8         	11339185	       104.0 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/busy/parent/dynamic-8          	12169891	        96.00 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/busy/virtual/precomputed-8     	63372055	        19.69 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/busy/parent/precomputed-8      	65285248	        18.78 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/mid/virtual/dynamic-8          	21839325	        55.95 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/mid/virtual/precomputed-8      	63789494	        19.34 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/dense/virtual/dynamic-8        	48245002	        24.79 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/dense/parent/dynamic-8         	49052751	        25.69 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/dense/virtual/precomputed-8    	65344945	        18.85 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/dense/parent/precomputed-8     	68699668	        17.67 ns/op	       0 B/op	       0 allocs/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/lucaf/heiry
+cpu: Apple M2
+BenchmarkResolution/depth1/root/methods1/dynamic-8         	46924338	        25.87 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth1/root/methods1/precomputed-8     	56304654	        18.73 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth1/root/methods5/dynamic-8         	49438324	        24.72 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth1/root/methods5/precomputed-8     	64583983	        18.00 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth1/dense/methods1/dynamic-8        	50642971	        24.65 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth1/dense/methods1/precomputed-8    	63283348	        18.35 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth1/dense/methods5/dynamic-8        	49237166	        25.40 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth1/dense/methods5/precomputed-8    	62777377	        18.40 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/root/methods1/dynamic-8        	17704848	        68.82 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/root/methods1/precomputed-8    	60517676	        18.61 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/root/methods5/dynamic-8        	18102835	        67.64 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/root/methods5/precomputed-8    	67529228	        18.51 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/dense/methods1/dynamic-8       	49249035	        24.61 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/dense/methods1/precomputed-8   	62986478	        18.00 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/dense/methods5/dynamic-8       	50053008	        26.15 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/dense/methods5/precomputed-8   	63536326	        18.18 ns/op	       0 B/op	       0 allocs/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/lucaf/heiry
+cpu: Apple M2
+BenchmarkPrecomputeLookup/depth1/ops1/dense/virtual/dynamic-8         	46371060	        26.51 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth1/ops1/dense/virtual/precomputed-8     	52676436	        20.13 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth1/ops4/dense/virtual/dynamic-8         	47109705	        25.44 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth1/ops4/dense/virtual/precomputed-8     	63399258	        19.28 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth1/ops16/dense/virtual/dynamic-8        	47827977	        26.86 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth1/ops16/dense/virtual/precomputed-8    	58655205	        19.83 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/root/virtual/dynamic-8          	31586635	        41.25 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/root/parent/dynamic-8           	33782752	        34.72 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/root/virtual/precomputed-8      	61935214	        19.24 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/root/parent/precomputed-8       	65517979	        19.19 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/busy/virtual/dynamic-8          	28963615	        41.23 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/busy/virtual/precomputed-8      	63058881	        18.36 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/dense/virtual/dynamic-8         	49084186	        25.65 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/dense/parent/dynamic-8          	47914232	        25.17 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/dense/virtual/precomputed-8     	65498904	        18.54 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/dense/parent/precomputed-8      	65251080	        18.20 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/mixed/virtual/dynamic-8         	32401599	        37.91 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/mixed/virtual/precomputed-8     	63327602	        20.09 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops16/busy/virtual/dynamic-8         	29826693	        40.93 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops16/busy/virtual/precomputed-8     	60005000	        19.46 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/root/virtual/dynamic-8         	16374325	        69.80 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/root/parent/dynamic-8          	18717768	        64.01 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/root/virtual/precomputed-8     	64106844	        18.95 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/root/parent/precomputed-8      	67793097	        19.41 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/busy/virtual/dynamic-8         	11230600	       110.1 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/busy/parent/dynamic-8          	12107107	       100.9 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/busy/virtual/precomputed-8     	57864556	        19.21 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/busy/parent/precomputed-8      	67540630	        18.42 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/mid/virtual/dynamic-8          	20901856	        59.10 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/mid/virtual/precomputed-8      	62616998	        18.91 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/dense/virtual/dynamic-8        	48689854	        24.86 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/dense/parent/dynamic-8         	48956361	        25.79 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/dense/virtual/precomputed-8    	61641987	        19.03 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/dense/parent/precomputed-8     	65442794	        18.63 ns/op	       0 B/op	       0 allocs/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/lucaf/heiry
+cpu: Apple M2
+BenchmarkResolution/depth1/root/methods1/dynamic-8         	47440048	        26.96 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth1/root/methods1/precomputed-8     	61615347	        20.29 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth1/root/methods5/dynamic-8         	39379338	        27.77 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth1/root/methods5/precomputed-8     	59256820	        20.09 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth1/dense/methods1/dynamic-8        	45010689	        25.31 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth1/dense/methods1/precomputed-8    	64278394	        18.39 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth1/dense/methods5/dynamic-8        	47637085	        25.16 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth1/dense/methods5/precomputed-8    	64486946	        19.17 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/root/methods1/dynamic-8        	17641880	        70.73 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/root/methods1/precomputed-8    	62414260	        18.24 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/root/methods5/dynamic-8        	17612523	        66.71 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/root/methods5/precomputed-8    	65162204	        18.45 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/dense/methods1/dynamic-8       	48610713	        24.66 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/dense/methods1/precomputed-8   	64132395	        18.05 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/dense/methods5/dynamic-8       	50673892	        24.42 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/dense/methods5/precomputed-8   	67212927	        18.68 ns/op	       0 B/op	       0 allocs/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/lucaf/heiry
+cpu: Apple M2
+BenchmarkPrecomputeLookup/depth1/ops1/dense/virtual/dynamic-8         	36371182	        28.52 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth1/ops1/dense/virtual/precomputed-8     	60610015	        20.77 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth1/ops4/dense/virtual/dynamic-8         	45845344	        28.19 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth1/ops4/dense/virtual/precomputed-8     	55156246	        22.73 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth1/ops16/dense/virtual/dynamic-8        	38718783	        30.01 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth1/ops16/dense/virtual/precomputed-8    	59809604	        19.69 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/root/virtual/dynamic-8          	31184659	        38.25 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/root/parent/dynamic-8           	38375643	        30.39 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/root/virtual/precomputed-8      	65508440	        19.69 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/root/parent/precomputed-8       	64364014	        18.10 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/busy/virtual/dynamic-8          	30742987	        41.57 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/busy/virtual/precomputed-8      	63014727	        18.65 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/dense/virtual/dynamic-8         	43055440	        26.16 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/dense/parent/dynamic-8          	48845515	        24.29 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/dense/virtual/precomputed-8     	63196839	        18.41 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/dense/parent/precomputed-8      	69280227	        17.49 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/mixed/virtual/dynamic-8         	36298828	        35.89 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops4/mixed/virtual/precomputed-8     	56454759	        19.71 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops16/busy/virtual/dynamic-8         	30545620	        40.36 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth3/ops16/busy/virtual/precomputed-8     	54598812	        22.61 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/root/virtual/dynamic-8         	17851563	        68.90 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/root/parent/dynamic-8          	19216026	        61.15 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/root/virtual/precomputed-8     	68379313	        18.34 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/root/parent/precomputed-8      	66781214	        18.43 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/busy/virtual/dynamic-8         	11739715	        99.18 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/busy/parent/dynamic-8          	13053752	        90.64 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/busy/virtual/precomputed-8     	69525580	        18.23 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/busy/parent/precomputed-8      	66720105	        21.41 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/mid/virtual/dynamic-8          	22228515	        58.00 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/mid/virtual/precomputed-8      	63236664	        18.35 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/dense/virtual/dynamic-8        	49869784	        25.06 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/dense/parent/dynamic-8         	48332122	        24.26 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/dense/virtual/precomputed-8    	59448736	        18.77 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrecomputeLookup/depth10/ops4/dense/parent/precomputed-8     	69382545	        17.31 ns/op	       0 B/op	       0 allocs/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/lucaf/heiry
+cpu: Apple M2
+BenchmarkResolution/depth1/root/methods1/dynamic-8         	43978999	        25.53 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth1/root/methods1/precomputed-8     	54051718	        19.92 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth1/root/methods5/dynamic-8         	45972460	        26.09 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth1/root/methods5/precomputed-8     	56573084	        19.66 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth1/dense/methods1/dynamic-8        	49934200	        24.34 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth1/dense/methods1/precomputed-8    	63040522	        17.99 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth1/dense/methods5/dynamic-8        	51139723	        23.88 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth1/dense/methods5/precomputed-8    	62706843	        18.80 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/root/methods1/dynamic-8        	17611572	        66.95 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/root/methods1/precomputed-8    	67808420	        18.47 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/root/methods5/dynamic-8        	17219740	        69.82 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/root/methods5/precomputed-8    	61491948	        20.73 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/dense/methods1/dynamic-8       	44408190	        28.22 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/dense/methods1/precomputed-8   	63393393	        22.16 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/dense/methods5/dynamic-8       	42524226	        27.34 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolution/depth10/dense/methods5/precomputed-8   	60961282	        18.74 ns/op	       0 B/op	       0 allocs/op
+PASS

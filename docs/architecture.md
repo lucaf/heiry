@@ -167,7 +167,7 @@ Initialization uses temporary internal installation records and exclusive target
 
 The observable rules are defined in [specification S7](specification.md#s7-resolution-and-precomputation). Dynamic lookup scans explicit registrations backward. A selected entry contains a pointer to its actual provider, whose own Node identifies the executing level.
 
-Precomputed metadata stores `owner(before, capability)`: a level index or a missing sentinel. An array of depth+1 entries per capability can hold every parent destination followed by the virtual destination. One forward pass per capability records the previous owner before incorporating each level's own registration. The per-object provider map then selects the actual receiver at the stored level.
+Precomputed metadata stores `owner(before, capability)`: a level index or a missing sentinel. An array of depth+1 entries per capability can hold every parent destination followed by the virtual destination. One forward pass per capability records the previous owner before incorporating each level's own registration. For each level that registers a capability, the table also stores the position of that level's provider within an object's binding; like the owner levels, these positions are receiver-free. A precomputed object's binding supplies the actual receivers from a provider slice, in which the stored position selects the receiver at the stored level. A dynamic object's binding remains a provider map per level.
 
 This representation handles operations absent at intermediate levels and parent calls to a different operation without changing execution state. Component providers at one level use distinct operation entries with the same level number; they do not become additional parent steps.
 

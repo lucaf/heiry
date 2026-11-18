@@ -282,24 +282,26 @@ fast := plan.MustPrecompute()
 ```mermaid
 flowchart LR
     subgraph shared["precomputed Plan, shared by all objects"]
-        table["for each operation and starting position: the destination level"]
+        table["for each operation and starting position: the destination level<br/>for each operation and registering level: the provider's position in a binding"]
     end
     subgraph one["binding of object 1"]
-        r1["level and operation give object 1's provider"]
+        r1["object 1's providers, by position"]
     end
     subgraph two["binding of object 2"]
-        r2["level and operation give object 2's provider"]
+        r2["object 2's providers, by position"]
     end
     call(["a virtual or parent call from a holder"]) --> table
-    table -- "a level number" --> r1
-    table -- "a level number" --> r2
+    table -- "a position" --> r1
+    table -- "a position" --> r2
 ```
 
-The table holds level numbers only. The receiver that is finally called always comes from the binding of the object the scope belongs to.
+The table holds numbers only: destination levels, and the position of each level's provider within a binding. It never holds a receiver. The receiver that is finally called always comes from the binding of the object the scope belongs to.
 
 - Both Plans select the same provider for every call. Choose per object by initializing it with one Plan or the other; an initialized object keeps its mode.
 - The original Plan and objects already using it are unchanged by `Precompute`.
-- Precomputation is an optional trade-off, not a general speed-up. In the measurements recorded in the [roadmap](../roadmap.md) it helped a deep hierarchy whose operation is implemented only near the root, and was slower than dynamic lookup in shallow hierarchies and in the component cases. Those figures come from one machine and vary between runs; measure your own case before choosing.
+- A precomputed lookup costs one table probe whatever the hierarchy looks like; a dynamic lookup costs one probe plus one for every level it searches. In the measurements recorded in the [roadmap](../roadmap.md#p1-precomputed-resolution-performance) (Go 1.27.1, darwin/arm64, Apple M2), a precomputed lookup took about 17 to 22 ns in every shape tried. A dynamic lookup took about 23 to 27 ns when the provider was at the first level searched, and about 105 ns when nine levels that register other operations had to be skipped. Initializing an object from a precomputed Plan was not measurably slower, and its binding kept less memory.
+- Precomputation costs one conversion per Plan, measured at 0.3 to 1.5 µs, and one more shared table. Prefer a precomputed Plan for objects that are called repeatedly, and retain the converted Plan rather than converting again. A dynamic Plan remains a sound choice when lookup speed does not matter.
+- Either kind of lookup is far slower than a plain interface call, which took about 1 ns in the same measurements. All of these figures come from one machine and vary between runs; measure your own case before relying on them.
 
 ## Dispatch
 

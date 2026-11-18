@@ -104,6 +104,8 @@ For M8 only, the owner directed the same green CI designation and milestone comp
 
 For M9 and for the E1 additive authoring conveniences, the owner directed on 2026-11-18 the same green CI designation and completion from their passing scoped local code and documentation gates. The authorization and observed checks are recorded in the [M9](roadmap.md#m9-integration-documentation-usage-examples-and-release-readiness) and [E1](roadmap.md#e1-additive-authoring-conveniences) roadmap entries. These local-gate exceptions do not assert that remote CI ran. Other work retains its CI gates.
 
+For P1, the precomputed resolution performance work, the owner directed on 2026-11-18 the same green CI designation and completion from its passing scoped local code and documentation gates. The authorization and observed checks, including its benchmark evidence, are recorded in the [P1 roadmap entry](roadmap.md#p1-precomputed-resolution-performance). This local-gate exception does not assert that remote CI ran. Other work retains its CI gates.
+
 Select formatting files and test packages explicitly from maintained project sources. Exclude `.ceiling`, archives, prototypes, and unrelated material from discovery, formatting, vet, tests, race checks, fuzzing, and benchmarks. Avoid recursive `gofmt -l .` or unfiltered filesystem globs. For the planned root package, after confirming source exists, the scoped gates are:
 
 ```sh

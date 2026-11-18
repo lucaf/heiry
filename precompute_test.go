@@ -38,10 +38,19 @@ func TestM7PrecomputePreservesDynamicSourceAndEmbeddedProviders(t *testing.T) {
 		if got := Method[stage3Add](leaf.Node.Scope()).Add(4); got != 18 {
 			t.Fatalf("Add = %d", got)
 		}
-		if got := leaf.Node.Scope().dispatch.levels[0][reflect.TypeFor[stage3Add]()]; got != &leaf.stage3A {
+		if got := m7BoundProvider(leaf.Node.Scope().dispatch, 0, reflect.TypeFor[stage3Add]()); got != &leaf.stage3A {
 			t.Fatalf("root provider = %p, want %p", got, &leaf.stage3A)
 		}
 	}
+}
+
+// m7BoundProvider reads the provider one object holds for a capability at a
+// level, from the level map of a dynamic object or the slot of a precomputed one.
+func m7BoundProvider(d *dispatch, level int, capability reflect.Type) any {
+	if d.owners == nil {
+		return d.levels[level][capability]
+	}
+	return d.providers[d.owners[capability].slot[level]]
 }
 
 func TestM7PrecomputedPlanStillChecksEachInstance(t *testing.T) {
@@ -291,16 +300,22 @@ func TestM7SparseResolutionAndNoDynamicFallback(t *testing.T) {
 			if leaf.Node.Scope().dispatch.owners == nil {
 				t.Fatal("precomputed object has no table")
 			}
+			if leaf.Node.Scope().dispatch.levels != nil {
+				t.Fatal("precomputed object kept level maps that a lookup could scan")
+			}
 		} else if leaf.Node.Scope().dispatch.owners != nil {
 			t.Fatal("dynamic object unexpectedly has a table")
 		}
 	}
 	capability := reflect.TypeFor[m7Other]()
 	a, c := &m7SparseA{}, &m7SparseC{}
+	// The table contradicts what a scan of the same registrations would find.
+	// The level maps stay populated so that a fallback scan would be visible.
 	proof := &dispatch{
-		known:  map[reflect.Type]struct{}{capability: {}},
-		levels: []map[reflect.Type]any{{capability: a}, {capability: c}},
-		owners: map[reflect.Type][]int{capability: {-1, -1, 0}},
+		known:     map[reflect.Type]struct{}{capability: {}},
+		levels:    []map[reflect.Type]any{{capability: a}, {capability: c}},
+		owners:    map[reflect.Type]ownerRow{capability: {owner: []int{-1, -1, 0}, slot: []int{0, 1}}},
+		providers: []any{a, c},
 	}
 	if got := Method[m7Other](Scope{dispatch: proof, level: 1}); got != a {
 		t.Fatalf("table owner = %p, want %p", got, a)

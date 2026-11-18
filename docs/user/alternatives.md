@@ -92,15 +92,15 @@ For this application, counting lines that are neither blank nor comments:
 
 The heiry version needs one interface per operation, the declaration, a `heiry.Node` in every provider, and a wrapper. The self-interface version needs one forwarder and one hand-wired link.
 
-`BenchmarkRender` in the example measures the same successful `Render("milk")` call through each version. Both do the same checks and build the same string; the heiry version resolves five times per call where the self-interface version makes three interface calls. One run on 2026-11-18 (Go 1.27.1, darwin/arm64, Apple M2, medians of five), after the example moved to the holder call forms:
+`BenchmarkRender` in the example measures the same successful `Render("milk")` call through each version. Both do the same checks and build the same string; the heiry version resolves five times per call where the self-interface version makes three interface calls. Measured on 2026-11-18 (Go 1.27.1, darwin/arm64, Apple M2, medians of six runs), after the precomputed lookup was reduced to one table probe:
 
 | Variant | Time per call | Allocation per call |
 | --- | --- | --- |
-| Self interface | 45.6 ns | 16 B, 2 allocations |
-| heiry, dynamic Plan | 187.0 ns | 16 B, 2 allocations |
-| heiry, precomputed Plan | 247.7 ns | 16 B, 2 allocations |
+| Self interface | 45.1 ns | 16 B, 2 allocations |
+| heiry, dynamic Plan | 177 ns | 16 B, 2 allocations |
+| heiry, precomputed Plan | 140 ns | 16 B, 2 allocations |
 
-These numbers describe this call shape on this machine. Individual runs varied by up to about 40 percent, and the compiler may optimize interface calls differently in other code. Run `go test -run '^$' -bench . -benchmem ./examples/comparison` to measure your own environment.
+These numbers describe this call shape on this machine. Single runs ranged over 44.5 to 52.7 ns, 173 to 225 ns and 134 to 146 ns, and the compiler may optimize interface calls differently in other code. Run `go test -run '^$' -bench . -benchmem ./examples/comparison` to measure your own environment.
 
 ## What heiry standardizes
 
@@ -123,9 +123,9 @@ It does not make inheritance safer than the compiler can. In particular, neither
 
 Nothing in this section is implemented, approved or scheduled. These are possibilities only.
 
-### Optimizing precomputed Plans
+### Further lookup optimization
 
-A precomputed Plan currently helps some deeper lookups of inherited operations and is slower than dynamic lookup in several shallow scenarios, including the one measured above. Improving it would start with profiling and with comparable measurements across hierarchy shapes. A general speed-up is not promised.
+A precomputed lookup now costs one table probe keyed by the operation type, an interface type assertion, and the call itself. A dynamic lookup still makes one probe to check that the operation is known and one more for each level it searches. The dynamic path could be given a similar layout. Removing the last probe would need another way to identify an operation at the call site. Neither has been designed.
 
 ### Code generation
 

@@ -1,0 +1,3 @@
+Render/self-interface                                            46.5 [44.1-47.4] ->   45.1 [44.5-52.7]    -2.9%  16->16 B/op  2->2 allocs/op
+Render/heiry-dynamic                                              178 [176-204] ->    177 [173-225]    -0.6%  16->16 B/op  2->2 allocs/op
+Render/heiry-precomputed                                          248 [236-292] ->    140 [134-146]   -43.7%  16->16 B/op  2->2 allocs/op
