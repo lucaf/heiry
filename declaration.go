@@ -90,9 +90,13 @@ func (l *LevelHandle[Leaf]) Bind[Operation any](provider Operation, providerPath
 	}
 	value := reflect.ValueOf(provider)
 	if !value.IsValid() || value.Kind() != reflect.Pointer || !value.IsNil() || !validProviderPath(providerPath) {
+		var expected reflect.Type
+		if providerPath == "." {
+			expected = reflect.PointerTo(l.level.typ)
+		}
 		l.definition.recorded = append(l.definition.recorded, &Error{
 			Code: InvalidProvider, Target: reflect.TypeFor[Leaf](), Level: l.level.index,
-			Capability: capability, Path: providerPath, Expected: reflect.PointerTo(l.level.typ), Actual: reflect.TypeOf(provider),
+			Capability: capability, Path: providerPath, Expected: expected, Actual: reflect.TypeOf(provider),
 		})
 		return l
 	}
@@ -123,7 +127,11 @@ func (l *LevelHandle[Leaf]) BindGroup[Provider any](provider *Provider, provider
 	}
 	providerType := reflect.TypeOf(provider)
 	if provider != nil || !validProviderPath(providerPath) {
-		invalid = append(invalid, &Error{Code: InvalidProvider, Target: target, Level: level, Path: providerPath, Expected: reflect.PointerTo(l.level.typ), Actual: providerType})
+		var expected reflect.Type
+		if providerPath == "." {
+			expected = reflect.PointerTo(l.level.typ)
+		}
+		invalid = append(invalid, &Error{Code: InvalidProvider, Target: target, Level: level, Path: providerPath, Expected: expected, Actual: providerType})
 	}
 	for _, operation := range operations {
 		capability := operation.capability
@@ -153,7 +161,7 @@ func validProviderPath(path string) bool {
 		return true
 	}
 	for _, part := range strings.Split(path, ".") {
-		if !token.IsIdentifier(part) {
+		if part == "_" || !token.IsIdentifier(part) {
 			return false
 		}
 	}
@@ -164,8 +172,8 @@ func validProviderPath(path string) bool {
 func (d *Definition[Leaf]) Validate() error {
 	d.mu.Lock()
 	defer d.mu.Unlock()
-	_, err := d.validatedSnapshot()
-	return d.withRecorded(err)
+	validated, err := d.validatedSnapshot()
+	return d.withRecorded(err, validated)
 }
 
 func (d *Definition[Leaf]) validatedSnapshot() (*validatedNodes, error) {
@@ -182,26 +190,38 @@ func (d *Definition[Leaf]) validatedSnapshot() (*validatedNodes, error) {
 	for index, level := range d.levels {
 		levels[index] = nodeLevel{typ: level.typ, parentField: level.parentField, contracts: contractLevel{public: level.public, private: level.private}}
 		for _, binding := range level.bindings {
-			if binding.providerPath != "." {
-				localErrors = append(localErrors, &Error{Code: InvalidProvider, Target: target, Level: index, Path: binding.providerPath, Capability: binding.capability})
-				continue
-			}
-			levels[index].contracts.bindings = append(levels[index].contracts.bindings, binding.contractBinding)
+			entry := binding.contractBinding
+			entry.providerPath = binding.providerPath
+			levels[index].contracts.bindings = append(levels[index].contracts.bindings, entry)
 		}
 	}
 	validated, err := validateNodeDefinition(levels)
 	localErrors = append(localErrors, err)
 	if joined := errors.Join(localErrors...); joined != nil {
-		return nil, joined
+		return validated, joined
 	}
 	return validated, nil
 }
 
-func (d *Definition[Leaf]) withRecorded(validation error) error {
+func (d *Definition[Leaf]) withRecorded(validation error, validated *validatedNodes) error {
 	if len(d.recorded) == 0 {
 		return validation
 	}
-	all := append([]error(nil), d.recorded...)
+	all := make([]error, 0, len(d.recorded)+1)
+	for _, recorded := range d.recorded {
+		if diagnostic, ok := recorded.(*Error); ok && validated != nil &&
+			(diagnostic.Code == InvalidProvider || diagnostic.Code == InvalidCapability || diagnostic.Code == InvalidDeclaration) &&
+			diagnostic.Level >= 0 && diagnostic.Level < len(validated.levels) && diagnostic.Path != "" {
+			copy := *diagnostic
+			copy.Path = validated.fullProviderPath(copy.Level, copy.Path)
+			if copy.Path == "" && diagnostic.Path == "." {
+				copy.Path = "."
+			}
+			all = append(all, &copy)
+		} else {
+			all = append(all, recorded)
+		}
+	}
 	if validation != nil {
 		all = append(all, validation)
 	}

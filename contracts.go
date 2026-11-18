@@ -10,6 +10,10 @@ import (
 type contractBinding struct {
 	capability reflect.Type
 	provider   reflect.Type
+	// providerPath is relative to the owning node. Empty is the legacy
+	// internal-fixture spelling of the node slot.
+	providerPath    string
+	invalidProvider bool
 }
 
 type contractLevel struct {
@@ -88,32 +92,35 @@ func validateContracts(levels []contractLevel, target int) (*contractResult, err
 		for _, binding := range entry.bindings {
 			capability := binding.capability
 			if capability == nil || capability.Kind() != reflect.Interface || capability.NumMethod() != 1 || capability.Method(0).PkgPath != "" {
-				diagnostics = append(diagnostics, &Error{Code: InvalidCapability, Capability: capability, Level: level})
+				diagnostics = append(diagnostics, &Error{Code: InvalidCapability, Capability: capability, Level: level, Path: binding.providerPath})
 				continue
 			}
 			method := capability.Method(0)
+			if seen[method.Name] {
+				diagnostics = append(diagnostics, &Error{Code: DuplicateBinding, Name: method.Name, Capability: capability, Level: level, Path: binding.providerPath})
+			}
+			seen[method.Name] = true
 			operation, ok := operations[method.Name]
 			if !ok {
-				diagnostics = append(diagnostics, &Error{Code: UndeclaredOperation, Name: method.Name, Capability: capability, Level: level})
+				diagnostics = append(diagnostics, &Error{Code: UndeclaredOperation, Name: method.Name, Capability: capability, Level: level, Path: binding.providerPath})
 				continue
 			}
 			if method.Type != operation.method.Type {
-				diagnostics = append(diagnostics, &Error{Code: SignatureMismatch, Name: method.Name, Capability: capability, Level: level, Expected: operation.method.Type, Actual: method.Type})
+				diagnostics = append(diagnostics, &Error{Code: SignatureMismatch, Name: method.Name, Capability: capability, Level: level, Path: binding.providerPath, Expected: operation.method.Type, Actual: method.Type})
 				continue
 			}
 			if prior, exists := canonical[method.Name]; exists && prior != capability {
-				diagnostics = append(diagnostics, &Error{Code: CapabilityIdentity, Name: method.Name, Capability: capability, Level: level, Expected: prior, Actual: capability})
+				diagnostics = append(diagnostics, &Error{Code: CapabilityIdentity, Name: method.Name, Capability: capability, Level: level, Path: binding.providerPath, Expected: prior, Actual: capability})
 				continue
 			}
-			if seen[method.Name] {
-				diagnostics = append(diagnostics, &Error{Code: DuplicateBinding, Name: method.Name, Capability: capability, Level: level})
+			if binding.invalidProvider {
 				continue
 			}
 			if binding.provider == nil || binding.provider.Kind() != reflect.Pointer || !binding.provider.Implements(capability) {
-				diagnostics = append(diagnostics, &Error{Code: SignatureMismatch, Name: method.Name, Capability: capability, Level: level, Expected: capability, Actual: binding.provider})
+				diagnostics = append(diagnostics, &Error{Code: SignatureMismatch, Name: method.Name, Capability: capability, Level: level, Path: binding.providerPath, Expected: capability, Actual: binding.provider})
 				continue
 			}
-			seen[method.Name], bound[method.Name] = true, true
+			bound[method.Name] = true
 			canonical[method.Name] = capability
 			result.known[capability] = struct{}{}
 		}

@@ -1,6 +1,6 @@
 # ADR 0007 — Fluent receiver-free declaration
 
-Status: accepted for M4 by the project owner on 2026-11-17. Grouped registration was later approved in [ADR 0009](0009-grouped-fluent-registration.md), and precomputed lifecycle signatures in [ADR 0010](0010-concurrent-preparation-and-precomputed-plans.md). Component-provider signatures remain open.
+Status: accepted for M4 by the project owner on 2026-11-17. Grouped registration was later approved in [ADR 0009](0009-grouped-fluent-registration.md), precomputed lifecycle signatures in [ADR 0010](0010-concurrent-preparation-and-precomputed-plans.md), and component-provider references in [ADR 0011](0011-component-provider-references.md).
 
 Decision: M4 declares one receiver-free hierarchy through a concrete generic `Definition[Leaf]` and stable `LevelHandle[Leaf]` values. A generic `Level[Node, Public, Private](parentField)` method adds a level. A generic `Bind[Operation](typedNilProvider, providerPath)` method adds an individual registration with the compiler's provider/interface check. `End()` returns the same definition. `Validate()` checks the current snapshot without freezing or creating a Plan. The final node type must equal `Leaf` exactly; validated direct value-parent edges derive leaf-relative node paths. The node provider uses the explicit path `"."`.
 

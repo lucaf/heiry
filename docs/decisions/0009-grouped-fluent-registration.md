@@ -1,6 +1,6 @@
 # ADR 0009 — Grouped fluent registration
 
-Status: accepted by the project owner for M6. Precomputed lifecycle signatures were later approved in [ADR 0010](0010-concurrent-preparation-and-precomputed-plans.md); component-provider signatures remain open.
+Status: accepted by the project owner for M6. Precomputed lifecycle signatures were later approved in [ADR 0010](0010-concurrent-preparation-and-precomputed-plans.md), and component-provider signatures in [ADR 0011](0011-component-provider-references.md).
 
 Decision: a receiver-free `OperationToken` with unexported metadata is created by `Of[T any]() OperationToken`. `(*LevelHandle[Leaf]).BindGroup[Provider any](provider *Provider, providerPath string, operations ...OperationToken) *LevelHandle[Leaf]` records several explicitly selected capabilities for one typed-nil pointer witness. The generic pointer parameter lets the compiler reject nonpointer witnesses; it does not prove that the provider implements every token's interface. Individual `Bind[T]` retains that compiler check. Both styles feed the same per-operation metadata, validators, and typed dynamic resolver.
 

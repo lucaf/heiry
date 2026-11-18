@@ -173,5 +173,109 @@ func FuzzResolution(f *testing.F) {
 			}
 		}
 		m7CheckOracle(t, depth, masks)
+		choices := make([][]uint8, len(masks))
+		for operation := range choices {
+			choices[operation] = make([]uint8, depth)
+			for level := range choices[operation] {
+				position := 7 + operation*depth + level
+				if position < len(data) {
+					choices[operation][level] = data[position] & 1
+				} else {
+					choices[operation][level] = uint8((operation + level) & 1)
+				}
+			}
+		}
+		m8CheckComponentOracle(t, depth, masks, choices)
+		var integrationMasks [3]uint8
+		var integrationChoices [3][3]uint8
+		for operation := range integrationMasks {
+			integrationMasks[operation] = uint8(masks[operation] & 7)
+			for level := 0; level < 3; level++ {
+				integrationChoices[operation][level] = choices[operation][level%depth]
+			}
+		}
+		m8CheckIntegratedComponentOracle(t, integrationMasks, integrationChoices)
 	})
+}
+
+type m8OracleProvider struct {
+	Node
+	level, slot int
+}
+
+func (p *m8OracleProvider) Read() int       { return p.level*2 + p.slot }
+func (p *m8OracleProvider) Add(n int) int   { return p.level*2 + p.slot + n }
+func (p *m8OracleProvider) Walk(int) string { return "component oracle" }
+
+// This kernel oracle checks owner and component receiver selection from
+// synthetic dispatch rows; the integration oracle exercises declaration and binding.
+func m8CheckComponentOracle(t *testing.T, depth int, masks []uint16, choices [][]uint8) {
+	t.Helper()
+	fast := m7OraclePlan(depth, masks).MustPrecompute()
+	providers := make([][2]*m8OracleProvider, depth)
+	levels := make([]map[reflect.Type]any, depth)
+	for level := range levels {
+		providers[level] = [2]*m8OracleProvider{{level: level, slot: 0}, {level: level, slot: 1}}
+		levels[level] = make(map[reflect.Type]any)
+		for operation, mask := range masks {
+			if mask&(1<<level) != 0 {
+				levels[level][m7OracleCapabilities[operation]] = providers[level][choices[operation][level]]
+			}
+		}
+	}
+	for _, mode := range []struct {
+		name string
+		d    *dispatch
+	}{{"dynamic", &dispatch{known: fast.validated.known, levels: levels}},
+		{"precomputed", &dispatch{known: fast.validated.known, levels: levels, owners: fast.owners}}} {
+		for operation, mask := range masks {
+			capability := m7OracleCapabilities[operation]
+			for position := 0; position <= depth; position++ {
+				wantLevel := m7BackwardOracle(mask, depth, position)
+				if mode.name == "precomputed" && fast.owners[capability][position] != wantLevel {
+					t.Fatalf("table owner=%d, want %d", fast.owners[capability][position], wantLevel)
+				}
+				starts := []int{position}
+				if position == depth {
+					starts = starts[:0]
+					for level := range levels {
+						starts = append(starts, level)
+					}
+				}
+				for _, start := range starts {
+					provider, diagnostic := m7InvokeOracle(Scope{dispatch: mode.d, level: start}, operation, position != depth)
+					if wantLevel < 0 {
+						if provider != nil || diagnostic == nil || diagnostic.Code != NoParentImplementation || diagnostic.Capability != capability || diagnostic.Level != start {
+							t.Fatalf("%s depth=%d masks=%v position=%d: provider=%v diagnostic=%+v", mode.name, depth, masks, position, provider, diagnostic)
+						}
+						continue
+					}
+					want := providers[wantLevel][choices[operation][wantLevel]]
+					if diagnostic != nil || provider != want {
+						t.Fatalf("%s depth=%d masks=%v position=%d: provider=%v diagnostic=%+v, want %p", mode.name, depth, masks, position, provider, diagnostic, want)
+					}
+				}
+			}
+		}
+	}
+}
+
+func TestM8ExhaustiveSmallComponentLayouts(t *testing.T) {
+	for depth := 1; depth <= 3; depth++ {
+		limit := uint16(1 << depth)
+		for first := uint16(1); first < limit; first++ {
+			for second := uint16(1); second < limit; second++ {
+				for firstSlots := uint16(0); firstSlots < limit; firstSlots++ {
+					for secondSlots := uint16(0); secondSlots < limit; secondSlots++ {
+						choices := [][]uint8{make([]uint8, depth), make([]uint8, depth)}
+						for level := 0; level < depth; level++ {
+							choices[0][level] = uint8((firstSlots >> level) & 1)
+							choices[1][level] = uint8((secondSlots >> level) & 1)
+						}
+						m8CheckComponentOracle(t, depth, []uint16{first, second}, choices)
+					}
+				}
+			}
+		}
+	}
 }

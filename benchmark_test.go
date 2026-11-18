@@ -57,6 +57,7 @@ var m7BenchmarkResult int
 var m7BenchmarkPlan *Plan[stage3C]
 var m7BenchmarkLeaf *stage3C
 var m7BenchmarkDefinition *Definition[stage3C]
+var m8BenchmarkLeaf *m8TwinLeaf
 
 func m7BenchmarkDispatch(depth, methods int, layout string) (m7BenchRead, Scope, Scope) {
 	capabilities := []reflect.Type{
@@ -317,6 +318,362 @@ func BenchmarkLifecycle(b *testing.B) {
 				}
 				done += count
 			}
+		})
+	}
+}
+
+func BenchmarkM8ComponentDispatch(b *testing.B) {
+	definition := m8TwinDefinition()
+	dynamic := definition.MustPrepare()
+	fast := dynamic.MustPrecompute()
+	for _, tc := range []struct {
+		name string
+		plan *Plan[m8TwinLeaf]
+	}{{"dynamic", dynamic}, {"precomputed", fast}} {
+		leaf := &m8TwinLeaf{}
+		leaf.First.value, leaf.Nested.Second.value = 1, 2
+		tc.plan.MustInit(leaf, tc.plan.NodeProvider(leaf),
+			tc.plan.ComponentProvider[m8TwinLeaf]("First", &leaf.First),
+			tc.plan.ComponentProvider[m8TwinLeaf]("Nested.Second", &leaf.Nested.Second))
+		b.Run(tc.name, func(b *testing.B) {
+			b.ResetTimer()
+			var sum int
+			for i := 0; i < b.N; i++ {
+				sum += Method[m8Read](leaf.Node.Scope()).Read()
+				sum += Method[m8Audit](leaf.Node.Scope()).Audit()
+			}
+			m7BenchmarkResult = sum
+		})
+	}
+	var first m8Read = &m8Reader{value: 1}
+	var second m8Audit = &m8Reader{value: 2}
+	b.Run("interface", func(b *testing.B) {
+		b.ResetTimer()
+		var sum int
+		for i := 0; i < b.N; i++ {
+			sum += first.Read()
+			sum += second.Audit()
+		}
+		m7BenchmarkResult = sum
+	})
+}
+
+func BenchmarkM8ComponentLifecycle(b *testing.B) {
+	b.Run("builder", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			m8BenchmarkDefinition = m8TwinDefinition()
+		}
+	})
+	b.Run("validation", func(b *testing.B) {
+		d := m8TwinDefinition()
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			if err := d.Validate(); err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+	b.Run("preparation", func(b *testing.B) {
+		b.ResetTimer()
+		for done := 0; done < b.N; {
+			count := min(256, b.N-done)
+			b.StopTimer()
+			definitions := make([]*Definition[m8TwinLeaf], count)
+			for index := range definitions {
+				definitions[index] = m8TwinDefinition()
+			}
+			b.StartTimer()
+			for _, d := range definitions {
+				m8BenchmarkPlan = d.MustPrepare()
+			}
+			done += count
+		}
+	})
+	b.Run("conversion", func(b *testing.B) {
+		plan := m8TwinDefinition().MustPrepare()
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			m8BenchmarkPlan = plan.MustPrecompute()
+		}
+	})
+	b.Run("lazy first use", func(b *testing.B) {
+		b.ResetTimer()
+		for done := 0; done < b.N; {
+			count := min(256, b.N-done)
+			b.StopTimer()
+			definitions := make([]*Definition[m8TwinLeaf], count)
+			leaves := make([]*m8TwinLeaf, count)
+			refs := make([][3]ProviderRef[m8TwinLeaf], count)
+			for index := range definitions {
+				d := m8TwinDefinition()
+				leaf := &m8TwinLeaf{}
+				definitions[index], leaves[index] = d, leaf
+				refs[index] = [3]ProviderRef[m8TwinLeaf]{d.NodeProvider(leaf), d.ComponentProvider[m8TwinLeaf]("First", &leaf.First), d.ComponentProvider[m8TwinLeaf]("Nested.Second", &leaf.Nested.Second)}
+			}
+			b.StartTimer()
+			for index, d := range definitions {
+				if err := d.Init(leaves[index], refs[index][:]...); err != nil {
+					b.Fatal(err)
+				}
+				m8BenchmarkLeaf = leaves[index]
+			}
+			done += count
+		}
+	})
+	b.Run("warm preparation", func(b *testing.B) {
+		d := m8TwinDefinition()
+		d.MustPrepare()
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			m8BenchmarkPlan = d.MustPrepare()
+		}
+	})
+	for _, mode := range []string{"dynamic", "precomputed"} {
+		b.Run("per-object Init/"+mode, func(b *testing.B) {
+			plan := m8TwinDefinition().MustPrepare()
+			if mode == "precomputed" {
+				plan = plan.MustPrecompute()
+			}
+			b.ResetTimer()
+			for done := 0; done < b.N; {
+				count := min(256, b.N-done)
+				b.StopTimer()
+				leaves := make([]*m8TwinLeaf, count)
+				refs := make([][3]ProviderRef[m8TwinLeaf], count)
+				for index := range leaves {
+					leaf := &m8TwinLeaf{}
+					leaves[index] = leaf
+					refs[index] = [3]ProviderRef[m8TwinLeaf]{
+						plan.NodeProvider(leaf),
+						plan.ComponentProvider[m8TwinLeaf]("First", &leaf.First),
+						plan.ComponentProvider[m8TwinLeaf]("Nested.Second", &leaf.Nested.Second),
+					}
+				}
+				b.StartTimer()
+				for index, leaf := range leaves {
+					if err := plan.Init(leaf, refs[index][:]...); err != nil {
+						b.Fatal(err)
+					}
+					m8BenchmarkLeaf = leaf
+				}
+				done += count
+			}
+		})
+	}
+}
+
+var m8BenchmarkPlan *Plan[m8TwinLeaf]
+var m8BenchmarkDefinition *Definition[m8TwinLeaf]
+
+type m8BenchScore interface{ Score() int }
+type m8BenchPublic interface {
+	m8Read
+	m8Count
+	m8Audit
+	m8BenchScore
+}
+type m8BenchComponent struct {
+	Node
+	value int
+}
+
+func (p *m8BenchComponent) Read() int  { return p.value }
+func (p *m8BenchComponent) Count() int { return p.value }
+func (p *m8BenchComponent) Audit() int { return p.value }
+func (p *m8BenchComponent) Score() int { return p.value }
+
+type m8BenchLeaf struct {
+	Node
+	One, Two, Three, Four m8BenchComponent
+}
+
+func m8BenchDefinition(count int) *Definition[m8BenchLeaf] {
+	d := Define[m8BenchLeaf]()
+	l := d.Level[m8BenchLeaf, m8BenchPublic, m8Empty]("")
+	switch count {
+	case 1:
+		l.BindGroup((*m8BenchComponent)(nil), "One", Of[m8Read](), Of[m8Count](), Of[m8Audit](), Of[m8BenchScore]())
+	case 2:
+		l.BindGroup((*m8BenchComponent)(nil), "One", Of[m8Read](), Of[m8Count]())
+		l.BindGroup((*m8BenchComponent)(nil), "Two", Of[m8Audit](), Of[m8BenchScore]())
+	case 4:
+		l.Bind[m8Read]((*m8BenchComponent)(nil), "One")
+		l.Bind[m8Count]((*m8BenchComponent)(nil), "Two")
+		l.Bind[m8Audit]((*m8BenchComponent)(nil), "Three")
+		l.Bind[m8BenchScore]((*m8BenchComponent)(nil), "Four")
+	}
+	return d
+}
+
+func m8BenchRefs(p *Plan[m8BenchLeaf], leaf *m8BenchLeaf, count int) []ProviderRef[m8BenchLeaf] {
+	refs := []ProviderRef[m8BenchLeaf]{p.NodeProvider(leaf), p.ComponentProvider[m8BenchLeaf]("One", &leaf.One)}
+	if count >= 2 {
+		refs = append(refs, p.ComponentProvider[m8BenchLeaf]("Two", &leaf.Two))
+	}
+	if count == 4 {
+		refs = append(refs, p.ComponentProvider[m8BenchLeaf]("Three", &leaf.Three), p.ComponentProvider[m8BenchLeaf]("Four", &leaf.Four))
+	}
+	return refs
+}
+
+func BenchmarkM8ComponentCount(b *testing.B) {
+	for _, count := range []int{1, 2, 4} {
+		name := fmt.Sprintf("components%d", count)
+		dynamic := m8BenchDefinition(count).MustPrepare()
+		fast := dynamic.MustPrecompute()
+		for _, mode := range []struct {
+			name string
+			plan *Plan[m8BenchLeaf]
+		}{{"dynamic", dynamic}, {"precomputed", fast}} {
+			leaf := &m8BenchLeaf{}
+			leaf.One.value, leaf.Two.value, leaf.Three.value, leaf.Four.value = 1, 2, 3, 4
+			mode.plan.MustInit(leaf, m8BenchRefs(mode.plan, leaf, count)...)
+			b.Run(name+"/"+mode.name, func(b *testing.B) {
+				b.ResetTimer()
+				var sum int
+				for i := 0; i < b.N; i++ {
+					sum += Method[m8Read](leaf.Node.Scope()).Read()
+					sum += Method[m8BenchScore](leaf.Node.Scope()).Score()
+				}
+				m7BenchmarkResult = sum
+			})
+		}
+		leaf := &m8BenchLeaf{}
+		leaf.One.value, leaf.Two.value, leaf.Three.value, leaf.Four.value = 1, 2, 3, 4
+		var first m8Read = &leaf.One
+		var last m8BenchScore = &leaf.One
+		if count == 2 {
+			last = &leaf.Two
+		} else if count == 4 {
+			last = &leaf.Four
+		}
+		b.Run(name+"/interface", func(b *testing.B) {
+			b.ResetTimer()
+			var sum int
+			for i := 0; i < b.N; i++ {
+				sum += first.Read()
+				sum += last.Score()
+			}
+			m7BenchmarkResult = sum
+		})
+	}
+}
+
+type m8NativeRootStep struct{ complete m8Step }
+
+func (s *m8NativeRootStep) Step(n int) int {
+	if n == 0 {
+		return 1
+	}
+	return 1 + s.complete.Step(n-1)
+}
+
+type m8NativeRootSecret struct{}
+
+func (*m8NativeRootSecret) Secret() int { return 3 }
+
+type m8NativeLeafSecret struct{ parent m8Secret }
+
+func (s *m8NativeLeafSecret) Secret() int { return 1 + s.parent.Secret() }
+
+type m8NativeLeafStep struct {
+	parent  m8Step
+	private m8Secret
+}
+
+func (s *m8NativeLeafStep) Step(n int) int {
+	if n == 0 {
+		return s.private.Secret()
+	}
+	return 1 + s.parent.Step(n-1)
+}
+
+func BenchmarkM8ComponentDelegation(b *testing.B) {
+	rootStep := &m8NativeRootStep{}
+	rootSecret := &m8NativeRootSecret{}
+	leafSecret := &m8NativeLeafSecret{parent: rootSecret}
+	native := &m8NativeLeafStep{parent: rootStep, private: leafSecret}
+	rootStep.complete = native
+	var public m8Step = native
+	if got := public.Step(4); got != 8 {
+		b.Fatalf("native component delegation = %d", got)
+	}
+	b.Run("interface", func(b *testing.B) {
+		b.ResetTimer()
+		var result int
+		for i := 0; i < b.N; i++ {
+			result = public.Step(4)
+		}
+		m7BenchmarkResult = result
+	})
+	dynamic := m8StepDefinition().MustPrepare()
+	for _, mode := range []struct {
+		name string
+		plan *Plan[m8StepLeaf]
+	}{{"dynamic", dynamic}, {"precomputed", dynamic.MustPrecompute()}} {
+		leaf := &m8StepLeaf{}
+		mode.plan.MustInit(leaf,
+			mode.plan.NodeProvider(&leaf.m8StepRoot),
+			mode.plan.ComponentProvider[m8StepRoot]("Stepper", &leaf.m8StepRoot.Stepper),
+			mode.plan.ComponentProvider[m8StepRoot]("Hidden", &leaf.m8StepRoot.Hidden),
+			mode.plan.NodeProvider(leaf),
+			mode.plan.ComponentProvider[m8StepLeaf]("Hidden", &leaf.Hidden))
+		if got := Method[m8Step](leaf.Node.Scope()).Step(4); got != 8 {
+			b.Fatalf("%s component delegation = %d", mode.name, got)
+		}
+		b.Run(mode.name, func(b *testing.B) {
+			b.ResetTimer()
+			var result int
+			for i := 0; i < b.N; i++ {
+				result = Method[m8Step](leaf.Node.Scope()).Step(4)
+			}
+			m7BenchmarkResult = result
+		})
+	}
+}
+
+func BenchmarkM8ComponentParentOtherOperation(b *testing.B) {
+	root := &m8Reader{value: 5}
+	var parent m8Read = root
+	if got := parent.Read(); got != 5 {
+		b.Fatalf("native parent operation = %d", got)
+	}
+	b.Run("interface", func(b *testing.B) {
+		b.ResetTimer()
+		var result int
+		for i := 0; i < b.N; i++ {
+			result = parent.Read()
+		}
+		m7BenchmarkResult = result
+	})
+	d := Define[m8ExtendedChild]()
+	d.Level[m8ExtendedRoot, m8RootPublic, m8Empty]("").Bind[m8Read]((*m8Reader)(nil), "Reader").End().
+		Level[m8ExtendedChild, m8ChildPublic, m8ChildPrivate]("m8ExtendedRoot").
+		Bind[m8Write]((*m8Writer)(nil), "Writer").
+		Bind[m8Secret]((*m8RootSecret)(nil), "Hidden")
+	dynamic := d.MustPrepare()
+	for _, mode := range []struct {
+		name string
+		plan *Plan[m8ExtendedChild]
+	}{{"dynamic", dynamic}, {"precomputed", dynamic.MustPrecompute()}} {
+		leaf := &m8ExtendedChild{}
+		leaf.m8ExtendedRoot.Reader.value = 5
+		mode.plan.MustInit(leaf,
+			mode.plan.NodeProvider(&leaf.m8ExtendedRoot),
+			mode.plan.ComponentProvider[m8ExtendedRoot]("Reader", &leaf.m8ExtendedRoot.Reader),
+			mode.plan.NodeProvider(leaf),
+			mode.plan.ComponentProvider[m8ExtendedChild]("Writer", &leaf.Writer),
+			mode.plan.ComponentProvider[m8ExtendedChild]("Hidden", &leaf.Hidden))
+		if got := ParentMethod[m8Read](leaf.Writer.Node.Scope()).Read(); got != 5 {
+			b.Fatalf("%s component parent operation = %d", mode.name, got)
+		}
+		b.Run(mode.name, func(b *testing.B) {
+			b.ResetTimer()
+			var result int
+			for i := 0; i < b.N; i++ {
+				result = ParentMethod[m8Read](leaf.Writer.Node.Scope()).Read()
+			}
+			m7BenchmarkResult = result
 		})
 	}
 }

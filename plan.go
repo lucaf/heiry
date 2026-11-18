@@ -50,11 +50,12 @@ func (p *Plan[Leaf]) MustPrecompute() *Plan[Leaf] {
 	return converted
 }
 
-// ProviderRef carries one instance pointer and a node-slot identity.
+// ProviderRef carries one instance pointer and a provider-slot identity.
 // A Plan or Definition never retains a ProviderRef.
 type ProviderRef[Leaf any] struct {
 	lineage  *definitionLineage
 	nodeType reflect.Type
+	path     string
 	provider any
 	invalid  Code
 }
@@ -68,12 +69,12 @@ func (d *Definition[Leaf]) Prepare() (*Plan[Leaf], error) {
 	defer d.mu.Unlock()
 	if d.plan != nil {
 		if len(d.recorded) != 0 {
-			return nil, d.withRecorded(nil)
+			return nil, d.withRecorded(nil, d.plan.validated)
 		}
 		return d.plan, nil
 	}
 	validated, err := d.validatedSnapshot()
-	if err = d.withRecorded(err); err != nil {
+	if err = d.withRecorded(err, validated); err != nil {
 		return nil, err
 	}
 	if d.lineage == nil {
@@ -106,7 +107,7 @@ func (d *Definition[Leaf]) NodeProvider[Node any](ptr *Node) ProviderRef[Leaf] {
 	if d.lineage == nil {
 		d.lineage = &definitionLineage{marker: 1}
 	}
-	return ProviderRef[Leaf]{lineage: d.lineage, nodeType: reflect.TypeFor[Node](), provider: ptr}
+	return ProviderRef[Leaf]{lineage: d.lineage, nodeType: reflect.TypeFor[Node](), path: ".", provider: ptr}
 }
 
 // NodeProvider creates an instance reference using only immutable Plan data.
@@ -114,39 +115,89 @@ func (p *Plan[Leaf]) NodeProvider[Node any](ptr *Node) ProviderRef[Leaf] {
 	if p == nil || p.validated == nil {
 		return ProviderRef[Leaf]{invalid: InvalidPlan}
 	}
-	return ProviderRef[Leaf]{lineage: p.lineage, nodeType: reflect.TypeFor[Node](), provider: ptr}
+	return ProviderRef[Leaf]{lineage: p.lineage, nodeType: reflect.TypeFor[Node](), path: ".", provider: ptr}
 }
 
-// Init checks one leaf and every supplied node before installing any scopes.
+// ComponentProvider describes one owned component without preparing the definition.
+func (d *Definition[Leaf]) ComponentProvider[Node, Provider any](providerPath string, ptr *Provider) ProviderRef[Leaf] {
+	if d == nil {
+		return ProviderRef[Leaf]{nodeType: reflect.TypeFor[Node](), path: providerPath, provider: ptr, invalid: InvalidDeclaration}
+	}
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	if d.lineage == nil {
+		d.lineage = &definitionLineage{marker: 1}
+	}
+	ref := ProviderRef[Leaf]{lineage: d.lineage, nodeType: reflect.TypeFor[Node](), path: providerPath, provider: ptr}
+	if providerPath == "." || !validProviderPath(providerPath) {
+		ref.invalid = InvalidProvider
+	}
+	return ref
+}
+
+// ComponentProvider describes one owned component using immutable Plan metadata.
+func (p *Plan[Leaf]) ComponentProvider[Node, Provider any](providerPath string, ptr *Provider) ProviderRef[Leaf] {
+	ref := ProviderRef[Leaf]{nodeType: reflect.TypeFor[Node](), path: providerPath, provider: ptr}
+	if p == nil || p.validated == nil || p.lineage == nil {
+		ref.invalid = InvalidPlan
+		return ref
+	}
+	ref.lineage = p.lineage
+	if providerPath == "." || !validProviderPath(providerPath) {
+		ref.invalid = InvalidProvider
+	}
+	return ref
+}
+
+// Init checks one leaf and every required provider slot before installing scopes.
 func (p *Plan[Leaf]) Init(leaf *Leaf, refs ...ProviderRef[Leaf]) error {
 	if p == nil || p.validated == nil || p.lineage == nil {
 		return &Error{Code: InvalidPlan, Target: reflect.TypeFor[Leaf]()}
 	}
-	providers := make([]any, len(p.validated.levels))
-	seen := make([]bool, len(providers))
+	providers := make([]map[string]any, len(p.validated.levels))
+	for level := range providers {
+		providers[level] = make(map[string]any, len(p.validated.slots[level]))
+	}
 	for _, ref := range refs {
+		level, ownerKnown := p.nodes[ref.nodeType]
+		if !ownerKnown {
+			level = -1
+		}
+		path := ref.path
+		if ownerKnown {
+			path = p.validated.fullProviderPath(level, ref.path)
+		}
 		if ref.invalid != "" {
-			return &Error{Code: ref.invalid, Target: reflect.TypeFor[Leaf](), Actual: reflect.TypeOf(ref.provider)}
+			return &Error{Code: ref.invalid, Target: reflect.TypeFor[Leaf](), Level: level, Path: path, Actual: reflect.TypeOf(ref.provider)}
 		}
 		if ref.lineage == nil || ref.lineage != p.lineage {
-			return &Error{Code: BindingMismatch, Target: reflect.TypeFor[Leaf](), Actual: reflect.TypeOf(ref.provider)}
+			return &Error{Code: BindingMismatch, Target: reflect.TypeFor[Leaf](), Level: level, Path: path, Actual: reflect.TypeOf(ref.provider)}
 		}
-		level, ok := p.nodes[ref.nodeType]
-		if !ok {
-			return &Error{Code: InvalidProvider, Target: reflect.TypeFor[Leaf](), Actual: reflect.TypeOf(ref.provider)}
+		if !ownerKnown {
+			return &Error{Code: InvalidProvider, Target: reflect.TypeFor[Leaf](), Level: -1, Path: ref.path, Actual: reflect.TypeOf(ref.provider)}
 		}
-		if seen[level] {
-			return &Error{Code: BindingMismatch, Target: reflect.TypeFor[Leaf](), Level: level, Path: p.validated.providerPath(level)}
+		index, declared := p.validated.slotIndex[level][ref.path]
+		if !declared {
+			return &Error{Code: BindingMismatch, Target: reflect.TypeFor[Leaf](), Level: level, Path: path, Actual: reflect.TypeOf(ref.provider)}
 		}
-		seen[level] = true
-		providers[level] = ref.provider
+		slot := p.validated.slots[level][index]
+		actual := reflect.ValueOf(ref.provider)
+		if !actual.IsValid() || actual.Kind() != reflect.Pointer || actual.IsNil() || actual.Type() != reflect.PointerTo(slot.typ) {
+			return &Error{Code: InvalidProvider, Target: reflect.TypeFor[Leaf](), Level: level, Path: path, Expected: reflect.PointerTo(slot.typ), Actual: reflect.TypeOf(ref.provider)}
+		}
+		if _, seen := providers[level][ref.path]; seen {
+			return &Error{Code: BindingMismatch, Target: reflect.TypeFor[Leaf](), Level: level, Path: path}
+		}
+		providers[level][ref.path] = ref.provider
 	}
-	for level, present := range seen {
-		if !present {
-			return &Error{Code: BindingMismatch, Target: reflect.TypeFor[Leaf](), Level: level, Path: p.validated.providerPath(level), Expected: reflect.PointerTo(p.validated.levels[level].typ)}
+	for level, slots := range p.validated.slots {
+		for _, slot := range slots {
+			if _, present := providers[level][slot.path]; !present {
+				return &Error{Code: BindingMismatch, Target: reflect.TypeFor[Leaf](), Level: level, Path: p.validated.fullProviderPath(level, slot.path), Expected: reflect.PointerTo(slot.typ)}
+			}
 		}
 	}
-	return bindValidatedNodesWithOwners(p.validated, leaf, providers, p.owners)
+	return bindValidatedProviders(p.validated, leaf, providers, p.owners)
 }
 
 // MustInit panics with the error returned by Init and otherwise returns leaf.

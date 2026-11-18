@@ -1,6 +1,6 @@
 # ADR 0010 — Concurrent preparation and precomputed Plans
 
-Status: accepted by the project owner for M7.
+Status: accepted by the project owner for M7. Component-provider references were later approved in [ADR 0011](0011-component-provider-references.md).
 
 Decision: `(*Plan[Leaf]).Precompute() (*Plan[Leaf], error)` produces a separate immutable, receiver-free precomputed variant of a valid dynamic Plan. `MustPrecompute() *Plan[Leaf]` panics with the error returned by Precompute. A nil or unprepared Plan reports InvalidPlan. Repeating conversion on a precomputed Plan returns that handle; converting a dynamic Plan again may build an equivalent new table. The source Plan and existing objects remain unchanged. Both variants retain the declaration lineage and accept its provider references. Callers retain and reuse converted Plans when they want to avoid repeated conversion work.
 
@@ -10,4 +10,4 @@ Synchronization makes each declaration operation safe but does not make a sequen
 
 The successful Plan's definition context provides complete definition identity without global deduplication or a leaf-type cache key. The resolution mode is part of the Plan variant. A precomputed table stores, for each canonical capability, one parent owner index per executing level plus one virtual owner index. A missing sentinel represents no eligible ancestor. Conversion takes O(depth × capabilities + registrations) work and O(depth × capabilities) shared table space. Invocation reads the selected index and then the actual capability-specific provider from the object's binding; it does not scan levels or fall back to dynamic resolution.
 
-Alternatives: a separate public precomputed type would duplicate the existing Plan lifecycle surface; a global cache would require cross-definition identity and lifetime policy; permanently caching failed preparation would prevent approved retries after nonsticky failures; a mutable conversion cache on a dynamic Plan would add shared bookkeeping. These alternatives were not selected. Component provider implementation and its pointer API remain M8 work.
+Alternatives: a separate public precomputed type would duplicate the existing Plan lifecycle surface; a global cache would require cross-definition identity and lifetime policy; permanently caching failed preparation would prevent approved retries after nonsticky failures; a mutable conversion cache on a dynamic Plan would add shared bookkeeping. These alternatives were not selected. This decision left component providers to M8; their pointer API was later approved in [ADR 0011](0011-component-provider-references.md).
