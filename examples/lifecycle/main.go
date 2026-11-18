@@ -30,7 +30,7 @@ type plain struct {
 
 func (p *plain) Greet(name string) string {
 	p.greetings++
-	return "Hello, " + name + heiry.Method[Signer](p.Node.Scope()).Sign()
+	return "Hello, " + name + p.Node.Virtual[Signer]().Sign()
 }
 
 func (p *plain) Sign() string { return "." }
@@ -42,19 +42,23 @@ type formal struct {
 }
 
 func (f *formal) Greet(name string) string {
-	return "Dear " + name + "! " + heiry.ParentMethod[Greeter](f.Node.Scope()).Greet(name)
+	return "Dear " + name + "! " + f.Node.Parent[Greeter]().Greet(name)
 }
 
 func (f *formal) Sign() string { return " (" + f.title + ")" }
 
 // declare describes the hierarchy. It needs no object and runs no
 // application code; the result holds only types, paths and registrations.
+// BindNodeGroup registers several operations for a level's own node; the
+// declaration's validation checks that the node implements each of them.
+// End returns the definition from the last level handle.
 func declare() *heiry.Definition[formal] {
 	return heiry.Define[formal]().
 		Level[plain, Public, Private]("").
-		BindGroup((*plain)(nil), ".", heiry.Of[Greeter](), heiry.Of[Signer]()).End().
-		Level[formal, Public, Private]("plain").
-		BindGroup((*formal)(nil), ".", heiry.Of[Greeter](), heiry.Of[Signer]()).End()
+		BindNodeGroup((*plain)(nil), heiry.Of[Greeter](), heiry.Of[Signer]()).
+		Extend[formal]().
+		BindNodeGroup((*formal)(nil), heiry.Of[Greeter](), heiry.Of[Signer]()).
+		End()
 }
 
 // newFormal allocates an object with an ordinary constructor signature and
@@ -65,9 +69,7 @@ func newFormal(plan *heiry.Plan[formal], title string) (*formal, error) {
 	return f, err
 }
 
-func greet(f *formal, name string) string {
-	return heiry.Method[Greeter](f.Node.Scope()).Greet(name)
-}
+func greet(f *formal, name string) string { return f.Node.Virtual[Greeter]().Greet(name) }
 
 func run(out io.Writer) error {
 	// Declaration. Validate checks it without freezing it or creating a Plan.
@@ -144,9 +146,9 @@ func run(out io.Writer) error {
 	// involved. Here nothing implements Sign.
 	_, err = heiry.Define[formal]().
 		Level[plain, Public, Private]("").
-		Bind[Greeter]((*plain)(nil), ".").End().
-		Level[formal, Public, Private]("plain").
-		Bind[Greeter]((*formal)(nil), ".").End().
+		BindNode[Greeter]((*plain)(nil)).
+		Extend[formal]().
+		BindNode[Greeter]((*formal)(nil)).
 		Prepare()
 	var diagnostic *heiry.Error
 	if !errors.As(err, &diagnostic) {

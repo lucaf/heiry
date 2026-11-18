@@ -38,10 +38,10 @@ The constructor sets `f.self = f`. That assignment compiles only if the leaf imp
 
 | Concern | Self interface | heiry |
 | --- | --- | --- |
-| Virtual call | `b.self.check(item)` | `heiry.Method[Checking](b.Node.Scope()).Check(item)` |
-| Parent call from a level | A selector naming the parent, `f.selfStrict.Render(item)` | `heiry.ParentMethod[Rendering](f.Node.Scope()).Render(item)` |
-| Parent call from a component | A link the constructor wires by hand, `l.parent.check(item)` | `heiry.ParentMethod[Checking](l.Node.Scope()).Check(item)` |
-| Stating an override | Declaring a method with that name | An explicit `Bind` or `BindGroup` registration |
+| Virtual call | `b.self.check(item)` | `b.Node.Virtual[Checking]().Check(item)` |
+| Parent call from a level | A selector naming the parent, `f.selfStrict.Render(item)` | `f.Node.Parent[Rendering]().Render(item)` |
+| Parent call from a component | A link the constructor wires by hand, `l.parent.check(item)` | `l.Node.Parent[Checking]().Check(item)` |
+| Stating an override | Declaring a method with that name | An explicit registration with one of the `Bind` forms |
 | Making a component the level's implementation | A forwarding method on the level | Registering the component with its field path |
 | Completeness of the hierarchy | Checked by the compiler at `f.self = f` | Checked when the Definition is prepared, at run time |
 | Hiding internal operations | Unexported methods, within one package | A private contract and a public wrapper |
@@ -52,7 +52,7 @@ The constructor sets `f.self = f`. That assignment compiles only if the leaf imp
 
 **Self interface.** The compiler checks that the leaf has every operation with the right signature, at the single assignment to `self`. A missing or mistyped method does not build. This is the strongest check available and heiry does not match it.
 
-**heiry.** The compiler checks every call made through `heiry.Method` and `heiry.ParentMethod`, and that each `Bind` witness implements its operation. It does not check that the hierarchy is complete, that a grouped registration's provider implements each listed operation, or that contracts extend correctly. Those are checked when the Definition is prepared, and reported as typed errors before any object is initialized.
+**heiry.** The compiler checks every call made through `Virtual` and `Parent`, and that each `Bind` or `BindNode` witness implements its operation. It does not check that the hierarchy is complete, that a grouped registration's provider implements each listed operation, or that contracts extend correctly. Those are checked when the Definition is prepared, and reported as typed errors before any object is initialized.
 
 ## What initialization checks
 
@@ -64,13 +64,13 @@ Application code can add equivalent checks to a self-interface design. They are 
 
 ## Virtual and parent calls
 
-In both approaches an ordinary Go call is not virtual. `b.check(item)` inside `selfBase.Render` would run the base check and never the strict level's limit, exactly as `b.Check(item)` would in the heiry version. A body has to go through `b.self` or through `heiry.Method` for an override to be reached.
+In both approaches an ordinary Go call is not virtual. `b.check(item)` inside `selfBase.Render` would run the base check and never the strict level's limit, exactly as `b.Check(item)` would in the heiry version. A body has to go through `b.self` or through `b.Node.Virtual` for an override to be reached.
 
 A selector such as `f.selfStrict.Render(item)` is a good parent call for a level in the embedding chain: Go resolves it to the nearest ancestor that declares the method, passing over levels that do not. It is not a general "implementation below the provider that is executing", and the limit component shows the difference:
 
 - `selfLimiter` is a field of the strict level. It does not embed the base, so inside `selfLimiter.check` there is no selector that means "the check below my level". The constructor has to supply one: `f.limits.parent = &f.selfBase`.
 - That link is correct only for this hierarchy. If the same limiter type were stored at another level, or in another hierarchy, each constructor would have to wire a different link.
-- In the heiry version the limiter calls `heiry.ParentMethod[Checking](l.Node.Scope())`. Its scope records the level that owns this particular limiter, so the same body resolves correctly wherever the component is stored.
+- In the heiry version the limiter calls `l.Node.Parent[Checking]()`. Its holder records the level that owns this particular limiter, so the same body resolves correctly wherever the component is stored.
 
 A self-interface design can express all of this; it does so with links and forwarders that the application writes for each case.
 
@@ -86,21 +86,21 @@ For this application, counting lines that are neither blank nor comments:
 
 | | Self interface | heiry |
 | --- | --- | --- |
-| Lines of code | 54 | 84 |
+| Lines of code | 54 | 83 |
 | Named types | 5 | 10 |
 | Extra Go requirement | None | The Go version in `go.mod` |
 
 The heiry version needs one interface per operation, the declaration, a `heiry.Node` in every provider, and a wrapper. The self-interface version needs one forwarder and one hand-wired link.
 
-`BenchmarkRender` in the example measures the same successful `Render("milk")` call through each version. Both do the same checks and build the same string; the heiry version resolves five times per call where the self-interface version makes three interface calls. One run on 2026-11-18 (Go 1.27.1, darwin/arm64, Apple M2, medians of five):
+`BenchmarkRender` in the example measures the same successful `Render("milk")` call through each version. Both do the same checks and build the same string; the heiry version resolves five times per call where the self-interface version makes three interface calls. One run on 2026-11-18 (Go 1.27.1, darwin/arm64, Apple M2, medians of five), after the example moved to the holder call forms:
 
 | Variant | Time per call | Allocation per call |
 | --- | --- | --- |
-| Self interface | 50.8 ns | 16 B, 2 allocations |
-| heiry, dynamic Plan | 180.4 ns | 16 B, 2 allocations |
-| heiry, precomputed Plan | 246.9 ns | 16 B, 2 allocations |
+| Self interface | 45.6 ns | 16 B, 2 allocations |
+| heiry, dynamic Plan | 187.0 ns | 16 B, 2 allocations |
+| heiry, precomputed Plan | 247.7 ns | 16 B, 2 allocations |
 
-These numbers describe this call shape on this machine. Individual runs varied by roughly a fifth, and the compiler may optimize interface calls differently in other code. Run `go test -run '^$' -bench . -benchmem ./examples/comparison` to measure your own environment.
+These numbers describe this call shape on this machine. Individual runs varied by up to about 40 percent, and the compiler may optimize interface calls differently in other code. Run `go test -run '^$' -bench . -benchmem ./examples/comparison` to measure your own environment.
 
 ## What heiry standardizes
 

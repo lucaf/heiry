@@ -11,6 +11,9 @@ import (
 type nodeLevel struct {
 	typ         reflect.Type
 	parentField string
+	// inferParent means parentField is resolved by validation from the
+	// preceding level's node type. It stays empty when that is impossible.
+	inferParent bool
 	contracts   contractLevel
 }
 
@@ -47,6 +50,23 @@ func validateNodeDefinition(levels []nodeLevel) (*validatedNodes, error) {
 	for index := range v.levels {
 		v.levels[index].contracts.bindings = append([]contractBinding(nil), levels[index].contracts.bindings...)
 	}
+	// Resolve inferred parent edges first, so every later diagnostic can use
+	// the declared field names of the levels above it.
+	for level := 1; level < len(levels); level++ {
+		entry, parent := levels[level], levels[level-1].typ
+		if !entry.inferParent || parent == nil || entry.typ == nil || entry.typ.Kind() != reflect.Struct {
+			continue
+		}
+		candidates, name := 0, ""
+		for index := 0; index < entry.typ.NumField(); index++ {
+			if field := entry.typ.Field(index); field.Anonymous && field.Type == parent {
+				candidates, name = candidates+1, field.Name
+			}
+		}
+		if candidates == 1 {
+			v.levels[level].parentField = name
+		}
+	}
 	seen := make(map[reflect.Type]bool)
 	var structuralErrors []error
 	for level, entry := range levels {
@@ -65,7 +85,7 @@ func validateNodeDefinition(levels []nodeLevel) (*validatedNodes, error) {
 				}
 				nodeIndex = index
 			}
-			if level > 0 && field.Name == entry.parentField && field.Anonymous && field.Type == levels[level-1].typ {
+			if level > 0 && field.Name == v.levels[level].parentField && field.Anonymous && field.Type == levels[level-1].typ {
 				parentIndex = index
 			}
 		}
@@ -326,6 +346,10 @@ func bindValidatedProviders(v *validatedNodes, leaf any, providers []map[string]
 func (v *validatedNodes) providerPath(level int) string {
 	var parts []string
 	for index := len(v.levels) - 1; index > level; index-- {
+		if v.levels[index].inferParent && v.levels[index].parentField == "" {
+			// An edge that could not be inferred has no name; do not invent a prefix.
+			return ""
+		}
 		parts = append(parts, v.levels[index].parentField)
 	}
 	return strings.Join(parts, ".")

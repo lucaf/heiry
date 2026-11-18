@@ -34,8 +34,8 @@ The [examples index](../../examples/README.md) says what each one shows.
 | Contract | An ordinary interface listing operations. Each level has a **public** contract (offered to consumers) and a **private** one (for the hierarchy's own levels). |
 | Level | One struct type in the inheritance chain. The last level is the **leaf**: the type you allocate. |
 | Provider | The receiver that implements an operation at a level: the level's node itself, or a **component** stored inside it. |
-| `heiry.Node` | A small holder that every node and every component embeds directly. After initialization it carries that receiver's **scope**. |
-| Scope | A fixed position: which object, and which level. Bodies pass their own `receiver.Node.Scope()` to `heiry.Method` and `heiry.ParentMethod`. |
+| `heiry.Node` | A small holder that every node and every component embeds directly. After initialization it carries that receiver's **scope**, and bodies dispatch through it: `receiver.Node.Virtual[T]()` and `receiver.Node.Parent[T]()`. |
+| Scope | A fixed position: which object, and which level. `receiver.Node.Scope()` returns it for code that needs the position without the receiver. |
 | Definition | The receiver-free description of a hierarchy. |
 | Plan | The validated, immutable result of preparing a Definition. It is shared by all objects. |
 
@@ -80,7 +80,7 @@ flowchart TB
     end
 ```
 
-Boxes show physical containment. Each level has its own `heiry.Node`, so a body always knows its own level through `receiver.Node.Scope()`.
+Boxes show physical containment. Each level has its own `heiry.Node`, so a body always dispatches from its own level through `receiver.Node`.
 
 Rules for the chain:
 
@@ -95,44 +95,68 @@ A declaration lists the levels from root to leaf. It involves no object:
 ```go
 var hierarchy = heiry.Define[tagged]().
 	Level[base, Public, Private]("").
-	Bind[Processor]((*base)(nil), ".").
-	Bind[Describer]((*base)(nil), ".").
-	Bind[Validator]((*base)(nil), ".").
-	Bind[Transformer]((*base)(nil), ".").End().
-	Level[limited, Public, Private]("base").
-	Bind[Validator]((*limited)(nil), ".").End().
-	Level[tagged, Public, Private]("limited").
-	Bind[Processor]((*tagged)(nil), ".").
-	Bind[Describer]((*tagged)(nil), ".").
-	Bind[Transformer]((*tagged)(nil), ".").End()
+	BindNode[Processor]((*base)(nil)).
+	BindNode[Describer]((*base)(nil)).
+	BindNode[Validator]((*base)(nil)).
+	BindNode[Transformer]((*base)(nil)).
+	Extend[limited]().
+	BindNode[Validator]((*limited)(nil)).
+	Extend[tagged]().
+	BindNode[Processor]((*tagged)(nil)).
+	BindNode[Describer]((*tagged)(nil)).
+	BindNode[Transformer]((*tagged)(nil))
 ```
 
 - `Define[Leaf]()` starts a Definition. The last level's node type must be `Leaf`.
-- `Level[Node, Public, Private](parentField)` adds a level. `parentField` is the declared name of the embedded parent field: the parent's type name, or the alias name when the parent is embedded through a type alias. The root uses `""`.
-- `Bind[Operation](witness, path)` registers that this level implements one operation. The witness is a typed nil pointer; only its type is kept. The path `"."` means the node itself.
-- `End()` returns the Definition so the chain can continue. The same calls can also be written as separate statements on saved level handles, with the same result.
+- `Level[Node, Public, Private](parentField)` declares the root, with `""` as its parent field.
+- `Extend[Node]()` adds the next level with the same contracts as the level before it.
+- `ExtendWith[Node, Public, Private]()` adds the next level with new contracts.
+- `BindNode[Operation](witness)` registers that this level's own node implements one operation. The witness is a typed nil pointer; only its type is kept.
+
+The chain can continue from any level handle, and the last handle can validate, prepare and initialize. `End()` returns the Definition when you need that type. The same calls can also be written as separate statements on saved level handles: a registration always goes to the handle's own level, and a new level is always added at the end.
+
+### Naming the parent field explicitly
+
+`Extend` and `ExtendWith` find the parent themselves: it is the one directly embedded value field whose type is the previous level's node type. If there is no such field, or more than one, validation reports `InvalidHierarchy`. More than one is possible only when the same type is embedded twice under different alias names. In that case, declare the level with `Level` and name the field:
+
+```go
+Level[limited, Public, Private]("base")
+```
+
+The name is the field's declared name: the parent's type name, or the alias name when the parent is embedded through a type alias. `Level` with a name is always available, also when inference would work.
+
+`Extend` and `ExtendWith` need a level before them. Called first on a Definition, they add nothing and record an `InvalidDeclaration` error that the Definition then reports.
 
 Registration is always explicit. A level that lists nothing for an operation inherits it. heiry never infers an override from a type's method set.
 
 ### Contracts
 
 - The root must supply both contracts. Use `interface{}` for an empty one.
-- Each child's public contract must contain its parent's public contract, and likewise for the private one. A child may add operations.
+- Each child's public contract must contain its parent's public contract, and likewise for the private one. A child may add operations by declaring its level with `ExtendWith` or `Level`.
 - An operation cannot appear in both contracts, and operation names must be exported.
 - Every operation in the leaf's contracts must be registered at some level. Intermediate levels may leave operations unimplemented.
 - A level can register only operations that its own contracts declare, and each operation at most once per level.
 
 ### Typed and grouped registration
 
-`Bind[Operation]` is checked by the compiler: the witness type must implement `Operation`.
+There are two ways to register, each with a form for the node and a form for a component:
 
-`BindGroup` registers several operations for one provider in a single call:
+| | The level's own node | A component, by field path |
+| --- | --- | --- |
+| One operation, checked by the compiler | `BindNode[Operation](witness)` | `Bind[Operation](witness, path)` |
+| Several operations, checked at validation | `BindNodeGroup(witness, operations...)` | `BindGroup(witness, path, operations...)` |
+
+With the individual forms the compiler checks that the witness type implements `Operation`.
+
+The grouped forms register several operations for one provider in a single call:
 
 ```go
 BindGroup((*store)(nil), "store", heiry.Of[Getter](), heiry.Of[Putter]())
 ```
 
-Here the compiler checks only that the witness is a pointer. Whether the provider implements each listed operation is checked when the Definition is validated. Calls made through either form are equally typed: `heiry.Method[Getter]` returns a `Getter`.
+Here the compiler checks only that the witness is a pointer. Whether the provider implements each listed operation is checked when the Definition is validated. Calls made through either form are equally typed: `receiver.Node.Virtual[Getter]()` returns a `Getter`.
+
+`BindNode(w)` and `BindNodeGroup(w, ...)` are exactly `Bind(w, ".")` and `BindGroup(w, ".", ...)`; the path `"."` means the node itself.
 
 ## Components
 
@@ -151,7 +175,7 @@ The registration path names the field that holds the component, relative to the 
 ```go
 Level[repository, Public, Private]("").
 	BindGroup((*store)(nil), "store", heiry.Of[Getter](), heiry.Of[Putter]()).
-	Bind[Recorder]((*auditLog)(nil), "log").End()
+	Bind[Recorder]((*auditLog)(nil), "log")
 ```
 
 ```mermaid
@@ -188,7 +212,7 @@ Three steps are kept separate.
 
 | Step | Call | Happens |
 | --- | --- | --- |
-| Declaration | `Define`, `Level`, `Bind`, `BindGroup` | Records types, paths, contracts and registrations |
+| Declaration | `Define`, `Level`, `Extend`, `ExtendWith`, and the `Bind` forms | Records types, paths, contracts and registrations |
 | Preparation | `Prepare` or `MustPrepare` | Validates the whole Definition once and returns an immutable Plan |
 | Initialization | `Init` or `MustInit` | Checks one allocated object and installs its scopes |
 
@@ -210,7 +234,7 @@ Arrows from objects point to the Plan they use. No arrow leaves a Plan toward an
 
 - `Validate()` checks the current Definition and returns every problem it can establish, without freezing anything.
 - `Prepare()` validates and returns the Plan. Calling it again returns the same Plan without repeating the work.
-- Preparation freezes the Definition. A later `Level`, `Bind` or `BindGroup` call changes nothing and records an `InvalidDeclaration` error that the Definition then reports from `Validate`, `Prepare` and `Init`. A Plan obtained earlier keeps working.
+- Preparation freezes the Definition. A later declaration call changes nothing and records an `InvalidDeclaration` error that the Definition then reports from `Validate`, `Prepare` and `Init`. A Plan obtained earlier keeps working.
 - A failed preparation publishes no Plan and leaves the Definition editable; the next call validates it again. Errors recorded by a malformed declaration call stay with that Definition.
 
 ### Eager and lazy preparation
@@ -266,7 +290,7 @@ flowchart LR
     subgraph two["binding of object 2"]
         r2["level and operation give object 2's provider"]
     end
-    call(["Method or ParentMethod with a scope"]) --> table
+    call(["a virtual or parent call from a holder"]) --> table
     table -- "a level number" --> r1
     table -- "a level number" --> r2
 ```
@@ -286,13 +310,26 @@ func (l *limited) Validate(msg string) error {
 	if len(msg) > l.maxLen {
 		return fmt.Errorf("message longer than %d bytes", l.maxLen)
 	}
-	return heiry.ParentMethod[Validator](l.Node.Scope()).Validate(msg)
+	return l.Node.Parent[Validator]().Validate(msg)
 }
 ```
 
-- `heiry.Method[T](scope)` returns the provider registered for `T` at the highest level of the object. The result does not depend on which level asks.
-- `heiry.ParentMethod[T](scope)` returns the provider registered for `T` at the highest level strictly below the scope's level, passing over levels that do not register `T`.
-- The scope that matters is the one of the receiver that is executing. A parent call inside the root's body starts below the root, even if the call chain began at the leaf.
+- `receiver.Node.Virtual[T]()` returns the provider registered for `T` at the highest level of the object. The result does not depend on which level asks.
+- `receiver.Node.Parent[T]()` returns the provider registered for `T` at the highest level strictly below the receiver's level, passing over levels that do not register `T`.
+- The position that matters is the one of the receiver that is executing. A parent call inside the root's body starts below the root, even if the call chain began at the leaf.
+
+### Always call through your own holder
+
+Write the call through the holder field that the receiver's own type declares:
+
+- Normally that field is named `Node`: `l.Node.Parent[Validator]()`.
+- If the type embeds its holder through an alias, the field has the alias name. With `type Dispatch = heiry.Node` and an embedded `Dispatch`, write `l.Dispatch.Parent[Validator]()`. In such a type `l.Node` would be an ancestor's holder and would dispatch from the ancestor's level.
+
+A current limitation applies to alias-named holders only: when the alias name is unexported, the declaration validates but `Init` returns `MissingNode`, because the binder cannot reach that holder field. An exported alias name works. This does not affect components stored in unexported fields, which are supported.
+
+Go also accepts the shorter `l.Parent[Validator]()`, because the methods are promoted from the embedded holder. Do not use it. An application field or method named `Parent` or `Virtual` makes it fail to compile, and an application generic method with that name and shape silently takes its place. The form through the holder field cannot be affected by application names.
+
+`heiry.Method[T](scope)` and `heiry.ParentMethod[T](scope)` remain available. They take a `Scope`, obtained from `receiver.Node.Scope()`, and resolve exactly as the two methods do.
 
 The sequence for `Process` in the [basic example](../../examples/basic/main.go):
 
@@ -314,7 +351,7 @@ Arrows are dispatch relationships: who is selected, not who contains whom.
 
 ### Ordinary Go calls are not virtual
 
-heiry does not intercept Go method calls. `t.limited.base.Describe()` runs `base.Describe`, and a body that calls `b.Validate(msg)` directly runs its own `Validate`, whatever the leaf overrides. Only `heiry.Method` and `heiry.ParentMethod` resolve through the hierarchy.
+heiry does not intercept Go method calls. `t.limited.base.Describe()` runs `base.Describe`, and a body that calls `b.Validate(msg)` directly runs its own `Validate`, whatever the leaf overrides. Only `Virtual` and `Parent`, or the equivalent `heiry.Method` and `heiry.ParentMethod`, resolve through the hierarchy.
 
 ### Dispatch failures
 
@@ -322,7 +359,7 @@ These are programming errors and panic with a `*heiry.Error`:
 
 | Code | Cause |
 | --- | --- |
-| `Uninitialized` | The scope comes from an object that was never initialized |
+| `Uninitialized` | The holder belongs to an object that was never initialized, or `Virtual` or `Parent` is called on a nil holder pointer |
 | `UnknownCapability` | The requested operation is not part of this hierarchy |
 | `NoParentImplementation` | The operation exists, but no level below the caller implements it |
 
@@ -336,7 +373,7 @@ Constructors should return a small wrapper, not the leaf:
 type pipeline struct{ state *tagged }
 
 func (p *pipeline) Process(msg string) (string, error) {
-	return heiry.Method[Processor](p.state.Node.Scope()).Process(msg)
+	return p.state.Node.Virtual[Processor]().Process(msg)
 }
 ```
 

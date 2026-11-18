@@ -39,7 +39,7 @@ jobs:
           done
       - name: Formatting
         run: |
-          files="$(gofmt -l ./*.go testdata/stage4boundary/*.go testdata/stage4positive/*.go testdata/stage4negative/*.go testdata/stage5vet/*.go testdata/m4positive/*.go testdata/m4negative/*.go testdata/m6positive/*.go testdata/m6negativebind/*.go testdata/m6negativepointer/*.go testdata/m6negativetoken/*.go testdata/m8positive/*.go testdata/m8negativepointer/*.go testdata/m8negativebind/*.go examples/basic/*.go examples/components/*.go examples/lifecycle/*.go examples/comparison/*.go)"
+          files="$(gofmt -l ./*.go testdata/stage4boundary/*.go testdata/stage4positive/*.go testdata/stage4negative/*.go testdata/stage5vet/*.go testdata/m4positive/*.go testdata/m4negative/*.go testdata/m6positive/*.go testdata/m6negativebind/*.go testdata/m6negativepointer/*.go testdata/m6negativetoken/*.go testdata/m8positive/*.go testdata/m8negativepointer/*.go testdata/m8negativebind/*.go testdata/e1positive/*.go testdata/e1negativeshadow/*.go testdata/e2negativebindnode/*.go testdata/e2negativegroup/*.go examples/basic/*.go examples/components/*.go examples/lifecycle/*.go examples/comparison/*.go)"
           if [ -n "$files" ]; then
             echo "$files"
             exit 1

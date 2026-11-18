@@ -21,11 +21,10 @@ type (
 type hBase struct{ heiry.Node }
 
 func (b *hBase) Render(item string) (string, error) {
-	scope := b.Node.Scope()
-	if err := heiry.Method[Checking](scope).Check(item); err != nil { // virtual call
+	if err := b.Node.Virtual[Checking]().Check(item); err != nil { // virtual call
 		return "", err
 	}
-	return heiry.Method[Prefixing](scope).Prefix() + item, nil // virtual call
+	return b.Node.Virtual[Prefixing]().Prefix() + item, nil // virtual call
 }
 
 func (b *hBase) Check(item string) error {
@@ -50,7 +49,7 @@ func (l *hLimiter) Check(item string) error {
 		l.rejected++
 		return errTooLong
 	}
-	return heiry.ParentMethod[Checking](l.Node.Scope()).Check(item)
+	return l.Node.Parent[Checking]().Check(item)
 }
 
 type hStrict struct {
@@ -66,7 +65,7 @@ type hFancy struct {
 
 func (f *hFancy) Render(item string) (string, error) {
 	// hStrict registers no Rendering, so the parent call reaches hBase.
-	out, err := heiry.ParentMethod[Rendering](f.Node.Scope()).Render(item)
+	out, err := f.Node.Parent[Rendering]().Render(item)
 	if err != nil {
 		return "", err
 	}
@@ -79,18 +78,18 @@ func (f *hFancy) Prefix() string { return "* " }
 // level. The component is registered directly; no forwarder is needed.
 var fancy = heiry.Define[hFancy]().
 	Level[hBase, hPublic, hPrivate]("").
-	BindGroup((*hBase)(nil), ".", heiry.Of[Rendering](), heiry.Of[Checking](), heiry.Of[Prefixing]()).End().
-	Level[hStrict, hPublic, hPrivate]("hBase").
-	Bind[Checking]((*hLimiter)(nil), "limits").End().
-	Level[hFancy, hPublic, hPrivate]("hStrict").
-	Bind[Rendering]((*hFancy)(nil), ".").
-	Bind[Prefixing]((*hFancy)(nil), ".").End()
+	BindNodeGroup((*hBase)(nil), heiry.Of[Rendering](), heiry.Of[Checking](), heiry.Of[Prefixing]()).
+	Extend[hStrict]().
+	Bind[Checking]((*hLimiter)(nil), "limits").
+	Extend[hFancy]().
+	BindNode[Rendering]((*hFancy)(nil)).
+	BindNode[Prefixing]((*hFancy)(nil))
 
 // heiryRenderer is the public wrapper.
 type heiryRenderer struct{ state *hFancy }
 
 func (r *heiryRenderer) Render(item string) (string, error) {
-	return heiry.Method[Rendering](r.state.Node.Scope()).Render(item)
+	return r.state.Node.Virtual[Rendering]().Render(item)
 }
 
 func (r *heiryRenderer) Rejected() int { return r.state.limits.rejected }

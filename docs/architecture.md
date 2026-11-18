@@ -53,10 +53,18 @@ func (l *LevelHandle[Leaf]) BindGroup[Provider any](provider *Provider, provider
 func (l *LevelHandle[Leaf]) End() *Definition[Leaf]
 func (d *Definition[Leaf]) Validate() error
 func (d *Definition[Leaf]) ComponentProvider[Node, Provider any](providerPath string, ptr *Provider) ProviderRef[Leaf]
+func (d *Definition[Leaf]) Extend[Node any]() *LevelHandle[Leaf]
+func (d *Definition[Leaf]) ExtendWith[Node, Public, Private any]() *LevelHandle[Leaf]
+func (l *LevelHandle[Leaf]) BindNode[Operation any](witness Operation) *LevelHandle[Leaf]
+func (l *LevelHandle[Leaf]) BindNodeGroup[Provider any](witness *Provider, operations ...OperationToken) *LevelHandle[Leaf]
+func (n *Node) Virtual[T any]() T
+func (n *Node) Parent[T any]() T
 func (p *Plan[Leaf]) ComponentProvider[Node, Provider any](providerPath string, ptr *Provider) ProviderRef[Leaf]
 ```
 
 `Definition[Leaf]` owns ordered levels; each concrete `LevelHandle[Leaf]` retains its original level after later levels are added. `End` returns the definition. `Bind` accepts a typed-nil witness, immediately reduces it to provider type metadata, and uses its generic parameter for the compiler's provider/interface check. Invalid capability, nonnil witness, or malformed path calls add no registration and retain receiver-free structured diagnostics. `Validate` checks the current configuration without freezing it or preparing a Plan; later edits are checked afresh. Recorded errors remain visible, while further checks run only when safe. In particular, invalid provider registrations are omitted from contract coverage so missing operations remain reportable when the contracts can be analyzed.
+
+[ADR 0012](decisions/0012-additive-authoring-conveniences.md) adds conveniences over the same metadata. `BindNode` and `BindNodeGroup` delegate to `Bind` and `BindGroup` with the path `"."`. `Extend` and `ExtendWith` append a level whose parent field is unnamed; before any other structural check, validation resolves each such edge to the single direct anonymous value field of the preceding level's node type and records its declared name, so later diagnostics and leaf-relative paths use it exactly as a named field. An edge with no candidate or several stays unnamed and is reported as InvalidHierarchy; paths below it carry no invented prefix. `Extend` stores no contracts of its own, and contract validation continues with the preceding effective pair. Both extension calls require a preceding level; otherwise they record a sticky InvalidDeclaration and return an inert handle. `LevelHandle` forwards `Level`, `Extend`, `ExtendWith`, `Validate`, `Prepare`, `MustPrepare`, `Init`, `MustInit`, `NodeProvider`, and `ComponentProvider` to its definition through an unexported reference; a forwarded level call appends to the definition's chain.
 
 The final node type must equal `Leaf` exactly. After validating the complete direct anonymous value-parent chain, validation derives leaf-relative node paths from its explicit parent field names. Provider paths are relative to the owning level; `"."` identifies the node itself. The declaration stores types, paths, contracts, and operation metadata, never receivers, bound methods, or object-capturing closures. Its validated snapshot feeds the existing hierarchy and contract validators, then the same Plan and instance-binding machinery. Validation of the declaration alone does not publish a Plan or install scopes.
 
@@ -179,7 +187,7 @@ Scope installation starts from the independently supplied pointer through `refle
 
 The approved component factory supplies the actual pointer separately from the path. Type/path metadata alone never supplies a callable provider from an unexported field; the binder checks the supplied pointer against that field's address. [ADR 0011](decisions/0011-component-provider-references.md) records the ownership and reference decision.
 
-Each participating receiver has a directly declared Node. Node stores a scope value with the complete-object dispatch reference and a fixed level index. The receiver's `Node.Scope()` accessor makes the holder explicit and avoids a promoted ancestor holder.
+Each participating receiver has a directly declared Node. Node stores a scope value with the complete-object dispatch reference and a fixed level index. The receiver's `Node.Scope()` accessor makes the holder explicit and avoids a promoted ancestor holder. `Node.Virtual[T]` and `Node.Parent[T]` call the same resolver with that stored scope, so `receiver.Node.Parent[T]()` selects exactly what `ParentMethod[T](receiver.Node.Scope())` selects. These two methods panic with Uninitialized on a nil holder; `Node.Scope` is unchanged. A holder embedded through an alias is reached by the alias field name. Existing limitation: definition validation accepts a holder embedded under an unexported alias name, but the binder cannot extract that field and initialization reports MissingNode. Whether to support such holders or reject them during validation is an open decision; unexported component fields are unaffected.
 
 ## Public boundary
 

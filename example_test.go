@@ -17,7 +17,7 @@ type animal struct{ heiry.Node }
 
 // Speak calls Name virtually: the most-derived implementation answers.
 func (a *animal) Speak() string {
-	return heiry.Method[Namer](a.Node.Scope()).Name() + " makes a sound"
+	return a.Node.Virtual[Namer]().Name() + " makes a sound"
 }
 
 func (a *animal) Name() string { return "an animal" }
@@ -30,7 +30,7 @@ type dog struct {
 
 // Name extends the implementation below dog's level.
 func (d *dog) Name() string {
-	return "a dog, which is " + heiry.ParentMethod[Namer](d.Node.Scope()).Name() + ","
+	return "a dog, which is " + d.Node.Parent[Namer]().Name() + ","
 }
 
 func Example() {
@@ -38,10 +38,10 @@ func Example() {
 	// private one; no object is involved yet.
 	hierarchy := heiry.Define[dog]().
 		Level[animal, Speaker, Namer]("").
-		Bind[Speaker]((*animal)(nil), ".").
-		Bind[Namer]((*animal)(nil), ".").End().
-		Level[dog, Speaker, Namer]("animal").
-		Bind[Namer]((*dog)(nil), ".").End()
+		BindNode[Speaker]((*animal)(nil)).
+		BindNode[Namer]((*animal)(nil)).
+		Extend[dog]().
+		BindNode[Namer]((*dog)(nil))
 
 	// Allocate an object as usual, then bind it. The first Init also
 	// validates the declaration.
@@ -53,6 +53,6 @@ func Example() {
 	}
 
 	// Speak is inherited from animal, yet it reaches dog's Name.
-	fmt.Println(heiry.Method[Speaker](d.Node.Scope()).Speak())
+	fmt.Println(d.Node.Virtual[Speaker]().Speak())
 	// Output: a dog, which is an animal, makes a sound
 }

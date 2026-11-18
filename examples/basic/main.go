@@ -46,14 +46,14 @@ type base struct {
 }
 
 func (b *base) Process(msg string) (string, error) {
-	scope := b.Node.Scope()
 	// Virtual calls: the most-derived Validator and Transformer are selected,
-	// whatever the leaf type is.
-	if err := heiry.Method[Validator](scope).Validate(msg); err != nil {
+	// whatever the leaf type is. Each call goes through this level's own
+	// holder, the embedded heiry.Node.
+	if err := b.Node.Virtual[Validator]().Validate(msg); err != nil {
 		return "", err
 	}
 	b.processed++
-	return heiry.Method[Transformer](scope).Transform(msg), nil
+	return b.Node.Virtual[Transformer]().Transform(msg), nil
 }
 
 func (b *base) Describe() string { return "base" }
@@ -79,7 +79,7 @@ func (l *limited) Validate(msg string) error {
 		return fmt.Errorf("message longer than %d bytes", l.maxLen)
 	}
 	// Parent call: the closest Validator below this level.
-	return heiry.ParentMethod[Validator](l.Node.Scope()).Validate(msg)
+	return l.Node.Parent[Validator]().Validate(msg)
 }
 
 // tagged overrides Process, Describe and Transform, but not Validate.
@@ -91,7 +91,7 @@ type tagged struct {
 
 func (t *tagged) Process(msg string) (string, error) {
 	// limited registers no Processor, so this parent call reaches base.
-	out, err := heiry.ParentMethod[Processor](t.Node.Scope()).Process(msg)
+	out, err := t.Node.Parent[Processor]().Process(msg)
 	if err != nil {
 		return "", fmt.Errorf("%s: %w", t.tag, err)
 	}
@@ -99,28 +99,29 @@ func (t *tagged) Process(msg string) (string, error) {
 }
 
 func (t *tagged) Describe() string {
-	return "tagged > " + heiry.ParentMethod[Describer](t.Node.Scope()).Describe()
+	return "tagged > " + t.Node.Parent[Describer]().Describe()
 }
 
 func (t *tagged) Transform(msg string) string {
-	return strings.ToUpper(heiry.ParentMethod[Transformer](t.Node.Scope()).Transform(msg))
+	return strings.ToUpper(t.Node.Parent[Transformer]().Transform(msg))
 }
 
-// hierarchy is declared once, without any object. Each level names its node
-// type, its contracts and the field that embeds its parent, then lists the
-// operations that level implements. "." means the node itself provides them.
+// hierarchy is declared once, without any object. The root names its
+// contracts; each Extend adds the next level, which keeps those contracts and
+// finds its parent among its embedded fields. BindNode states that the level's
+// own node implements one operation, and the compiler checks that it does.
 var hierarchy = heiry.Define[tagged]().
 	Level[base, Public, Private]("").
-	Bind[Processor]((*base)(nil), ".").
-	Bind[Describer]((*base)(nil), ".").
-	Bind[Validator]((*base)(nil), ".").
-	Bind[Transformer]((*base)(nil), ".").End().
-	Level[limited, Public, Private]("base").
-	Bind[Validator]((*limited)(nil), ".").End().
-	Level[tagged, Public, Private]("limited").
-	Bind[Processor]((*tagged)(nil), ".").
-	Bind[Describer]((*tagged)(nil), ".").
-	Bind[Transformer]((*tagged)(nil), ".").End()
+	BindNode[Processor]((*base)(nil)).
+	BindNode[Describer]((*base)(nil)).
+	BindNode[Validator]((*base)(nil)).
+	BindNode[Transformer]((*base)(nil)).
+	Extend[limited]().
+	BindNode[Validator]((*limited)(nil)).
+	Extend[tagged]().
+	BindNode[Processor]((*tagged)(nil)).
+	BindNode[Describer]((*tagged)(nil)).
+	BindNode[Transformer]((*tagged)(nil))
 
 // newTagged is an ordinary constructor: it allocates one object and sets its
 // fields. Init then checks the object against the hierarchy and gives every
@@ -150,12 +151,10 @@ type Pipeline interface {
 type pipeline struct{ state *tagged }
 
 func (p *pipeline) Process(msg string) (string, error) {
-	return heiry.Method[Processor](p.state.Node.Scope()).Process(msg)
+	return p.state.Node.Virtual[Processor]().Process(msg)
 }
 
-func (p *pipeline) Describe() string {
-	return heiry.Method[Describer](p.state.Node.Scope()).Describe()
-}
+func (p *pipeline) Describe() string { return p.state.Node.Virtual[Describer]().Describe() }
 
 // Processed reads the counter that base.Process increments on the embedded
 // base value of this same object.
@@ -196,7 +195,7 @@ func run(out io.Writer) error {
 		return err
 	}
 	fmt.Fprintln(out, "direct call t.limited.base.Describe():", t.limited.base.Describe())
-	fmt.Fprintln(out, "virtual call from the same base:", heiry.Method[Describer](t.limited.base.Node.Scope()).Describe())
+	fmt.Fprintln(out, "virtual call from the same base:", t.limited.base.Node.Virtual[Describer]().Describe())
 
 	// Objects are independent: a second pipeline has its own state.
 	fmt.Fprintln(out, "second object processed:", (&pipeline{state: t}).Processed())

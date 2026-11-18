@@ -155,12 +155,14 @@ func m8CheckIntegratedComponentOracle(t *testing.T, masks [3]uint8, choices [3][
 		for operation, mask := range masks {
 			for start := 0; start < 3; start++ {
 				scopes := []Scope{mode.nodes[start].Scope()}
+				holders := []*Node{mode.nodes[start]}
 				for slot := 0; slot < 2; slot++ {
 					if used[start][slot] {
 						scopes = append(scopes, mode.providers[start][slot].Node.Scope())
+						holders = append(holders, &mode.providers[start][slot].Node)
 					}
 				}
-				for _, scope := range scopes {
+				for index, scope := range scopes {
 					for _, parent := range []bool{false, true} {
 						position := 3
 						if parent {
@@ -168,6 +170,11 @@ func m8CheckIntegratedComponentOracle(t *testing.T, masks [3]uint8, choices [3][
 						}
 						wantLevel := m7BackwardOracle(uint16(mask), 3, position)
 						provider, diagnostic := m7InvokeOracle(scope, operation, parent)
+						// The holder methods must agree with the functions for the same holder.
+						holderProvider, holderDiagnostic := e1InvokeHolder(holders[index], operation, parent)
+						if holderProvider != provider || !e1SameDiagnostic(holderDiagnostic, diagnostic) {
+							t.Fatalf("%s masks=%v operation=%d start=%d parent=%t: holder gave %v %+v, function gave %v %+v", mode.name, masks, operation, start, parent, holderProvider, holderDiagnostic, provider, diagnostic)
+						}
 						if wantLevel < 0 {
 							if provider != nil || diagnostic == nil || diagnostic.Code != NoParentImplementation || diagnostic.Capability != m7OracleCapabilities[operation] || diagnostic.Level != start {
 								t.Fatalf("%s masks=%v operation=%d start=%d parent=%t: provider=%v diagnostic=%+v", mode.name, masks, operation, start, parent, provider, diagnostic)

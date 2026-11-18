@@ -44,7 +44,7 @@ func (s *store) Get(key string) (string, bool) {
 func (s *store) Put(key, value string) {
 	s.data[key] = value
 	// A virtual call from a component selects the most-derived Recorder.
-	heiry.Method[Recorder](s.Node.Scope()).Record("put " + key)
+	s.Node.Virtual[Recorder]().Record("put " + key)
 }
 
 // auditLog supplies the third operation of the same level.
@@ -70,16 +70,15 @@ type cache struct {
 }
 
 func (c *cache) Get(key string) (string, bool) {
-	scope := c.Node.Scope()
 	if value, ok := c.entries[key]; ok {
 		return value, true
 	}
 	// A parent call from a component starts below the level that owns it.
-	value, ok := heiry.ParentMethod[Getter](scope).Get(key)
+	value, ok := c.Node.Parent[Getter]().Get(key)
 	if ok {
 		c.entries[key] = value
 	}
-	heiry.Method[Recorder](scope).Record("cache miss " + key)
+	c.Node.Virtual[Recorder]().Record("cache miss " + key)
 	return value, ok
 }
 
@@ -87,7 +86,7 @@ func (c *cache) Get(key string) (string, bool) {
 // a later Get cannot return a stale value.
 func (c *cache) Put(key, value string) {
 	delete(c.entries, key)
-	heiry.ParentMethod[Putter](c.Node.Scope()).Put(key, value)
+	c.Node.Parent[Putter]().Put(key, value)
 }
 
 // stamper overrides Record at the same level as cache.
@@ -98,7 +97,7 @@ type stamper struct {
 
 func (s *stamper) Record(event string) {
 	s.count++
-	heiry.ParentMethod[Recorder](s.Node.Scope()).Record(fmt.Sprintf("#%d %s", s.count, event))
+	s.Node.Parent[Recorder]().Record(fmt.Sprintf("#%d %s", s.count, event))
 }
 
 type cachedRepository struct {
@@ -109,15 +108,17 @@ type cachedRepository struct {
 }
 
 // Each registration names the field that holds its provider. BindGroup
-// registers several operations for one component; Bind registers one and lets
-// the compiler check that the provider implements it.
+// registers several operations for one component; whether the component
+// implements each of them is checked when the declaration is validated. Bind
+// registers one operation and lets the compiler check that the provider
+// implements it. Extend adds the derived level with the same contracts.
 var hierarchy = heiry.Define[cachedRepository]().
 	Level[repository, Public, Private]("").
 	BindGroup((*store)(nil), "store", heiry.Of[Getter](), heiry.Of[Putter]()).
-	Bind[Recorder]((*auditLog)(nil), "log").End().
-	Level[cachedRepository, Public, Private]("repository").
+	Bind[Recorder]((*auditLog)(nil), "log").
+	Extend[cachedRepository]().
 	BindGroup((*cache)(nil), "cache", heiry.Of[Getter](), heiry.Of[Putter]()).
-	Bind[Recorder]((*stamper)(nil), "stamper").End()
+	Bind[Recorder]((*stamper)(nil), "stamper")
 
 func newObject() *cachedRepository {
 	r := &cachedRepository{}
@@ -147,13 +148,9 @@ type Repository interface {
 
 type wrapper struct{ state *cachedRepository }
 
-func (w *wrapper) Get(key string) (string, bool) {
-	return heiry.Method[Getter](w.state.Node.Scope()).Get(key)
-}
+func (w *wrapper) Get(key string) (string, bool) { return w.state.Node.Virtual[Getter]().Get(key) }
 
-func (w *wrapper) Put(key, value string) {
-	heiry.Method[Putter](w.state.Node.Scope()).Put(key, value)
-}
+func (w *wrapper) Put(key, value string) { w.state.Node.Virtual[Putter]().Put(key, value) }
 
 func (w *wrapper) Events() []string { return w.state.log.events }
 
@@ -202,11 +199,10 @@ func run(out io.Writer) error {
 	// Seen from the cache component, the virtual Recorder is its sibling at the
 	// same level, while the parent Recorder is the root log: a parent call
 	// never selects a sibling.
-	scope := r.cache.Node.Scope()
 	fmt.Fprintln(out, "virtual Recorder from cache is the sibling stamper:",
-		heiry.Method[Recorder](scope) == Recorder(&r.stamper))
+		r.cache.Node.Virtual[Recorder]() == Recorder(&r.stamper))
 	fmt.Fprintln(out, "parent Recorder from cache is the root log:",
-		heiry.ParentMethod[Recorder](scope) == Recorder(&r.repository.log))
+		r.cache.Node.Parent[Recorder]() == Recorder(&r.repository.log))
 	return nil
 }
 
