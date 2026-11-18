@@ -112,6 +112,10 @@ func (v *validatedNodes) withContext(err error) error {
 
 // bindValidatedNodes checks every address and holder before installing scopes.
 func bindValidatedNodes(v *validatedNodes, leaf any, providers []any) error {
+	return bindValidatedNodesWithOwners(v, leaf, providers, nil)
+}
+
+func bindValidatedNodesWithOwners(v *validatedNodes, leaf any, providers []any, owners map[reflect.Type][]int) error {
 	if v == nil || len(v.levels) == 0 {
 		return &Error{Code: BindingMismatch}
 	}
@@ -150,7 +154,7 @@ func bindValidatedNodes(v *validatedNodes, leaf any, providers []any) error {
 		}
 		holders[level] = node
 	}
-	d := &dispatch{known: v.known, levels: make([]map[reflect.Type]any, len(values))}
+	d := &dispatch{known: v.known, levels: make([]map[reflect.Type]any, len(values)), owners: owners}
 	for level, entry := range v.levels {
 		methods := make(map[reflect.Type]any, len(entry.contracts.bindings))
 		for _, binding := range entry.contracts.bindings {

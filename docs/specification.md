@@ -120,6 +120,8 @@ Cache identity must account for the complete definition: selected target, ordere
 
 Cached Plans must be safe for concurrent reuse. Concurrent first use must coordinate preparation/publication so no caller sees incomplete metadata or another object's bindings. A cache hit never bypasses per-instance validation of actual type/address ownership, nils, directly embedded holders, or prior initialization. A failure for one instance must not invalidate a valid shared Plan or alter another object.
 
+Successful preparation is reused by concurrent definition-based callers, subject to sticky declaration errors recorded before each call is processed. Failed preparation publishes and caches no Plan; a later request retries the current definition, which remains editable after a nonsticky failure. Definition and level-handle operations are individually synchronized, including validation and reference creation, but a sequence of configuration calls is not an atomic declaration transaction. Preparation may encounter an incomplete configuration or freeze a valid intermediate one. Finish configuration before concurrent first use.
+
 Do not mandate a global cache, a particular synchronization mechanism, or a cache lifetime/eviction policy. Precomputation remains optional under S7. The lifecycle and ownership responsibilities are described in [architecture](architecture.md#validation-plan-preparation-and-instance-initialization).
 
 ## S7. Resolution and precomputation
@@ -133,6 +135,8 @@ Unknown capability requests panic with UnknownCapability; a known capability wit
 A precomputed Plan must select the same provider as dynamic resolution for every operation and virtual/parent starting position. Missing ancestors are valid metadata, not conversion errors. This includes operations absent at intermediate levels and operations supplied by different components at one level. The table representation belongs to architecture.md.
 
 Precompute is pure: it changes no source plan, scopes, or objects; invokes no application methods; publishes no partial result on failure; and is semantically idempotent. Existing objects retain their plan. It is safe to convert an immutable plan while other objects use it. Precomputed invocation must not scan the hierarchy or silently fall back to dynamic lookup. Results, traces, side effects, errors, and ownership must match the dynamic oracle.
+
+Plan.Precompute returns an immutable converted Plan or a typed error; MustPrecompute panics with that error. Nil and unprepared Plans report InvalidPlan. Repeating conversion on a precomputed Plan returns that Plan. Repeated conversion of a dynamic Plan may create equivalent independent results; callers may retain a converted Plan for reuse. Converted Plans preserve definition lineage and accept its provider references.
 
 Production precomputation operates on Plan, before binding an instance. A fluent lifecycle operation may select the converted Plan for subsequent initialization while preserving the source Plan. This does not require a second resolution engine or mutation of a live object. Live mode switching and mixing modes among one object's scopes are unsupported.
 

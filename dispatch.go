@@ -15,6 +15,7 @@ type Scope struct {
 type dispatch struct {
 	known  map[reflect.Type]struct{}
 	levels []map[reflect.Type]any
+	owners map[reflect.Type][]int
 }
 
 // nodeBinding is an internal stage-3 input for one node provider at a level.
@@ -65,6 +66,17 @@ func resolve(scope Scope, capability reflect.Type, parent bool) any {
 	d := scope.dispatch
 	if _, ok := d.known[capability]; !ok {
 		panic(&Error{Code: UnknownCapability, Capability: capability, Level: scope.level})
+	}
+	if d.owners != nil {
+		position := len(d.levels)
+		if parent {
+			position = scope.level
+		}
+		level := d.owners[capability][position]
+		if level < 0 {
+			panic(&Error{Code: NoParentImplementation, Capability: capability, Level: scope.level})
+		}
+		return d.levels[level][capability]
 	}
 
 	start := len(d.levels) - 1

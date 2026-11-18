@@ -5,11 +5,13 @@ import (
 	"go/token"
 	"reflect"
 	"strings"
+	"sync"
 )
 
 // Definition describes an ordered hierarchy without holding an application
 // object. It is mutable during declaration and does not represent a Plan.
 type Definition[Leaf any] struct {
+	mu       sync.Mutex
 	levels   []*declaredLevel
 	recorded []error
 	plan     *Plan[Leaf]
@@ -49,6 +51,8 @@ func Define[Leaf any]() *Definition[Leaf] {
 // Level appends a level, with its direct anonymous parent field name.
 // The root uses an empty parent field.
 func (d *Definition[Leaf]) Level[Node, Public, Private any](parentField string) *LevelHandle[Leaf] {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	if d.plan != nil {
 		d.recorded = append(d.recorded, &Error{Code: InvalidDeclaration, Target: reflect.TypeFor[Leaf](), Level: len(d.levels), Path: parentField})
 		return &LevelHandle[Leaf]{definition: d, rejected: true}
@@ -70,6 +74,8 @@ func (l *LevelHandle[Leaf]) Bind[Operation any](provider Operation, providerPath
 	if l.rejected {
 		return l
 	}
+	l.definition.mu.Lock()
+	defer l.definition.mu.Unlock()
 	if l.definition.plan != nil {
 		l.definition.recorded = append(l.definition.recorded, &Error{Code: InvalidDeclaration, Target: reflect.TypeFor[Leaf](), Level: l.level.index, Path: providerPath, Capability: reflect.TypeFor[Operation]()})
 		return l
@@ -103,6 +109,8 @@ func (l *LevelHandle[Leaf]) BindGroup[Provider any](provider *Provider, provider
 	if l.rejected {
 		return l
 	}
+	l.definition.mu.Lock()
+	defer l.definition.mu.Unlock()
 	target := reflect.TypeFor[Leaf]()
 	level := l.level.index
 	if l.definition.plan != nil {
@@ -154,6 +162,8 @@ func validProviderPath(path string) bool {
 
 // Validate checks the current declaration without freezing or preparing it.
 func (d *Definition[Leaf]) Validate() error {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	_, err := d.validatedSnapshot()
 	return d.withRecorded(err)
 }

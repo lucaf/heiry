@@ -9,6 +9,45 @@ type Plan[Leaf any] struct {
 	validated *validatedNodes
 	lineage   *definitionLineage
 	nodes     map[reflect.Type]int
+	owners    map[reflect.Type][]int
+}
+
+// Precompute returns an immutable resolution variant without changing p.
+func (p *Plan[Leaf]) Precompute() (*Plan[Leaf], error) {
+	if p == nil || p.validated == nil || p.lineage == nil {
+		return nil, &Error{Code: InvalidPlan, Target: reflect.TypeFor[Leaf]()}
+	}
+	if p.owners != nil {
+		return p, nil
+	}
+	depth := len(p.validated.levels)
+	owners := make(map[reflect.Type][]int, len(p.validated.known))
+	current := make(map[reflect.Type]int, len(p.validated.known))
+	for capability := range p.validated.known {
+		owners[capability] = make([]int, depth+1)
+		current[capability] = -1
+	}
+	for level, entry := range p.validated.levels {
+		for capability, destination := range current {
+			owners[capability][level] = destination
+		}
+		for _, binding := range entry.contracts.bindings {
+			current[binding.capability] = level
+		}
+	}
+	for capability, destination := range current {
+		owners[capability][depth] = destination
+	}
+	return &Plan[Leaf]{validated: p.validated, lineage: p.lineage, nodes: p.nodes, owners: owners}, nil
+}
+
+// MustPrecompute panics with the error returned by Precompute.
+func (p *Plan[Leaf]) MustPrecompute() *Plan[Leaf] {
+	converted, err := p.Precompute()
+	if err != nil {
+		panic(err)
+	}
+	return converted
 }
 
 // ProviderRef carries one instance pointer and a node-slot identity.
@@ -25,6 +64,8 @@ func (d *Definition[Leaf]) Prepare() (*Plan[Leaf], error) {
 	if d == nil {
 		return nil, &Error{Code: InvalidDeclaration, Target: reflect.TypeFor[Leaf]()}
 	}
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	if d.plan != nil {
 		if len(d.recorded) != 0 {
 			return nil, d.withRecorded(nil)
@@ -60,6 +101,8 @@ func (d *Definition[Leaf]) NodeProvider[Node any](ptr *Node) ProviderRef[Leaf] {
 	if d == nil {
 		return ProviderRef[Leaf]{invalid: InvalidDeclaration}
 	}
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	if d.lineage == nil {
 		d.lineage = &definitionLineage{marker: 1}
 	}
@@ -103,7 +146,7 @@ func (p *Plan[Leaf]) Init(leaf *Leaf, refs ...ProviderRef[Leaf]) error {
 			return &Error{Code: BindingMismatch, Target: reflect.TypeFor[Leaf](), Level: level, Path: p.validated.providerPath(level), Expected: reflect.PointerTo(p.validated.levels[level].typ)}
 		}
 	}
-	return bindValidatedNodes(p.validated, leaf, providers)
+	return bindValidatedNodesWithOwners(p.validated, leaf, providers, p.owners)
 }
 
 // MustInit panics with the error returned by Init and otherwise returns leaf.

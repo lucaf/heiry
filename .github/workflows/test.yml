@@ -39,3 +39,5 @@ jobs:
         run: go test .
       - name: Race tests
         run: go test -race .
+      - name: Bounded resolution fuzzing
+        run: go test . -run '^$' -fuzz '^FuzzResolution$' -fuzztime=5s -parallel=1
