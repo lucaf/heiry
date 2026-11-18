@@ -98,7 +98,9 @@ For M5 only, the owner directed a green CI designation and milestone completion 
 
 For M6 only, the owner directed a green CI designation and milestone completion when its scoped local code and documentation gates pass. The authorization and observed checks are recorded in the [M6 roadmap entry](roadmap.md#m6-fluent-hierarchy-configuration). This local-gate exception does not assert that remote CI ran.
 
-For M7 only, the owner directed a green CI designation and milestone completion when its scoped local code and documentation gates pass. The authorization and observed checks, including M7's fuzz and benchmark evidence, are recorded in the [M7 roadmap entry](roadmap.md#m7-shared-plans-precomputed-resolution-and-benchmarks). This local-gate exception does not assert that remote CI ran. Other milestones retain their CI gates.
+For M7 only, the owner directed a green CI designation and milestone completion when its scoped local code and documentation gates pass. The authorization and observed checks, including M7's fuzz and benchmark evidence, are recorded in the [M7 roadmap entry](roadmap.md#m7-shared-plans-precomputed-resolution-and-benchmarks). This local-gate exception does not assert that remote CI ran.
+
+For M8 only, the owner directed the same green CI designation and milestone completion from its passing scoped local code and documentation gates. The authorization and observed checks, including M8's fuzz, benchmark, and exhaustive component integration evidence, are recorded in the [M8 roadmap entry](roadmap.md#m8-multiple-implementation-providers-per-level). This local-gate exception does not assert that remote CI ran. Other milestones retain their CI gates.
 
 Select formatting files and test packages explicitly from maintained project sources. Exclude `.ceiling`, archives, prototypes, and unrelated material from discovery, formatting, vet, tests, race checks, fuzzing, and benchmarks. Avoid recursive `gofmt -l .` or unfiltered filesystem globs. For the planned root package, after confirming source exists, the scoped gates are:
 
