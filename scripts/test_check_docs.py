@@ -52,6 +52,14 @@ class DocumentChecks(unittest.TestCase):
         self.write("README.md", "[outside](../outside.md)\n")
         self.assertTrue(any("outside repository" in e for e in check_documents(self.root)))
 
+    def test_examples_documents_are_checked(self):
+        self.write("examples/README.md", "[program](basic/main.go)\n[guide](../docs/guide.md#usage)\n")
+        self.write("examples/basic/main.go", "package main\n")
+        self.write("docs/guide.md", "# Usage\n")
+        self.assertEqual(check_documents(self.root), [])
+        self.write("examples/README.md", "[missing](absent/main.go)\n")
+        self.assertTrue(any("examples/README.md: missing target" in e for e in check_documents(self.root)))
+
 
 if __name__ == "__main__":
     unittest.main()

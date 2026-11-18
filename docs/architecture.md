@@ -35,7 +35,7 @@ Validation and preparation may be coordinated within one internal flow, but a de
 
 ### Eager and lazy lifecycle
 
-One hierarchy definition supports either preparation schedule. The eager path starts validation and preparation at startup, independently of object allocation. The lazy path starts the same work when the definition is first needed; object setup then waits for a usable Plan before binding that object. Later objects reuse the completed Plan in either case. A cache miss on the lazy path is a preparation trigger, not an UnvalidatedSchema error by itself.
+One hierarchy definition supports either preparation schedule. The eager path starts validation and preparation at startup, independently of object allocation. The lazy path starts the same work when the definition is first needed; object setup then waits for a usable Plan before binding that object. Later objects reuse the completed Plan in either case. A cache miss on the lazy path is a preparation trigger, not an error by itself.
 
 The runtime never needs two hierarchies or duplicate level/contract/binding declarations to provide these strategies. Definition-level metadata and object-specific references remain separate even when one fluent flow coordinates them. If a concrete object is temporarily available during preparation, only instance-independent type/path information may enter the reusable result; its pointers and scopes remain local to that object's setup.
 
@@ -135,7 +135,7 @@ These tables describe the implementation of the lifecycle guarantees in [specifi
 | Prepared definition | Subsequent request in its reuse context | Existing Plan reused without revalidating for the new object |
 | Valid dynamic Plan | Optional conversion | New precomputed Plan; original handle remains valid |
 | Precomputed Plan | Conversion again | Equivalent result; may reuse the handle |
-| Nil/unvalidated Plan | Attempt conversion or bypass preparation | InvalidPlan/UnvalidatedSchema; no binding |
+| Nil/unvalidated Plan | Attempt conversion or bypass preparation | InvalidPlan; no binding |
 | Either valid Plan | Initialize another object | Same Plan, separate instance binding |
 
 ### Instance setup
@@ -147,7 +147,7 @@ These tables describe the implementation of the lifecycle guarantees in [specifi
 | Configuring instance | No valid definition/Plan, or mismatched configuration | Setup error; no prepared result or scope writes |
 | Frozen prepared configuration | Attempt configuration edit | Rejected; prepared result unchanged |
 | Prepared configuration | Optional precompute | Setup context selecting converted Plan; source Plan unchanged |
-| Uninitialized target | Attempt binding before a valid Plan is obtained | InvalidPlan/UnvalidatedSchema; target untouched |
+| Uninitialized target | Attempt binding before a valid Plan is obtained | InvalidPlan; target untouched |
 | Uninitialized target | Init with invalid target/storage | BindingMismatch/ownership error; target untouched |
 | Uninitialized target, valid | Init | Initialized target; all holders installed before publication |
 | Initialized target through any alias | Init again | AlreadyInitialized; existing bindings preserved |

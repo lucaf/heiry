@@ -1,6 +1,6 @@
 """Offline checks for local Markdown links, headings, fences, and whitespace.
 
-Checks root Markdown documents and docs/, never .ceiling. Code spans/fences
+Checks root Markdown documents, docs/, and examples/, never .ceiling. Code spans/fences
 are excluded from link checks. This is a deliberately small repository checker,
 not a full Markdown renderer or an HTTP link crawler.
 """
@@ -41,7 +41,7 @@ def heading_ids(text):
 
 def check_documents(root):
     root = Path(root).resolve()
-    documents = sorted(set(root.glob("*.md")) | set((root / "docs").rglob("*.md")))
+    documents = sorted(set(root.glob("*.md")) | set((root / "docs").rglob("*.md")) | set((root / "examples").rglob("*.md")))
     documents = [p for p in documents if ".ceiling" not in p.relative_to(root).parts]
     errors = []
     for document in documents:
