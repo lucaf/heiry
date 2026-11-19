@@ -1,0 +1,7 @@
+Negative control for the "Generated output is up to date" step, run on a scratch copy of examples/generated.
+
+$ cp examples/generated/*.go <scratch>
+$ edit <scratch>/main.go: "wrapper mailer" -> "wrapper mailer field=object"
+$ go build -o heirygen ./cmd/heirygen && ./heirygen -check <scratch>
+<scratch>/main.heirygen.go: differs from the expected output; run go generate
+exit status 1

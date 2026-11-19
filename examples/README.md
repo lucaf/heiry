@@ -8,12 +8,15 @@ Each directory is a complete Go program that uses the heiry package through its 
 | [components](components/main.go) | Several providers at one level, grouped and individual registration, component references, ownership checks, and parent calls that skip sibling components | `go run ./examples/components` |
 | [lifecycle](lifecycle/main.go) | Declaration, eager and lazy preparation, Plan reuse across objects, dynamic and precomputed resolution, and setup errors | `go run ./examples/lifecycle` |
 | [comparison](comparison/main.go) | One application written with a hand-written self interface and with heiry, checked to behave the same | `go run ./examples/comparison` |
+| [generated](generated/main.go) | The optional heirygen command: a specification string, the operation interfaces, declaration, helpers, and wrapper it writes into [main.heirygen.go](generated/main.heirygen.go), lazy and precomputed initialization, and a handwritten method on the generated wrapper | `go run ./examples/generated` |
 
 Every program prints deterministic output. The exact expected output is the `// Output:` block of the `Example` function in each directory's `main_test.go`, and `go test` compares the real output with it:
 
 ```sh
-go test ./examples/basic ./examples/components ./examples/lifecycle ./examples/comparison
+go test ./examples/basic ./examples/components ./examples/lifecycle ./examples/comparison ./examples/generated
 ```
+
+The generated example's output file is committed, so it builds without running the generator. After editing its specification or contracts, regenerate it with `go generate ./examples/generated`; `go run ./cmd/heirygen -check ./examples/generated` reports whether the committed file is up to date.
 
 ## What to look for
 
@@ -44,3 +47,11 @@ go test ./examples/basic ./examples/components ./examples/lifecycle ./examples/c
 - The table shows the same result from both implementations for each input; the program fails if any differs.
 - [selfiface.go](comparison/selfiface.go) and [withheiry.go](comparison/withheiry.go) hold the two versions. [Alternatives](../docs/user/alternatives.md) discusses what each one checks and costs.
 - `go test -run '^$' -bench . -benchmem ./examples/comparison` measures one call through each version.
+
+### generated
+
+- `send: hello -- Ada`: the root's `Send` reaches the leaf's `Format`, which extends the root's through a parent call, and the root's `log` component records the line.
+- `wrapper exposes Format: false Record: false`: neither private operation is part of the generated wrapper; each is checked on its own.
+- The two `precomputed` lines: one converted Plan initializes independent objects through the generated helper.
+- `second initialization: AlreadyInitialized` and `nil object: InvalidProvider`: the helpers report the library's own errors.
+- [Generating declarations with heirygen](../docs/user/generation.md) explains the specification and the generated names.

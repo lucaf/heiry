@@ -1,0 +1,14 @@
+# Negative control for the "Generated output is up to date" step, run on a scratch copy of examples/generated with an edited specification.
+# Recorded 2026-11-19T14:23:34Z on this machine by a local script, not by GitHub Actions.
+# Toolchain: go version go1.27.1 darwin/arm64
+# System: Darwin 25.5.0 arm64
+# Tree: branch generator-investigation at a726da8b9eead9d1f032ec4eda39baef79c93db3, with 5 uncommitted paths outside docs/
+# Tree fingerprint before the run: 1a5a8132b70ecf6ef94f5b449e3a5137a43cfa99ab7279552ea9b71d254bd7a6
+# Tree fingerprint after the run:  1a5a8132b70ecf6ef94f5b449e3a5137a43cfa99ab7279552ea9b71d254bd7a6
+# Fingerprint command: git ls-files -z -co --exclude-standard -- . ':!docs' ':(exclude,glob)**/.DS_Store' | sort -z | xargs -0 shasum -a 256 | shasum -a 256
+# Exit status of the recorded command: 0
+$ cp examples/generated/*.go <scratch>
+$ edit <scratch>/main.go: "wrapper mailer" -> "wrapper mailer field=object"
+$ go build -o heirygen ./cmd/heirygen && ./heirygen -check <scratch>
+<scratch>/main.heirygen.go: differs from the expected output; run go generate
+exit status 1

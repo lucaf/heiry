@@ -1,0 +1,5 @@
+ok  	github.com/lucaf/heiry/testdata/genprobe/basic	1.387s
+ok  	github.com/lucaf/heiry/testdata/genprobe/components	1.724s
+ok  	github.com/lucaf/heiry/testdata/genprobe/matrix	2.417s
+ok  	github.com/lucaf/heiry/testdata/genprobe/basicfull	2.073s
+ok  	github.com/lucaf/heiry/testdata/genprobe/componentsfull	2.760s

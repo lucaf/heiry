@@ -1,0 +1,8 @@
+# Red step of TestAliasRegistrationsAreGuardedInTheirOwnFile, before the change: after the aliases were swapped, go build of the old output succeeded.
+# Recorded 2026-11-19 on this machine (go1.27.1 darwin/arm64) with go test -count=1 -v; the tree was not fingerprinted. Trailing whitespace was removed.
+=== RUN   TestAliasRegistrationsAreGuardedInTheirOwnFile
+    guards_test.go:304: go build succeeded, want a failure mentioning "missing method Seal"
+--- FAIL: TestAliasRegistrationsAreGuardedInTheirOwnFile (0.82s)
+FAIL
+FAIL	github.com/lucaf/heiry/cmd/heirygen/internal/generator	1.231s
+FAIL

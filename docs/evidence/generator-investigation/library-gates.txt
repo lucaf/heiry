@@ -1,0 +1,28 @@
+$ gofmt -l <workflow file selection>
+exit 0 files: []
+$ gofmt -l testdata/genprobe/*/*.go testdata/genprobe/typeprobe/testdata/*/*.go
+exit 0 files: []
+$ go vet . ./examples/basic ./examples/components ./examples/lifecycle ./examples/comparison
+exit 0
+$ go test -count=1 . ./examples/basic ./examples/components ./examples/lifecycle ./examples/comparison
+ok  	github.com/lucaf/heiry	2.696s
+ok  	github.com/lucaf/heiry/examples/basic	1.212s
+ok  	github.com/lucaf/heiry/examples/components	0.892s
+ok  	github.com/lucaf/heiry/examples/lifecycle	1.534s
+ok  	github.com/lucaf/heiry/examples/comparison	1.863s
+exit 0
+$ go vet ./testdata/genprobe/...
+exit 0
+$ python3 -m unittest discover -s scripts -p "test_*.py"
+Ran 7 tests in 0.008s
+
+OK
+$ python3 scripts/check_docs.py
+Documentation checks passed (local links, anchors, fences, whitespace).
+exit 0
+$ git diff --check
+exit 0
+$ git status --short -- examples .github docs/specification.md docs/architecture.md docs/testing.md docs/decisions "*.go"   (root library sources, examples, CI, and baseline documents)
+exit 0 (no lines above: unchanged)
+$ grep -rn "[[:space:]]$" on the new untracked files
+(end)

@@ -1,0 +1,19 @@
+# The focused regression after the change, with go test -count=1 -v.
+# Recorded 2026-11-19T13:45:49Z on this machine by a local script, not by GitHub Actions.
+# Toolchain: go version go1.27.1 darwin/arm64
+# System: Darwin 25.5.0 arm64
+# Tree: branch generator-investigation at a726da8b9eead9d1f032ec4eda39baef79c93db3, with 5 uncommitted paths outside docs/
+# Tree fingerprint before the run: 307085a5bc0d2d00584cef55023386cf32f7143206fa2111465b3af5408d99c1
+# Tree fingerprint after the run:  307085a5bc0d2d00584cef55023386cf32f7143206fa2111465b3af5408d99c1
+# Fingerprint command: git ls-files -z -co --exclude-standard -- . ':!docs' ':(exclude,glob)**/.DS_Store' | sort -z | xargs -0 shasum -a 256 | shasum -a 256
+# Exit status of the recorded command: 0
+=== RUN   TestAliasRegistrationsAreGuardedInTheirOwnFile
+    guards_test.go:311: after the swap:
+        # probe
+        ./main.heirygen.go:98:36: cannot use Sealing(nil) (value of interface type Sealing) as interface{Seal() error} value in variable declaration: Wiper does not implement interface{Seal() error} (missing method Seal)
+        ./main.heirygen.go:99:18: cannot use interface{Seal() error}(nil) (value of type interface{Seal() error}) as Sealing value in variable declaration: interface{Seal() error} does not implement Wiper (missing method Wipe)
+        ./main.heirygen.go:100:36: cannot use Wiping(nil) (value of interface type Wiping) as interface{Wipe() error} value in variable declaration: Sealer does not implement interface{Wipe() error} (missing method Wipe)
+        ./main.heirygen.go:101:17: cannot use interface{Wipe() error}(nil) (value of type interface{Wipe() error}) as Wiping value in variable declaration: interface{Wipe() error} does not implement Sealer (missing method Seal)
+--- PASS: TestAliasRegistrationsAreGuardedInTheirOwnFile (0.72s)
+PASS
+ok  	github.com/lucaf/heiry/cmd/heirygen/internal/generator	0.977s

@@ -1,0 +1,26 @@
+# Red step: the new regression before the change to the private-name probe, with go test -count=1 -v. It must fail.
+# Recorded 2026-11-19T18:00:45Z on this machine by a local script, not by GitHub Actions.
+# Toolchain: go version go1.27.1 darwin/arm64
+# System: Darwin 25.5.0 arm64
+# Tree: branch generator-investigation at a726da8b9eead9d1f032ec4eda39baef79c93db3, with 6 uncommitted paths outside docs/
+# Tree fingerprint before the run: b610fdc28a84cac7184aaf8bab3e491058e0d3020f39a2ed6510bed8c7059806
+# Tree fingerprint after the run:  b610fdc28a84cac7184aaf8bab3e491058e0d3020f39a2ed6510bed8c7059806
+# Fingerprint command: git ls-files -z -co --exclude-standard -- . ':!docs' ':(exclude,glob)**/.DS_Store' | sort -z | xargs -0 shasum -a 256 | shasum -a 256
+# Exit status of the recorded command: 1
+=== RUN   TestPrivateProbeForAnOperationNamedLikeItsContract
+=== RUN   TestPrivateProbeForAnOperationNamedLikeItsContract/contract_named_Reset
+    wrapperguards_test.go:404: the generated wrapper does not compile:
+        # probe
+        # [probe]
+        vet: ./main.heirygen.go:126:6: operand for field selector Reset must be value of type probe
+=== RUN   TestPrivateProbeForAnOperationNamedLikeItsContract/local_alias_named_Reset
+    wrapperguards_test.go:404: the generated wrapper does not compile:
+        # probe
+        # [probe]
+        vet: ./main.heirygen.go:126:6: operand for field selector Reset must be value of type probe
+--- FAIL: TestPrivateProbeForAnOperationNamedLikeItsContract (0.24s)
+    --- FAIL: TestPrivateProbeForAnOperationNamedLikeItsContract/contract_named_Reset (0.12s)
+    --- FAIL: TestPrivateProbeForAnOperationNamedLikeItsContract/local_alias_named_Reset (0.12s)
+FAIL
+FAIL	github.com/lucaf/heiry/cmd/heirygen/internal/generator	0.831s
+FAIL

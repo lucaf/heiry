@@ -1,0 +1,16 @@
+# TestStalePromotedHolder, with all three cases, run once against the previous holder guard: the new probe lines were removed from emit.go for this run, and emit.go was restored byte for byte afterwards.
+# Recorded 2026-11-19 on this machine (go1.27.1 darwin/arm64) with go test -count=1 -v; the tree was not fingerprinted. Trailing whitespace was removed; the repository path is written <repo>.
+=== RUN   TestStalePromotedHolder
+=== RUN   TestStalePromotedHolder/through_a_pointer
+    wrapperguards_test.go:276: the stale wrapper compiled, and the program printed "peer" instead of its own object's label
+=== RUN   TestStalePromotedHolder/through_a_value
+    wrapperguards_test.go:276: the stale wrapper compiled, and the program printed "embedded peer" instead of its own object's label
+=== RUN   TestStalePromotedHolder/two_levels_down
+    wrapperguards_test.go:276: the stale wrapper compiled, and the program printed "embedded peer" instead of its own object's label
+--- FAIL: TestStalePromotedHolder (7.61s)
+    --- FAIL: TestStalePromotedHolder/through_a_pointer (2.98s)
+    --- FAIL: TestStalePromotedHolder/through_a_value (2.17s)
+    --- FAIL: TestStalePromotedHolder/two_levels_down (2.45s)
+FAIL
+FAIL	github.com/lucaf/heiry/cmd/heirygen/internal/generator	8.018s
+FAIL

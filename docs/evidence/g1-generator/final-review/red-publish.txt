@@ -1,0 +1,34 @@
+# Red step of the publication regressions, before the changes to cleanup, progress reports, and modes.
+# Recorded 2026-11-19 on this machine (go1.27.1 darwin/arm64), on the default case-insensitive APFS volume, with go test -count=1 -short -v; the tree was not fingerprinted. Trailing whitespace was removed.
+# TestCaseOnlyRenameCleanupFailure was extended afterwards with a later output, and failed again before the change; see the README.
+=== RUN   TestObsoleteRemovalFailureReportsProgress
+    publish_test.go:63: error: removing obsolete d.heirygen.go: injected failure
+    publish_test.go:66: the error does not say "already put in place: a.heirygen.go, b.heirygen.go": removing obsolete d.heirygen.go: injected failure
+--- FAIL: TestObsoleteRemovalFailureReportsProgress (0.02s)
+=== RUN   TestCleanupFailuresNameThePathsLeftBehind
+=== RUN   TestCleanupFailuresNameThePathsLeftBehind/temporary_file_of_a_linked_output
+    publish_test.go:94: generation succeeded although a hidden file was left behind
+=== RUN   TestCleanupFailuresNameThePathsLeftBehind/hard-link_probe
+    publish_test.go:94: generation succeeded although a hidden file was left behind
+=== RUN   TestCleanupFailuresNameThePathsLeftBehind/temporary_file_discarded_after_a_failure
+    publish_test.go:96: error: b.heirygen.go: linking it into place: injected failure; already put in place: a.heirygen.go, and every other output is unchanged
+    publish_test.go:103: the error does not say ".heirygen-844571980.tmp": b.heirygen.go: linking it into place: injected failure; already put in place: a.heirygen.go, and every other output is unchanged
+=== RUN   TestCleanupFailuresNameThePathsLeftBehind/partial_temporary_file
+    publish_test.go:96: error: writing b.heirygen.go: injected failure; no output was changed
+    publish_test.go:99: left behind [.heirygen-1213389864.tmp .heirygen-3260502923.tmp], refused to remove [.heirygen-3260502923.tmp]
+--- FAIL: TestCleanupFailuresNameThePathsLeftBehind (0.05s)
+    --- FAIL: TestCleanupFailuresNameThePathsLeftBehind/temporary_file_of_a_linked_output (0.01s)
+    --- FAIL: TestCleanupFailuresNameThePathsLeftBehind/hard-link_probe (0.01s)
+    --- FAIL: TestCleanupFailuresNameThePathsLeftBehind/temporary_file_discarded_after_a_failure (0.01s)
+    --- FAIL: TestCleanupFailuresNameThePathsLeftBehind/partial_temporary_file (0.01s)
+=== RUN   TestCaseOnlyRenameCleanupFailure
+    publish_test.go:119: file system at 001 is case-insensitive: true (darwin)
+    publish_test.go:133: error: main.heirygen.go: it is in place, but the old output .heirygen-3228186989.tmp.old could not be removed: injected failure; already put in place: main.heirygen.go, and every other output is unchanged
+    publish_test.go:135: refused [.heirygen-3228186989.tmp.old]; err = main.heirygen.go: it is in place, but the old output .heirygen-3228186989.tmp.old could not be removed: injected failure; already put in place: main.heirygen.go, and every other output is unchanged
+--- FAIL: TestCaseOnlyRenameCleanupFailure (0.01s)
+=== RUN   TestCaseOnlyRenameKeepsPermissions
+    publish_test.go:169: mode -rw-r--r--, want -rw-------
+--- FAIL: TestCaseOnlyRenameKeepsPermissions (0.01s)
+FAIL
+FAIL	github.com/lucaf/heiry/cmd/heirygen/internal/generator	0.669s
+FAIL

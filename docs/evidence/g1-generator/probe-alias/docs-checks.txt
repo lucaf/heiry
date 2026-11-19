@@ -1,0 +1,30 @@
+# The documentation checks, run after the documentation was final.
+# Recorded 2026-11-19T17:24:07Z on this machine by a local script, not by GitHub Actions.
+# Toolchain: go version go1.27.1 darwin/arm64
+# System: Darwin 25.5.0 arm64
+# Tree: branch generator-investigation at a726da8b9eead9d1f032ec4eda39baef79c93db3, with 6 uncommitted paths outside docs/
+# Tree fingerprint before the run: 6ecb399bb7e2c8f0b796e7cc02996ab02e41fd111e85d340ab77ad7d77ff4bbc
+# Tree fingerprint after the run:  6ecb399bb7e2c8f0b796e7cc02996ab02e41fd111e85d340ab77ad7d77ff4bbc
+# Fingerprint command: git ls-files -z -co --exclude-standard -- . ':!docs' ':(exclude,glob)**/.DS_Store' | sort -z | xargs -0 shasum -a 256 | shasum -a 256
+# Exit status of the recorded command: 0
+$ git ls-files -z -co --exclude-standard -- docs ":!docs/evidence/g1-generator/probe-alias/docs-checks.txt" | sort -z | xargs -0 shasum -a 256 | shasum -a 256
+docs fingerprint: 01fd171ae8b7e5f9a787aa2eacc3cd852842570b56c2b0f061372a51db679f3f
+
+$ python3 scripts/check_docs.py
+Documentation checks passed (local links, anchors, fences, whitespace).
+exit 0
+
+$ python3 -m unittest discover -s scripts -p 'test_*.py'
+.......
+----------------------------------------------------------------------
+Ran 7 tests in 0.012s
+
+OK
+exit 0
+
+$ git diff --check
+exit 0
+
+$ trailing whitespace in untracked G1 files
+files with trailing whitespace: 0
+exit 0

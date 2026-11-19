@@ -1,0 +1,8 @@
+# Mutation check: TestExistingInterfaceStillIdentifiesItsMethod, tightened, run once with the existing-interface guard removed from emit.go, which was restored byte for byte afterwards. The test must fail.
+# Recorded 2026-11-19 on this machine (go1.27.1 darwin/arm64) with go test -count=1 -v; the tree was not fingerprinted. Trailing whitespace was removed; the repository path is written <repo>.
+=== RUN   TestExistingInterfaceStillIdentifiesItsMethod
+    guards_test.go:154: go build succeeded, want a failure mentioning "does not implement Sealer (missing method Wipe)"
+--- FAIL: TestExistingInterfaceStillIdentifiesItsMethod (1.59s)
+FAIL
+FAIL	github.com/lucaf/heiry/cmd/heirygen/internal/generator	2.039s
+FAIL

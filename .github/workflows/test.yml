@@ -33,27 +33,40 @@ jobs:
           test "$(go list -f '{{len .TestGoFiles}}' .)" -gt 0
       - name: Discover maintained example packages
         run: |
-          for package in ./examples/basic ./examples/components ./examples/lifecycle ./examples/comparison; do
+          for package in ./examples/basic ./examples/components ./examples/lifecycle ./examples/comparison ./examples/generated; do
+            test "$(go list -f '{{len .GoFiles}}' "$package")" -gt 0
+            test "$(go list -f '{{len .TestGoFiles}}' "$package")" -gt 0
+          done
+      - name: Discover generator packages and fixtures
+        run: |
+          for package in ./cmd/heirygen ./cmd/heirygen/internal/generator ./cmd/heirygen/internal/generator/testdata/basic ./cmd/heirygen/internal/generator/testdata/components ./cmd/heirygen/internal/generator/testdata/matrix; do
             test "$(go list -f '{{len .GoFiles}}' "$package")" -gt 0
             test "$(go list -f '{{len .TestGoFiles}}' "$package")" -gt 0
           done
       - name: Formatting
         run: |
-          files="$(gofmt -l ./*.go testdata/stage4boundary/*.go testdata/stage4positive/*.go testdata/stage4negative/*.go testdata/stage5vet/*.go testdata/m4positive/*.go testdata/m4negative/*.go testdata/m6positive/*.go testdata/m6negativebind/*.go testdata/m6negativepointer/*.go testdata/m6negativetoken/*.go testdata/m8positive/*.go testdata/m8negativepointer/*.go testdata/m8negativebind/*.go testdata/e1positive/*.go testdata/e1negativeshadow/*.go testdata/e2negativebindnode/*.go testdata/e2negativegroup/*.go examples/basic/*.go examples/components/*.go examples/lifecycle/*.go examples/comparison/*.go)"
+          files="$(gofmt -l ./*.go testdata/stage4boundary/*.go testdata/stage4positive/*.go testdata/stage4negative/*.go testdata/stage5vet/*.go testdata/m4positive/*.go testdata/m4negative/*.go testdata/m6positive/*.go testdata/m6negativebind/*.go testdata/m6negativepointer/*.go testdata/m6negativetoken/*.go testdata/m8positive/*.go testdata/m8negativepointer/*.go testdata/m8negativebind/*.go testdata/e1positive/*.go testdata/e1negativeshadow/*.go testdata/e2negativebindnode/*.go testdata/e2negativegroup/*.go examples/basic/*.go examples/components/*.go examples/lifecycle/*.go examples/comparison/*.go examples/generated/*.go cmd/heirygen/*.go cmd/heirygen/internal/generator/*.go cmd/heirygen/internal/generator/testdata/*/*.go)"
           if [ -n "$files" ]; then
             echo "$files"
             exit 1
           fi
       - name: Vet
-        run: go vet . ./examples/basic ./examples/components ./examples/lifecycle ./examples/comparison
+        run: go vet . ./examples/basic ./examples/components ./examples/lifecycle ./examples/comparison ./examples/generated ./cmd/heirygen/... ./cmd/heirygen/internal/generator/testdata/basic ./cmd/heirygen/internal/generator/testdata/components ./cmd/heirygen/internal/generator/testdata/matrix
       - name: Package tests
-        run: go test . ./examples/basic ./examples/components ./examples/lifecycle ./examples/comparison
+        run: go test . ./examples/basic ./examples/components ./examples/lifecycle ./examples/comparison ./examples/generated ./cmd/heirygen/... ./cmd/heirygen/internal/generator/testdata/basic ./cmd/heirygen/internal/generator/testdata/components ./cmd/heirygen/internal/generator/testdata/matrix
       - name: Race tests
-        run: go test -race . ./examples/basic ./examples/components ./examples/lifecycle ./examples/comparison
+        run: |
+          go test -race . ./examples/basic ./examples/components ./examples/lifecycle ./examples/comparison ./examples/generated ./cmd/heirygen/internal/generator/testdata/basic ./cmd/heirygen/internal/generator/testdata/components ./cmd/heirygen/internal/generator/testdata/matrix
+          go test -race -short ./cmd/heirygen/...
       - name: Run examples
         run: |
-          for package in ./examples/basic ./examples/components ./examples/lifecycle ./examples/comparison; do
+          for package in ./examples/basic ./examples/components ./examples/lifecycle ./examples/comparison ./examples/generated; do
             go run "$package"
+          done
+      - name: Generated output is up to date
+        run: |
+          for dir in ./examples/generated ./cmd/heirygen/internal/generator/testdata/basic ./cmd/heirygen/internal/generator/testdata/components ./cmd/heirygen/internal/generator/testdata/matrix; do
+            go run ./cmd/heirygen -check "$dir"
           done
       - name: Bounded resolution fuzzing
         run: go test . -run '^$' -fuzz '^FuzzResolution$' -fuzztime=5s -parallel=1

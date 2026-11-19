@@ -1,0 +1,99 @@
+# The file-handling tests with their temporary directories on a temporary case-sensitive APFS disk image (Case-sensitive APFS).
+# Recorded 2026-11-19T17:20:27Z on this machine by a local script, not by GitHub Actions.
+# Toolchain: go version go1.27.1 darwin/arm64
+# System: Darwin 25.5.0 arm64
+# Tree: branch generator-investigation at a726da8b9eead9d1f032ec4eda39baef79c93db3, with 6 uncommitted paths outside docs/
+# Tree fingerprint before the run: 6ecb399bb7e2c8f0b796e7cc02996ab02e41fd111e85d340ab77ad7d77ff4bbc
+# Tree fingerprint after the run:  6ecb399bb7e2c8f0b796e7cc02996ab02e41fd111e85d340ab77ad7d77ff4bbc
+# Fingerprint command: git ls-files -z -co --exclude-standard -- . ':!docs' ':(exclude,glob)**/.DS_Store' | sort -z | xargs -0 shasum -a 256 | shasum -a 256
+# Exit status of the recorded command: 0
+=== RUN   TestCaseOnlySourceRename
+    case_test.go:41: file system at <case-sensitive tmp>/001 is case-insensitive: false (darwin)
+--- PASS: TestCaseOnlySourceRename (0.10s)
+=== RUN   TestCaseEquivalentHandwrittenDestination
+    case_test.go:64: file system at <case-sensitive tmp>/001 is case-insensitive: false (darwin)
+--- PASS: TestCaseEquivalentHandwrittenDestination (0.00s)
+=== RUN   TestSymlinkAtOutputPath
+--- PASS: TestSymlinkAtOutputPath (0.01s)
+=== RUN   TestDestinationCreatedAfterPlanning
+    case_test.go:114: file system at <case-sensitive tmp>/001 is case-insensitive: false (darwin)
+    case_test.go:114: file system at <case-sensitive tmp>/002 is case-insensitive: false (darwin)
+--- PASS: TestDestinationCreatedAfterPlanning (0.02s)
+=== RUN   TestOutputReplacedAfterPlanning
+=== RUN   TestOutputReplacedAfterPlanning/a_stale_output
+=== RUN   TestOutputReplacedAfterPlanning/an_obsolete_output
+--- PASS: TestOutputReplacedAfterPlanning (0.25s)
+    --- PASS: TestOutputReplacedAfterPlanning/a_stale_output (0.20s)
+    --- PASS: TestOutputReplacedAfterPlanning/an_obsolete_output (0.06s)
+=== RUN   TestOutputsThatDifferOnlyInCase
+    case_test.go:166: file system at <case-sensitive tmp>/001 is case-insensitive: false (darwin)
+--- PASS: TestOutputsThatDifferOnlyInCase (0.00s)
+=== RUN   TestInterruptedCaseOnlyRename
+    case_test.go:226: file system at <case-sensitive tmp>/001 is case-insensitive: false (darwin)
+    case_test.go:227: a case-only rename is two files on this file system
+--- SKIP: TestInterruptedCaseOnlyRename (0.00s)
+=== RUN   TestCaseOnlyRenameKeepsAFileThatAppears
+    case_test.go:285: file system at <case-sensitive tmp>/001 is case-insensitive: false (darwin)
+    case_test.go:286: a case-only rename is two files on this file system
+--- SKIP: TestCaseOnlyRenameKeepsAFileThatAppears (0.02s)
+=== RUN   TestOutputOwnership
+=== RUN   TestOutputOwnership/a_handwritten_file_with_an_output_name
+=== RUN   TestOutputOwnership/an_unrecognized_file_that_no_source_would_produce
+=== RUN   TestOutputOwnership/a_marker_that_names_another_source
+=== RUN   TestOutputOwnership/a_marker_on_a_file_with_another_name
+=== RUN   TestOutputOwnership/output_of_the_investigation_prototype
+=== RUN   TestOutputOwnership/a_directory_where_an_output_belongs
+--- PASS: TestOutputOwnership (0.06s)
+    --- PASS: TestOutputOwnership/a_handwritten_file_with_an_output_name (0.03s)
+    --- PASS: TestOutputOwnership/an_unrecognized_file_that_no_source_would_produce (0.01s)
+    --- PASS: TestOutputOwnership/a_marker_that_names_another_source (0.00s)
+    --- PASS: TestOutputOwnership/a_marker_on_a_file_with_another_name (0.01s)
+    --- PASS: TestOutputOwnership/output_of_the_investigation_prototype (0.00s)
+    --- PASS: TestOutputOwnership/a_directory_where_an_output_belongs (0.00s)
+=== RUN   TestObsoleteOwnedOutputs
+--- PASS: TestObsoleteOwnedOutputs (0.06s)
+=== RUN   TestIgnoredFiles
+--- PASS: TestIgnoredFiles (0.04s)
+=== RUN   TestCRLFOutputs
+--- PASS: TestCRLFOutputs (0.07s)
+=== RUN   TestObsoleteRemovalFailureReportsProgress
+    publish_test.go:64: error: removing obsolete <case-sensitive tmp>/d.heirygen.go: injected failure; already put in place: a.heirygen.go, b.heirygen.go; already removed: c.heirygen.go, and the obsolete outputs after it were not removed
+--- PASS: TestObsoleteRemovalFailureReportsProgress (0.03s)
+=== RUN   TestCleanupFailuresNameThePathsLeftBehind
+=== RUN   TestCleanupFailuresNameThePathsLeftBehind/temporary_file_of_a_linked_output
+    publish_test.go:97: error: every output is up to date, but heirygen could not remove the hidden files <case-sensitive tmp>/.heirygen-1612768386.tmp (injected failure), which the go command ignores: delete them
+=== RUN   TestCleanupFailuresNameThePathsLeftBehind/hard-link_probe
+    publish_test.go:97: error: every output is up to date, but heirygen could not remove the hidden files <case-sensitive tmp>/.heirygen-1830278721.tmp.link (injected failure), which the go command ignores: delete them
+=== RUN   TestCleanupFailuresNameThePathsLeftBehind/temporary_file_discarded_after_a_failure
+    publish_test.go:97: error: <case-sensitive tmp>/b.heirygen.go: linking it into place: injected failure; already put in place: a.heirygen.go, and every other output is unchanged; heirygen could not remove the hidden files <case-sensitive tmp>/.heirygen-2424193712.tmp (injected failure), which the go command ignores: delete them
+=== RUN   TestCleanupFailuresNameThePathsLeftBehind/partial_temporary_file
+    publish_test.go:97: error: writing <case-sensitive tmp>/b.heirygen.go: injected failure; no output was changed; heirygen could not remove the hidden files <case-sensitive tmp>/.heirygen-4203745962.tmp (injected failure), <case-sensitive tmp>/.heirygen-2292875448.tmp (injected failure), which the go command ignores: delete them
+--- PASS: TestCleanupFailuresNameThePathsLeftBehind (0.13s)
+    --- PASS: TestCleanupFailuresNameThePathsLeftBehind/temporary_file_of_a_linked_output (0.03s)
+    --- PASS: TestCleanupFailuresNameThePathsLeftBehind/hard-link_probe (0.03s)
+    --- PASS: TestCleanupFailuresNameThePathsLeftBehind/temporary_file_discarded_after_a_failure (0.02s)
+    --- PASS: TestCleanupFailuresNameThePathsLeftBehind/partial_temporary_file (0.04s)
+=== RUN   TestCaseOnlyRenameCleanupFailure
+    publish_test.go:123: file system at <case-sensitive tmp>/001 is case-insensitive: false (darwin)
+    publish_test.go:124: a case-only rename is two files on this file system
+--- SKIP: TestCaseOnlyRenameCleanupFailure (0.02s)
+=== RUN   TestCaseOnlyRenameKeepsPermissions
+--- PASS: TestCaseOnlyRenameKeepsPermissions (0.09s)
+=== RUN   TestFailedWriteChangesNoOutput
+--- PASS: TestFailedWriteChangesNoOutput (0.00s)
+=== RUN   TestOutputPermissions
+--- PASS: TestOutputPermissions (0.03s)
+=== RUN   TestInjectedWriteFailures
+=== RUN   TestInjectedWriteFailures/the_second_temporary_file
+=== RUN   TestInjectedWriteFailures/publishing_the_second_output
+=== RUN   TestInjectedWriteFailures/a_file_system_without_hard_links
+=== RUN   TestInjectedWriteFailures/removing_an_obsolete_output
+--- PASS: TestInjectedWriteFailures (0.10s)
+    --- PASS: TestInjectedWriteFailures/the_second_temporary_file (0.01s)
+    --- PASS: TestInjectedWriteFailures/publishing_the_second_output (0.04s)
+    --- PASS: TestInjectedWriteFailures/a_file_system_without_hard_links (0.02s)
+    --- PASS: TestInjectedWriteFailures/removing_an_obsolete_output (0.02s)
+=== RUN   TestCheckModeWritesNothing
+--- PASS: TestCheckModeWritesNothing (0.00s)
+PASS
+ok  	github.com/lucaf/heiry/cmd/heirygen/internal/generator	1.380s

@@ -1,0 +1,67 @@
+=== RUN   TestCaseOnlySourceRename
+    case_test.go:41: file system at <case-sensitive tmp>/001 is case-insensitive: false (darwin)
+--- PASS: TestCaseOnlySourceRename (0.03s)
+=== RUN   TestCaseEquivalentHandwrittenDestination
+    case_test.go:64: file system at <case-sensitive tmp>/001 is case-insensitive: false (darwin)
+--- PASS: TestCaseEquivalentHandwrittenDestination (0.00s)
+=== RUN   TestSymlinkAtOutputPath
+--- PASS: TestSymlinkAtOutputPath (0.00s)
+=== RUN   TestDestinationCreatedAfterPlanning
+    case_test.go:114: file system at <case-sensitive tmp>/001 is case-insensitive: false (darwin)
+    case_test.go:114: file system at <case-sensitive tmp>/002 is case-insensitive: false (darwin)
+--- PASS: TestDestinationCreatedAfterPlanning (0.01s)
+=== RUN   TestOutputReplacedAfterPlanning
+=== RUN   TestOutputReplacedAfterPlanning/a_stale_output
+=== RUN   TestOutputReplacedAfterPlanning/an_obsolete_output
+--- PASS: TestOutputReplacedAfterPlanning (0.03s)
+    --- PASS: TestOutputReplacedAfterPlanning/a_stale_output (0.01s)
+    --- PASS: TestOutputReplacedAfterPlanning/an_obsolete_output (0.02s)
+=== RUN   TestOutputsThatDifferOnlyInCase
+    case_test.go:166: file system at <case-sensitive tmp>/001 is case-insensitive: false (darwin)
+--- PASS: TestOutputsThatDifferOnlyInCase (0.00s)
+=== RUN   TestInterruptedCaseOnlyRename
+    case_test.go:226: file system at <case-sensitive tmp>/001 is case-insensitive: false (darwin)
+    case_test.go:227: a case-only rename is two files on this file system
+--- SKIP: TestInterruptedCaseOnlyRename (0.00s)
+=== RUN   TestCaseOnlyRenameKeepsAFileThatAppears
+    case_test.go:285: file system at <case-sensitive tmp>/001 is case-insensitive: false (darwin)
+    case_test.go:286: a case-only rename is two files on this file system
+--- SKIP: TestCaseOnlyRenameKeepsAFileThatAppears (0.00s)
+=== RUN   TestOutputOwnership
+=== RUN   TestOutputOwnership/a_handwritten_file_with_an_output_name
+=== RUN   TestOutputOwnership/an_unrecognized_file_that_no_source_would_produce
+=== RUN   TestOutputOwnership/a_marker_that_names_another_source
+=== RUN   TestOutputOwnership/a_marker_on_a_file_with_another_name
+=== RUN   TestOutputOwnership/output_of_the_investigation_prototype
+=== RUN   TestOutputOwnership/a_directory_where_an_output_belongs
+--- PASS: TestOutputOwnership (0.01s)
+    --- PASS: TestOutputOwnership/a_handwritten_file_with_an_output_name (0.00s)
+    --- PASS: TestOutputOwnership/an_unrecognized_file_that_no_source_would_produce (0.00s)
+    --- PASS: TestOutputOwnership/a_marker_that_names_another_source (0.00s)
+    --- PASS: TestOutputOwnership/a_marker_on_a_file_with_another_name (0.00s)
+    --- PASS: TestOutputOwnership/output_of_the_investigation_prototype (0.00s)
+    --- PASS: TestOutputOwnership/a_directory_where_an_output_belongs (0.00s)
+=== RUN   TestObsoleteOwnedOutputs
+--- PASS: TestObsoleteOwnedOutputs (0.02s)
+=== RUN   TestIgnoredFiles
+--- PASS: TestIgnoredFiles (0.02s)
+=== RUN   TestCRLFOutputs
+--- PASS: TestCRLFOutputs (0.02s)
+=== RUN   TestFailedWriteChangesNoOutput
+--- PASS: TestFailedWriteChangesNoOutput (0.00s)
+=== RUN   TestOutputPermissions
+--- PASS: TestOutputPermissions (0.02s)
+=== RUN   TestInjectedWriteFailures
+=== RUN   TestInjectedWriteFailures/the_second_temporary_file
+=== RUN   TestInjectedWriteFailures/publishing_the_second_output
+=== RUN   TestInjectedWriteFailures/a_file_system_without_hard_links
+=== RUN   TestInjectedWriteFailures/removing_an_obsolete_output
+--- PASS: TestInjectedWriteFailures (0.10s)
+    --- PASS: TestInjectedWriteFailures/the_second_temporary_file (0.01s)
+    --- PASS: TestInjectedWriteFailures/publishing_the_second_output (0.04s)
+    --- PASS: TestInjectedWriteFailures/a_file_system_without_hard_links (0.02s)
+    --- PASS: TestInjectedWriteFailures/removing_an_obsolete_output (0.02s)
+=== RUN   TestCheckModeWritesNothing
+--- PASS: TestCheckModeWritesNothing (0.00s)
+PASS
+ok  	github.com/lucaf/heiry/cmd/heirygen/internal/generator	0.548s

@@ -1,0 +1,57 @@
+# The focused regressions of this patch and the earlier existing-interface tests, after the change, with go test -count=1 -v.
+# Recorded 2026-11-19T14:23:08Z on this machine by a local script, not by GitHub Actions.
+# Toolchain: go version go1.27.1 darwin/arm64
+# System: Darwin 25.5.0 arm64
+# Tree: branch generator-investigation at a726da8b9eead9d1f032ec4eda39baef79c93db3, with 5 uncommitted paths outside docs/
+# Tree fingerprint before the run: 1a5a8132b70ecf6ef94f5b449e3a5137a43cfa99ab7279552ea9b71d254bd7a6
+# Tree fingerprint after the run:  1a5a8132b70ecf6ef94f5b449e3a5137a43cfa99ab7279552ea9b71d254bd7a6
+# Fingerprint command: git ls-files -z -co --exclude-standard -- . ':!docs' ':(exclude,glob)**/.DS_Store' | sort -z | xargs -0 shasum -a 256 | shasum -a 256
+# Exit status of the recorded command: 0
+=== RUN   TestContradictoryExistingLinesAreRefused
+=== RUN   TestContradictoryExistingLinesAreRefused/in_a_test_file
+    declarations_test.go:76: error: main.go:24:2: recordsSpec, line 5: existing String fmt.Stringer names fmt.Stringer for method String, but aaa_test.go:9:2: namedSpec, line 4: existing Name fmt.Stringer names it for method Name; one interface identifies one operation in the whole package, whichever file or build holds the line: correct one of the two
+=== RUN   TestContradictoryExistingLinesAreRefused/in_a_tagged_file
+    declarations_test.go:76: error: main.go:24:2: recordsSpec, line 5: existing String fmt.Stringer names fmt.Stringer for method String, but aaa.go:11:2: namedSpec, line 4: existing Name fmt.Stringer names it for method Name; one interface identifies one operation in the whole package, whichever file or build holds the line: correct one of the two
+=== RUN   TestContradictoryExistingLinesAreRefused/valid_shared_declarations
+--- PASS: TestContradictoryExistingLinesAreRefused (0.78s)
+    --- PASS: TestContradictoryExistingLinesAreRefused/in_a_test_file (0.00s)
+    --- PASS: TestContradictoryExistingLinesAreRefused/in_a_tagged_file (0.00s)
+    --- PASS: TestContradictoryExistingLinesAreRefused/valid_shared_declarations (0.78s)
+=== RUN   TestRepeatedGuardUsesASignatureTheBuildCompiles
+=== RUN   TestRepeatedGuardUsesASignatureTheBuildCompiles/hierarchy's_own_declaration
+=== RUN   TestRepeatedGuardUsesASignatureTheBuildCompiles/declaration_in_a_file_every_build_compiles
+=== RUN   TestRepeatedGuardUsesASignatureTheBuildCompiles/no_declaration_the_build_can_use
+    declarations_test.go:155: error: main.go:38:2: recordsSpec, line 4: registration Sealing needs a guard in the output of main.go that ties it to its method, but the signature of every existing line that names its interface uses a name some builds of main.go lack; the first, audit_test.go:10:2: auditSpec, line 3: existing Seal Sealer, has the signature at audit_test.go:5:25, which uses status, declared only in audit_test.go: declare status in a non-test file without build constraints or a platform suffix, or name the interface with an existing line in main.go
+--- PASS: TestRepeatedGuardUsesASignatureTheBuildCompiles (1.81s)
+    --- PASS: TestRepeatedGuardUsesASignatureTheBuildCompiles/hierarchy's_own_declaration (0.87s)
+    --- PASS: TestRepeatedGuardUsesASignatureTheBuildCompiles/declaration_in_a_file_every_build_compiles (0.94s)
+    --- PASS: TestRepeatedGuardUsesASignatureTheBuildCompiles/no_declaration_the_build_can_use (0.00s)
+=== RUN   TestFileBuildComparison
+--- PASS: TestFileBuildComparison (0.00s)
+=== RUN   TestRegisteredExistingInterfacesAreCheckedWhereTheyAreUsed
+=== RUN   TestRegisteredExistingInterfacesAreCheckedWhereTheyAreUsed/operations_in_a_test_file
+=== RUN   TestRegisteredExistingInterfacesAreCheckedWhereTheyAreUsed/operations_in_a_tagged_file
+--- PASS: TestRegisteredExistingInterfacesAreCheckedWhereTheyAreUsed (2.27s)
+    --- PASS: TestRegisteredExistingInterfacesAreCheckedWhereTheyAreUsed/operations_in_a_test_file (1.36s)
+    --- PASS: TestRegisteredExistingInterfacesAreCheckedWhereTheyAreUsed/operations_in_a_tagged_file (0.91s)
+=== RUN   TestAliasRegistrationsAreGuardedInTheirOwnFile
+    guards_test.go:311: after the swap:
+        # probe
+        ./main.heirygen.go:98:36: cannot use Sealing(nil) (value of interface type Sealing) as interface{Seal() error} value in variable declaration: Wiper does not implement interface{Seal() error} (missing method Seal)
+        ./main.heirygen.go:99:18: cannot use interface{Seal() error}(nil) (value of type interface{Seal() error}) as Sealing value in variable declaration: interface{Seal() error} does not implement Wiper (missing method Wipe)
+        ./main.heirygen.go:100:36: cannot use Wiping(nil) (value of interface type Wiping) as interface{Wipe() error} value in variable declaration: Sealer does not implement interface{Wipe() error} (missing method Wipe)
+        ./main.heirygen.go:101:17: cannot use interface{Wipe() error}(nil) (value of type interface{Wipe() error}) as Wiping value in variable declaration: interface{Wipe() error} does not implement Sealer (missing method Seal)
+--- PASS: TestAliasRegistrationsAreGuardedInTheirOwnFile (0.68s)
+=== RUN   TestSharedExistingInterfaceIsDeterministic
+=== RUN   TestSharedExistingInterfaceIsDeterministic/hierarchy_file_names_the_interface
+=== RUN   TestSharedExistingInterfaceIsDeterministic/declarations_in_two_other_files
+=== RUN   TestSharedExistingInterfaceIsDeterministic/builds
+--- PASS: TestSharedExistingInterfaceIsDeterministic (1.61s)
+    --- PASS: TestSharedExistingInterfaceIsDeterministic/hierarchy_file_names_the_interface (0.04s)
+    --- PASS: TestSharedExistingInterfaceIsDeterministic/declarations_in_two_other_files (0.05s)
+    --- PASS: TestSharedExistingInterfaceIsDeterministic/builds (1.51s)
+=== RUN   TestConflictingSharedExistingIsDeterministic
+    shared_test.go:186: exit 1: names.go:9:2: namedSpec, line 4: existing Name fmt.Stringer names fmt.Stringer for method Name, but labels.go:9:2: labeledSpec, line 4: existing String fmt.Stringer names it for method String; one interface identifies one operation in the whole package, whichever file or build holds the line: correct one of the two
+--- PASS: TestConflictingSharedExistingIsDeterministic (0.04s)
+PASS
+ok  	github.com/lucaf/heiry/cmd/heirygen/internal/generator	7.443s

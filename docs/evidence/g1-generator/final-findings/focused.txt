@@ -1,0 +1,111 @@
+# The tests this round added or tightened, and the holder, wrapper, and existing-interface tests around them, with go test -count=1 -v.
+# Recorded 2026-11-19T15:56:39Z on this machine by a local script, not by GitHub Actions.
+# Toolchain: go version go1.27.1 darwin/arm64
+# System: Darwin 25.5.0 arm64
+# Tree: branch generator-investigation at a726da8b9eead9d1f032ec4eda39baef79c93db3, with 6 uncommitted paths outside docs/
+# Tree fingerprint before the run: 1f448444c914d2e578aad90707cf44c4812641cd49d0ce3c659fee7562d54aa3
+# Tree fingerprint after the run:  1f448444c914d2e578aad90707cf44c4812641cd49d0ce3c659fee7562d54aa3
+# Fingerprint command: git ls-files -z -co --exclude-standard -- . ':!docs' ':(exclude,glob)**/.DS_Store' | sort -z | xargs -0 shasum -a 256 | shasum -a 256
+# Exit status of the recorded command: 0
+=== RUN   TestEveryBuildOfAWrapperChecksBothContracts
+=== RUN   TestEveryBuildOfAWrapperChecksBothContracts/operations_in_a_test_file,_private_contract
+=== RUN   TestEveryBuildOfAWrapperChecksBothContracts/operations_in_a_test_file,_public_contract
+=== RUN   TestEveryBuildOfAWrapperChecksBothContracts/operations_in_a_tagged_file,_private_contract
+=== RUN   TestEveryBuildOfAWrapperChecksBothContracts/operations_in_a_tagged_file,_public_contract
+=== RUN   TestEveryBuildOfAWrapperChecksBothContracts/initially_empty_private_contract,_operations_in_a_test_file,_private_contract
+=== RUN   TestEveryBuildOfAWrapperChecksBothContracts/initially_empty_private_contract,_operations_in_a_test_file,_public_contract
+=== RUN   TestEveryBuildOfAWrapperChecksBothContracts/initially_empty_private_contract,_operations_in_a_tagged_file,_private_contract
+=== RUN   TestEveryBuildOfAWrapperChecksBothContracts/initially_empty_private_contract,_operations_in_a_tagged_file,_public_contract
+--- PASS: TestEveryBuildOfAWrapperChecksBothContracts (11.39s)
+    --- PASS: TestEveryBuildOfAWrapperChecksBothContracts/operations_in_a_test_file,_private_contract (2.56s)
+    --- PASS: TestEveryBuildOfAWrapperChecksBothContracts/operations_in_a_test_file,_public_contract (2.00s)
+    --- PASS: TestEveryBuildOfAWrapperChecksBothContracts/operations_in_a_tagged_file,_private_contract (1.35s)
+    --- PASS: TestEveryBuildOfAWrapperChecksBothContracts/operations_in_a_tagged_file,_public_contract (0.68s)
+    --- PASS: TestEveryBuildOfAWrapperChecksBothContracts/initially_empty_private_contract,_operations_in_a_test_file,_private_contract (1.62s)
+    --- PASS: TestEveryBuildOfAWrapperChecksBothContracts/initially_empty_private_contract,_operations_in_a_test_file,_public_contract (1.61s)
+    --- PASS: TestEveryBuildOfAWrapperChecksBothContracts/initially_empty_private_contract,_operations_in_a_tagged_file,_private_contract (0.74s)
+    --- PASS: TestEveryBuildOfAWrapperChecksBothContracts/initially_empty_private_contract,_operations_in_a_tagged_file,_public_contract (0.82s)
+=== RUN   TestExistingInterfaceStillIdentifiesItsMethod
+--- PASS: TestExistingInterfaceStillIdentifiesItsMethod (0.85s)
+=== RUN   TestHolderOfALeafDeclaredAsATypeDefinition
+--- PASS: TestHolderOfALeafDeclaredAsATypeDefinition (1.70s)
+=== RUN   TestContractThatGrowsAtALaterLevel
+--- PASS: TestContractThatGrowsAtALaterLevel (1.53s)
+=== RUN   TestAliasChanges
+=== RUN   TestAliasChanges/a_contract_alias
+=== RUN   TestAliasChanges/the_alias_under_which_a_parent_is_embedded
+--- PASS: TestAliasChanges (1.12s)
+    --- PASS: TestAliasChanges/a_contract_alias (0.46s)
+    --- PASS: TestAliasChanges/the_alias_under_which_a_parent_is_embedded (0.66s)
+=== RUN   TestFreshnessAssertionCannotBeDisarmed
+=== RUN   TestFreshnessAssertionCannotBeDisarmed/the_spec_constant_becomes_a_variable
+=== RUN   TestFreshnessAssertionCannotBeDisarmed/the_package_redeclares_false
+=== RUN   TestFreshnessAssertionCannotBeDisarmed/the_package_redeclares_nil
+--- PASS: TestFreshnessAssertionCannotBeDisarmed (2.70s)
+    --- PASS: TestFreshnessAssertionCannotBeDisarmed/the_spec_constant_becomes_a_variable (0.59s)
+    --- PASS: TestFreshnessAssertionCannotBeDisarmed/the_package_redeclares_false (1.20s)
+    --- PASS: TestFreshnessAssertionCannotBeDisarmed/the_package_redeclares_nil (0.91s)
+=== RUN   TestConflictingSharedExistingIsDeterministic
+    shared_test.go:193: exit 1: names.go:9:2: namedSpec, line 4: existing Name fmt.Stringer names fmt.Stringer for method Name, but labels.go:9:2: labeledSpec, line 4: existing String fmt.Stringer names it for method String; one interface identifies one operation in the whole package, whichever file or build holds the line: correct one of the two
+--- PASS: TestConflictingSharedExistingIsDeterministic (0.02s)
+=== RUN   TestStaleOutputWithSpecConstant
+=== RUN   TestStaleOutputWithSpecConstant/add_a_registration_while_an_ancestor_still_supplies_the_operation
+=== RUN   TestStaleOutputWithSpecConstant/remove_a_registration_while_an_ancestor_still_supplies_the_operation
+=== RUN   TestStaleOutputWithSpecConstant/change_a_component_path_between_two_same-type_components
+=== RUN   TestStaleOutputWithSpecConstant/select_the_other_embedded_parent
+=== RUN   TestStaleOutputWithSpecConstant/widen_a_level's_private_contract
+=== RUN   TestStaleOutputWithSpecConstant/add_a_level_to_the_hierarchy
+--- PASS: TestStaleOutputWithSpecConstant (11.89s)
+    --- PASS: TestStaleOutputWithSpecConstant/add_a_registration_while_an_ancestor_still_supplies_the_operation (1.95s)
+    --- PASS: TestStaleOutputWithSpecConstant/remove_a_registration_while_an_ancestor_still_supplies_the_operation (2.01s)
+    --- PASS: TestStaleOutputWithSpecConstant/change_a_component_path_between_two_same-type_components (2.02s)
+    --- PASS: TestStaleOutputWithSpecConstant/select_the_other_embedded_parent (1.98s)
+    --- PASS: TestStaleOutputWithSpecConstant/widen_a_level's_private_contract (2.46s)
+    --- PASS: TestStaleOutputWithSpecConstant/add_a_level_to_the_hierarchy (1.47s)
+=== RUN   TestForwarderHolderControls
+=== RUN   TestForwarderHolderControls/embedded_Node_beside_a_named_one
+=== RUN   TestForwarderHolderControls/embedded_alias_beside_a_field_named_Node
+=== RUN   TestForwarderHolderControls/embedded_alias,_explicit_holder
+--- PASS: TestForwarderHolderControls (3.26s)
+    --- PASS: TestForwarderHolderControls/embedded_Node_beside_a_named_one (1.11s)
+    --- PASS: TestForwarderHolderControls/embedded_alias_beside_a_field_named_Node (1.14s)
+    --- PASS: TestForwarderHolderControls/embedded_alias,_explicit_holder (1.00s)
+=== RUN   TestStaleHolderEdit
+    wrapperguards_test.go:79: after the stale edit:
+        # probe
+        ./main.heirygen.go:86:22: cannot use &leaf.Node (value of type **heiry.Node) as *heiry.Node value in variable declaration
+        ./main.heirygen.go:93:22: cannot use &probe.Node (value of type **heiry.Node) as *heiry.Node value in variable declaration
+--- PASS: TestStaleHolderEdit (4.04s)
+=== RUN   TestHolderGuardControls
+=== RUN   TestHolderGuardControls/own_name
+=== RUN   TestHolderGuardControls/alias_name
+--- PASS: TestHolderGuardControls (3.32s)
+    --- PASS: TestHolderGuardControls/own_name (1.22s)
+    --- PASS: TestHolderGuardControls/alias_name (2.10s)
+=== RUN   TestWrapperCopiesItsOwnContracts
+--- PASS: TestWrapperCopiesItsOwnContracts (3.27s)
+=== RUN   TestStalePromotedHolder
+=== RUN   TestStalePromotedHolder/through_a_pointer
+    wrapperguards_test.go:278: after the stale edit:
+        # probe
+        ./main.heirygen.go:93:29: ambiguous selector probe.Dispatch
+=== RUN   TestStalePromotedHolder/through_a_value
+    wrapperguards_test.go:278: after the stale edit:
+        # probe
+        ./main.heirygen.go:93:29: ambiguous selector probe.Dispatch
+=== RUN   TestStalePromotedHolder/two_levels_down
+    wrapperguards_test.go:278: after the stale edit:
+        # probe
+        ./main.heirygen.go:93:22: cannot use &probe.Dispatch (value of type *struct{}) as *heiry.Node value in variable declaration
+--- PASS: TestStalePromotedHolder (7.18s)
+    --- PASS: TestStalePromotedHolder/through_a_pointer (1.83s)
+    --- PASS: TestStalePromotedHolder/through_a_value (3.69s)
+    --- PASS: TestStalePromotedHolder/two_levels_down (1.66s)
+PASS
+ok  	github.com/lucaf/heiry/cmd/heirygen/internal/generator	56.746s
+=== RUN   TestForeignPlanIsRejected
+    helpers_test.go:249: another definition's dynamic Plan helper and direct call: Code=BindingMismatch Target=main.tagged Level=0 Path="limited.base" Expected=<nil> Actual=*main.base
+    helpers_test.go:249: another definition's precomputed Plan helper and direct call: Code=BindingMismatch Target=main.tagged Level=0 Path="limited.base" Expected=<nil> Actual=*main.base
+--- PASS: TestForeignPlanIsRejected (0.00s)
+PASS
+ok  	github.com/lucaf/heiry/cmd/heirygen/internal/generator/testdata/basic	4.763s

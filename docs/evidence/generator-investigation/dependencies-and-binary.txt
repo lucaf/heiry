@@ -1,0 +1,11 @@
+$ go list -deps ./testdata/genprobe/heirygen ./testdata/genprobe/typeprobe ./testdata/genprobe/measure | grep "\."
+github.com/lucaf/heiry/testdata/genprobe/heirygen
+crypto/internal/entropy/v1.0.0
+github.com/lucaf/heiry/testdata/genprobe/typeprobe
+github.com/lucaf/heiry/testdata/genprobe/measure
+
+$ go build -o basic.bin ./testdata/genprobe/basic
+$ strings basic.bin | grep -c "level base public=Public"
+0
+$ go tool nm basic.bin | grep -c "main\._"
+0

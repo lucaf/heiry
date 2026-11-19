@@ -22,6 +22,7 @@ go run ./examples/basic
 go run ./examples/components
 go run ./examples/lifecycle
 go run ./examples/comparison
+go run ./examples/generated
 ```
 
 The [examples index](../../examples/README.md) says what each one shows.
@@ -416,7 +417,7 @@ if errors.Is(err, &heiry.Error{Code: heiry.MissingMethods}) {
 - Finish declaring a Definition before using it from several goroutines. Each declaration call is synchronized, but a sequence of them is not a transaction.
 - Initializing the same object from two goroutines is not supported.
 
-**Authoring cost.** You write one interface per operation, the two contracts per level, each registration, one forwarder per public operation, and the references for every object. Nothing is generated.
+**Authoring cost.** You write one interface per operation, the two contracts per level, each registration, one forwarder per public operation, and the references for every object. The optional [heirygen](generation.md) command can write the interfaces, registrations, references, and forwarders from a specification string; you still write the contracts, types, bodies, and constructors.
 
 **Not supported in this version:**
 
@@ -425,4 +426,3 @@ if errors.Is(err, &heiry.Error{Code: heiry.MissingMethods}) {
 - Deriving a new level in another package from a hierarchy defined elsewhere. Consumers in other packages can use a wrapper normally.
 - Providers that are not stored inside the object.
 - Switching an initialized object between dynamic and precomputed resolution, rebinding it, or cloning it.
-- Code generation.

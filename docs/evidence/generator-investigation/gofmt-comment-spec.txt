@@ -1,0 +1,33 @@
+Input (a comment-block spec written as the doc comment of a declaration, and one detached from any declaration):
+
+package p
+
+//heiry:spec
+// hierarchy shape top
+// level base public=Public private=Private
+//	node Namer
+type top struct{}
+
+//heiry:spec
+// hierarchy other top
+// level top public=Public private=Private
+
+var x = 1
+
+Output of gofmt (Go 1.27.1):
+
+package p
+
+// hierarchy shape top
+// level base public=Public private=Private
+//
+//	node Namer
+//
+//heiry:spec
+type top struct{}
+
+//heiry:spec
+// hierarchy other top
+// level top public=Public private=Private
+
+var x = 1

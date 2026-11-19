@@ -1,0 +1,25 @@
+# Red step of TestHolderGuardForALeafNamedLikeItsHolder, before the change.
+# Recorded 2026-11-19 on this machine (go1.27.1 darwin/arm64) with go test -count=1 -v; the tree was not fingerprinted. Trailing whitespace was removed; the repository path is written <repo>.
+=== RUN   TestHolderGuardForALeafNamedLikeItsHolder
+=== RUN   TestHolderGuardForALeafNamedLikeItsHolder/leaf_named_Node
+    wrapperguards_test.go:333: the generated wrapper does not compile:
+        # probe
+        # [probe]
+        vet: ./main.heirygen.go:93:22: cannot use &probe.Node (value of type **Node) as *heiry.Node value in variable declaration
+=== RUN   TestHolderGuardForALeafNamedLikeItsHolder/generic_leaf_named_Node
+    wrapperguards_test.go:333: the generated wrapper does not compile:
+        # probe
+        # [probe]
+        vet: ./main.heirygen.go:93:22: cannot use &probe.Node (value of type **Node[int]) as *heiry.Node value in variable declaration
+=== RUN   TestHolderGuardForALeafNamedLikeItsHolder/leaf_alias_named_Node
+    wrapperguards_test.go:333: the generated wrapper does not compile:
+        # probe
+        # [probe]
+        vet: ./main.heirygen.go:93:22: cannot use &probe.Node (value of type **Node) as *heiry.Node value in variable declaration
+--- FAIL: TestHolderGuardForALeafNamedLikeItsHolder (0.89s)
+    --- FAIL: TestHolderGuardForALeafNamedLikeItsHolder/leaf_named_Node (0.68s)
+    --- FAIL: TestHolderGuardForALeafNamedLikeItsHolder/generic_leaf_named_Node (0.11s)
+    --- FAIL: TestHolderGuardForALeafNamedLikeItsHolder/leaf_alias_named_Node (0.10s)
+FAIL
+FAIL	github.com/lucaf/heiry/cmd/heirygen/internal/generator	1.500s
+FAIL

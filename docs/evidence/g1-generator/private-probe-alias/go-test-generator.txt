@@ -1,0 +1,570 @@
+# Test inventory: go test -count=1 -v over the command, its internal package, its three fixtures, and the generated example, on the default case-insensitive APFS volume.
+# Recorded 2026-11-19T18:05:35Z on this machine by a local script, not by GitHub Actions.
+# Toolchain: go version go1.27.1 darwin/arm64
+# System: Darwin 25.5.0 arm64
+# Tree: branch generator-investigation at a726da8b9eead9d1f032ec4eda39baef79c93db3, with 6 uncommitted paths outside docs/
+# Tree fingerprint before the run: f2d0e87c214589501618a69c1a91d00f137f42122fb9d1ecf3138703eefafaf6
+# Tree fingerprint after the run:  f2d0e87c214589501618a69c1a91d00f137f42122fb9d1ecf3138703eefafaf6
+# Fingerprint command: git ls-files -z -co --exclude-standard -- . ':!docs' ':(exclude,glob)**/.DS_Store' | sort -z | xargs -0 shasum -a 256 | shasum -a 256
+# Exit status of the recorded command: 0
+=== RUN   TestExitStatuses
+=== RUN   TestExitStatuses/generate
+=== RUN   TestExitStatuses/check,_not_generated
+=== RUN   TestExitStatuses/generate,_invalid_specification
+=== RUN   TestExitStatuses/check,_invalid_specification
+=== RUN   TestExitStatuses/no_such_directory
+=== RUN   TestExitStatuses/two_directories
+=== RUN   TestExitStatuses/unknown_flag
+=== RUN   TestExitStatuses/comment_specifications_are_not_a_mode
+--- PASS: TestExitStatuses (0.01s)
+    --- PASS: TestExitStatuses/generate (0.01s)
+    --- PASS: TestExitStatuses/check,_not_generated (0.00s)
+    --- PASS: TestExitStatuses/generate,_invalid_specification (0.00s)
+    --- PASS: TestExitStatuses/check,_invalid_specification (0.00s)
+    --- PASS: TestExitStatuses/no_such_directory (0.00s)
+    --- PASS: TestExitStatuses/two_directories (0.00s)
+    --- PASS: TestExitStatuses/unknown_flag (0.00s)
+    --- PASS: TestExitStatuses/comment_specifications_are_not_a_mode (0.00s)
+=== RUN   TestVerboseAndCheckAfterGeneration
+--- PASS: TestVerboseAndCheckAfterGeneration (0.01s)
+=== RUN   TestVersion
+--- PASS: TestVersion (0.00s)
+PASS
+ok  	github.com/lucaf/heiry/cmd/heirygen	2.466s
+=== RUN   TestBootstrap
+=== RUN   TestBootstrap/no_generated_output
+=== RUN   TestBootstrap/generated_output_does_not_parse
+=== RUN   TestBootstrap/generated_output_does_not_type-check
+=== RUN   TestBootstrap/handwritten_declarations_use_generated_names
+=== RUN   TestBootstrap/unrelated_type_errors_elsewhere
+=== RUN   TestBootstrap/syntax_error_in_a_handwritten_file
+--- PASS: TestBootstrap (2.05s)
+    --- PASS: TestBootstrap/no_generated_output (0.23s)
+    --- PASS: TestBootstrap/generated_output_does_not_parse (0.16s)
+    --- PASS: TestBootstrap/generated_output_does_not_type-check (1.40s)
+    --- PASS: TestBootstrap/handwritten_declarations_use_generated_names (0.19s)
+    --- PASS: TestBootstrap/unrelated_type_errors_elsewhere (0.07s)
+    --- PASS: TestBootstrap/syntax_error_in_a_handwritten_file (0.00s)
+=== RUN   TestGeneratedFilesFollowBuildConstraints
+--- PASS: TestGeneratedFilesFollowBuildConstraints (2.50s)
+=== RUN   TestOutputNamesKeepPlatformSelection
+--- PASS: TestOutputNamesKeepPlatformSelection (0.60s)
+=== RUN   TestOutputsFollowLegacyAndCgoConstraints
+--- PASS: TestOutputsFollowLegacyAndCgoConstraints (0.24s)
+=== RUN   TestForwarderMustResolveTheRegisteredInterface
+=== RUN   TestForwarderMustResolveTheRegisteredInterface/embedded_handwritten_interface
+=== RUN   TestForwarderMustResolveTheRegisteredInterface/extension_on_its_own_operations_line
+=== RUN   TestForwarderMustResolveTheRegisteredInterface/imported_interface
+--- PASS: TestForwarderMustResolveTheRegisteredInterface (0.00s)
+    --- PASS: TestForwarderMustResolveTheRegisteredInterface/embedded_handwritten_interface (0.00s)
+    --- PASS: TestForwarderMustResolveTheRegisteredInterface/extension_on_its_own_operations_line (0.00s)
+    --- PASS: TestForwarderMustResolveTheRegisteredInterface/imported_interface (0.00s)
+=== RUN   TestForwarderControls
+=== RUN   TestForwarderControls/embedded_handwritten_interface
+=== RUN   TestForwarderControls/registration_through_an_alias
+=== RUN   TestForwarderControls/extension_on_its_own_operations_line
+=== RUN   TestForwarderControls/extension_on_the_same_operations_line
+=== RUN   TestForwarderControls/imported_interface
+--- PASS: TestForwarderControls (3.45s)
+    --- PASS: TestForwarderControls/embedded_handwritten_interface (0.64s)
+    --- PASS: TestForwarderControls/registration_through_an_alias (0.64s)
+    --- PASS: TestForwarderControls/extension_on_its_own_operations_line (0.87s)
+    --- PASS: TestForwarderControls/extension_on_the_same_operations_line (0.69s)
+    --- PASS: TestForwarderControls/imported_interface (0.60s)
+=== RUN   TestIdentityAssertionCatchesAChangedAlias
+--- PASS: TestIdentityAssertionCatchesAChangedAlias (0.17s)
+=== RUN   TestCaseOnlySourceRename
+    case_test.go:41: file system at 001 is case-insensitive: true (darwin)
+--- PASS: TestCaseOnlySourceRename (0.01s)
+=== RUN   TestCaseEquivalentHandwrittenDestination
+    case_test.go:64: file system at 001 is case-insensitive: true (darwin)
+--- PASS: TestCaseEquivalentHandwrittenDestination (0.00s)
+=== RUN   TestSymlinkAtOutputPath
+--- PASS: TestSymlinkAtOutputPath (0.00s)
+=== RUN   TestDestinationCreatedAfterPlanning
+    case_test.go:114: file system at 001 is case-insensitive: true (darwin)
+    case_test.go:114: file system at 002 is case-insensitive: true (darwin)
+--- PASS: TestDestinationCreatedAfterPlanning (0.01s)
+=== RUN   TestOutputReplacedAfterPlanning
+=== RUN   TestOutputReplacedAfterPlanning/a_stale_output
+=== RUN   TestOutputReplacedAfterPlanning/an_obsolete_output
+--- PASS: TestOutputReplacedAfterPlanning (0.01s)
+    --- PASS: TestOutputReplacedAfterPlanning/a_stale_output (0.01s)
+    --- PASS: TestOutputReplacedAfterPlanning/an_obsolete_output (0.01s)
+=== RUN   TestOutputsThatDifferOnlyInCase
+    case_test.go:166: file system at 001 is case-insensitive: true (darwin)
+    case_test.go:167: two sources that differ only in case cannot exist on this file system
+--- SKIP: TestOutputsThatDifferOnlyInCase (0.00s)
+=== RUN   TestInterruptedCaseOnlyRename
+    case_test.go:226: file system at 001 is case-insensitive: true (darwin)
+    case_test.go:237: after the failure: Main.heirygen.go main.go
+--- PASS: TestInterruptedCaseOnlyRename (0.02s)
+=== RUN   TestCaseOnlyRenameKeepsAFileThatAppears
+    case_test.go:285: file system at 001 is case-insensitive: true (darwin)
+    case_test.go:303: error: main.heirygen.go: a file appeared at its name after heirygen read the directory, so it was not replaced; the old output was kept as .heirygen-1874087558.tmp.old, because putting it back as Main.heirygen.go failed: link .heirygen-1874087558.tmp.old Main.heirygen.go: file exists; to recover it, move away the file now at main.heirygen.go, then rename .heirygen-1874087558.tmp.old to Main.heirygen.go; no output was put in place, and every other output is unchanged
+--- PASS: TestCaseOnlyRenameKeepsAFileThatAppears (0.02s)
+=== RUN   TestContradictoryExistingLinesAreRefused
+=== RUN   TestContradictoryExistingLinesAreRefused/in_a_test_file
+    declarations_test.go:76: error: main.go:24:2: recordsSpec, line 5: existing String fmt.Stringer names fmt.Stringer for method String, but aaa_test.go:9:2: namedSpec, line 4: existing Name fmt.Stringer names it for method Name; one interface identifies one operation in the whole package, whichever file or build holds the line: correct one of the two
+=== RUN   TestContradictoryExistingLinesAreRefused/in_a_tagged_file
+    declarations_test.go:76: error: main.go:24:2: recordsSpec, line 5: existing String fmt.Stringer names fmt.Stringer for method String, but aaa.go:11:2: namedSpec, line 4: existing Name fmt.Stringer names it for method Name; one interface identifies one operation in the whole package, whichever file or build holds the line: correct one of the two
+=== RUN   TestContradictoryExistingLinesAreRefused/valid_shared_declarations
+--- PASS: TestContradictoryExistingLinesAreRefused (0.73s)
+    --- PASS: TestContradictoryExistingLinesAreRefused/in_a_test_file (0.00s)
+    --- PASS: TestContradictoryExistingLinesAreRefused/in_a_tagged_file (0.00s)
+    --- PASS: TestContradictoryExistingLinesAreRefused/valid_shared_declarations (0.73s)
+=== RUN   TestRepeatedGuardUsesASignatureTheBuildCompiles
+=== RUN   TestRepeatedGuardUsesASignatureTheBuildCompiles/hierarchy's_own_declaration
+=== RUN   TestRepeatedGuardUsesASignatureTheBuildCompiles/declaration_in_a_file_every_build_compiles
+=== RUN   TestRepeatedGuardUsesASignatureTheBuildCompiles/no_declaration_the_build_can_use
+    declarations_test.go:155: error: main.go:38:2: recordsSpec, line 4: registration Sealing needs a guard in the output of main.go that ties it to its method, but the signature of every existing line that names its interface uses a name some builds of main.go lack; the first, audit_test.go:10:2: auditSpec, line 3: existing Seal Sealer, has the signature at audit_test.go:5:25, which uses status, declared only in audit_test.go: declare status in a non-test file without build constraints or a platform suffix, or name the interface with an existing line in main.go
+--- PASS: TestRepeatedGuardUsesASignatureTheBuildCompiles (1.77s)
+    --- PASS: TestRepeatedGuardUsesASignatureTheBuildCompiles/hierarchy's_own_declaration (0.90s)
+    --- PASS: TestRepeatedGuardUsesASignatureTheBuildCompiles/declaration_in_a_file_every_build_compiles (0.87s)
+    --- PASS: TestRepeatedGuardUsesASignatureTheBuildCompiles/no_declaration_the_build_can_use (0.00s)
+=== RUN   TestFileBuildComparison
+--- PASS: TestFileBuildComparison (0.00s)
+=== RUN   TestOutputNames
+--- PASS: TestOutputNames (0.00s)
+=== RUN   TestHelperNamesInTestFiles
+--- PASS: TestHelperNamesInTestFiles (0.02s)
+=== RUN   TestOutputOwnership
+=== RUN   TestOutputOwnership/a_handwritten_file_with_an_output_name
+=== RUN   TestOutputOwnership/an_unrecognized_file_that_no_source_would_produce
+=== RUN   TestOutputOwnership/a_marker_that_names_another_source
+=== RUN   TestOutputOwnership/a_marker_on_a_file_with_another_name
+=== RUN   TestOutputOwnership/output_of_the_investigation_prototype
+=== RUN   TestOutputOwnership/a_directory_where_an_output_belongs
+--- PASS: TestOutputOwnership (0.00s)
+    --- PASS: TestOutputOwnership/a_handwritten_file_with_an_output_name (0.00s)
+    --- PASS: TestOutputOwnership/an_unrecognized_file_that_no_source_would_produce (0.00s)
+    --- PASS: TestOutputOwnership/a_marker_that_names_another_source (0.00s)
+    --- PASS: TestOutputOwnership/a_marker_on_a_file_with_another_name (0.00s)
+    --- PASS: TestOutputOwnership/output_of_the_investigation_prototype (0.00s)
+    --- PASS: TestOutputOwnership/a_directory_where_an_output_belongs (0.00s)
+=== RUN   TestObsoleteOwnedOutputs
+--- PASS: TestObsoleteOwnedOutputs (0.01s)
+=== RUN   TestIgnoredFiles
+--- PASS: TestIgnoredFiles (0.01s)
+=== RUN   TestCommittedOutputsAreFresh
+--- PASS: TestCommittedOutputsAreFresh (0.01s)
+=== RUN   TestFixturesBehaveLikeTheHandwrittenExamples
+--- PASS: TestFixturesBehaveLikeTheHandwrittenExamples (0.84s)
+=== RUN   TestEditedSpecConstantFailsCompilation
+--- PASS: TestEditedSpecConstantFailsCompilation (1.38s)
+=== RUN   TestCheckMode
+--- PASS: TestCheckMode (0.63s)
+=== RUN   TestDeterministicOutput
+--- PASS: TestDeterministicOutput (0.01s)
+=== RUN   TestStaleOperationsAndWrapper
+=== RUN   TestStaleOperationsAndWrapper/move_a_public_operation_into_the_private_contract
+=== RUN   TestStaleOperationsAndWrapper/remove_a_public_operation
+=== RUN   TestStaleOperationsAndWrapper/add_a_private_operation
+=== RUN   TestStaleOperationsAndWrapper/change_an_operation's_signature_in_the_contract
+=== RUN   TestStaleOperationsAndWrapper/change_an_embedded_contract
+=== RUN   TestStaleOperationsAndWrapper/add_a_handwritten_method_to_the_wrapper_that_exposes_a_private_operation
+--- PASS: TestStaleOperationsAndWrapper (6.88s)
+    --- PASS: TestStaleOperationsAndWrapper/move_a_public_operation_into_the_private_contract (1.29s)
+    --- PASS: TestStaleOperationsAndWrapper/remove_a_public_operation (0.78s)
+    --- PASS: TestStaleOperationsAndWrapper/add_a_private_operation (1.36s)
+    --- PASS: TestStaleOperationsAndWrapper/change_an_operation's_signature_in_the_contract (0.87s)
+    --- PASS: TestStaleOperationsAndWrapper/change_an_embedded_contract (1.72s)
+    --- PASS: TestStaleOperationsAndWrapper/add_a_handwritten_method_to_the_wrapper_that_exposes_a_private_operation (0.87s)
+=== RUN   TestBootstrapWithOperationsAndWrapper
+=== RUN   TestBootstrapWithOperationsAndWrapper/no_generated_output
+=== RUN   TestBootstrapWithOperationsAndWrapper/generated_output_does_not_parse
+=== RUN   TestBootstrapWithOperationsAndWrapper/generated_output_is_stale_and_does_not_compile
+=== RUN   TestBootstrapWithOperationsAndWrapper/a_contract_that_embeds_a_generated_operation_interface
+--- PASS: TestBootstrapWithOperationsAndWrapper (0.93s)
+    --- PASS: TestBootstrapWithOperationsAndWrapper/no_generated_output (0.67s)
+    --- PASS: TestBootstrapWithOperationsAndWrapper/generated_output_does_not_parse (0.11s)
+    --- PASS: TestBootstrapWithOperationsAndWrapper/generated_output_is_stale_and_does_not_compile (0.15s)
+    --- PASS: TestBootstrapWithOperationsAndWrapper/a_contract_that_embeds_a_generated_operation_interface (0.00s)
+=== RUN   TestForwarderSignatures
+--- PASS: TestForwarderSignatures (0.62s)
+=== RUN   TestLockstepRenameOfAnExistingPrivateOperation
+--- PASS: TestLockstepRenameOfAnExistingPrivateOperation (0.16s)
+=== RUN   TestEveryBuildOfAWrapperChecksBothContracts
+=== RUN   TestEveryBuildOfAWrapperChecksBothContracts/operations_in_a_test_file,_private_contract
+=== RUN   TestEveryBuildOfAWrapperChecksBothContracts/operations_in_a_test_file,_public_contract
+=== RUN   TestEveryBuildOfAWrapperChecksBothContracts/operations_in_a_tagged_file,_private_contract
+=== RUN   TestEveryBuildOfAWrapperChecksBothContracts/operations_in_a_tagged_file,_public_contract
+=== RUN   TestEveryBuildOfAWrapperChecksBothContracts/initially_empty_private_contract,_operations_in_a_test_file,_private_contract
+=== RUN   TestEveryBuildOfAWrapperChecksBothContracts/initially_empty_private_contract,_operations_in_a_test_file,_public_contract
+=== RUN   TestEveryBuildOfAWrapperChecksBothContracts/initially_empty_private_contract,_operations_in_a_tagged_file,_private_contract
+=== RUN   TestEveryBuildOfAWrapperChecksBothContracts/initially_empty_private_contract,_operations_in_a_tagged_file,_public_contract
+--- PASS: TestEveryBuildOfAWrapperChecksBothContracts (6.11s)
+    --- PASS: TestEveryBuildOfAWrapperChecksBothContracts/operations_in_a_test_file,_private_contract (1.07s)
+    --- PASS: TestEveryBuildOfAWrapperChecksBothContracts/operations_in_a_test_file,_public_contract (1.06s)
+    --- PASS: TestEveryBuildOfAWrapperChecksBothContracts/operations_in_a_tagged_file,_private_contract (0.44s)
+    --- PASS: TestEveryBuildOfAWrapperChecksBothContracts/operations_in_a_tagged_file,_public_contract (0.40s)
+    --- PASS: TestEveryBuildOfAWrapperChecksBothContracts/initially_empty_private_contract,_operations_in_a_test_file,_private_contract (1.19s)
+    --- PASS: TestEveryBuildOfAWrapperChecksBothContracts/initially_empty_private_contract,_operations_in_a_test_file,_public_contract (1.02s)
+    --- PASS: TestEveryBuildOfAWrapperChecksBothContracts/initially_empty_private_contract,_operations_in_a_tagged_file,_private_contract (0.49s)
+    --- PASS: TestEveryBuildOfAWrapperChecksBothContracts/initially_empty_private_contract,_operations_in_a_tagged_file,_public_contract (0.44s)
+=== RUN   TestExistingInterfaceStillIdentifiesItsMethod
+--- PASS: TestExistingInterfaceStillIdentifiesItsMethod (0.84s)
+=== RUN   TestRegisteredExistingInterfacesAreCheckedWhereTheyAreUsed
+=== RUN   TestRegisteredExistingInterfacesAreCheckedWhereTheyAreUsed/operations_in_a_test_file
+=== RUN   TestRegisteredExistingInterfacesAreCheckedWhereTheyAreUsed/operations_in_a_tagged_file
+--- PASS: TestRegisteredExistingInterfacesAreCheckedWhereTheyAreUsed (2.43s)
+    --- PASS: TestRegisteredExistingInterfacesAreCheckedWhereTheyAreUsed/operations_in_a_test_file (1.47s)
+    --- PASS: TestRegisteredExistingInterfacesAreCheckedWhereTheyAreUsed/operations_in_a_tagged_file (0.96s)
+=== RUN   TestAliasRegistrationsAreGuardedInTheirOwnFile
+    guards_test.go:334: after the swap:
+        # probe
+        ./main.heirygen.go:98:36: cannot use Sealing(nil) (value of interface type Sealing) as interface{Seal() error} value in variable declaration: Wiper does not implement interface{Seal() error} (missing method Seal)
+        ./main.heirygen.go:99:18: cannot use interface{Seal() error}(nil) (value of type interface{Seal() error}) as Sealing value in variable declaration: interface{Seal() error} does not implement Wiper (missing method Wipe)
+        ./main.heirygen.go:100:36: cannot use Wiping(nil) (value of interface type Wiping) as interface{Wipe() error} value in variable declaration: Sealer does not implement interface{Wipe() error} (missing method Wipe)
+        ./main.heirygen.go:101:17: cannot use interface{Wipe() error}(nil) (value of type interface{Wipe() error}) as Wiping value in variable declaration: interface{Wipe() error} does not implement Sealer (missing method Seal)
+--- PASS: TestAliasRegistrationsAreGuardedInTheirOwnFile (0.77s)
+=== RUN   TestHolderOfALeafDeclaredAsATypeDefinition
+--- PASS: TestHolderOfALeafDeclaredAsATypeDefinition (1.21s)
+=== RUN   TestUnestablishedHolderRefusesTheWrapper
+=== RUN   TestUnestablishedHolderRefusesTheWrapper/a_holder_aliased_in_another_package
+=== RUN   TestUnestablishedHolderRefusesTheWrapper/a_leaf_declared_in_another_package
+=== RUN   TestUnestablishedHolderRefusesTheWrapper/a_leaf_that_embeds_a_pointer
+--- PASS: TestUnestablishedHolderRefusesTheWrapper (0.68s)
+    --- PASS: TestUnestablishedHolderRefusesTheWrapper/a_holder_aliased_in_another_package (0.00s)
+    --- PASS: TestUnestablishedHolderRefusesTheWrapper/a_leaf_declared_in_another_package (0.00s)
+    --- PASS: TestUnestablishedHolderRefusesTheWrapper/a_leaf_that_embeds_a_pointer (0.00s)
+=== RUN   TestEqualMethodNamesInTwoHierarchies
+--- PASS: TestEqualMethodNamesInTwoHierarchies (0.70s)
+=== RUN   TestOperationsSharedByDefinitionsOverOneLeaf
+--- PASS: TestOperationsSharedByDefinitionsOverOneLeaf (0.67s)
+=== RUN   TestExistingOperationInterfaces
+--- PASS: TestExistingOperationInterfaces (1.23s)
+=== RUN   TestHandwrittenDuplicateOfAGeneratedOperation
+--- PASS: TestHandwrittenDuplicateOfAGeneratedOperation (0.64s)
+=== RUN   TestGeneratedTypeNameCollisions
+--- PASS: TestGeneratedTypeNameCollisions (0.01s)
+=== RUN   TestContractThatGrowsAtALaterLevel
+--- PASS: TestContractThatGrowsAtALaterLevel (0.93s)
+=== RUN   TestInvalidDefinitionTakesPrecedence
+--- PASS: TestInvalidDefinitionTakesPrecedence (0.57s)
+=== RUN   TestCosmeticContractChanges
+=== RUN   TestCosmeticContractChanges/rename_a_parameter
+=== RUN   TestCosmeticContractChanges/reorder_embedding_and_method
+=== RUN   TestCosmeticContractChanges/add_a_comment
+--- PASS: TestCosmeticContractChanges (3.59s)
+    --- PASS: TestCosmeticContractChanges/rename_a_parameter (1.20s)
+    --- PASS: TestCosmeticContractChanges/reorder_embedding_and_method (1.18s)
+    --- PASS: TestCosmeticContractChanges/add_a_comment (1.21s)
+=== RUN   TestAliasChanges
+=== RUN   TestAliasChanges/a_contract_alias
+=== RUN   TestAliasChanges/the_alias_under_which_a_parent_is_embedded
+--- PASS: TestAliasChanges (0.33s)
+    --- PASS: TestAliasChanges/a_contract_alias (0.19s)
+    --- PASS: TestAliasChanges/the_alias_under_which_a_parent_is_embedded (0.14s)
+=== RUN   TestBuildConstraintChanges
+=== RUN   TestBuildConstraintChanges/the_source_file_gains_a_constraint
+=== RUN   TestBuildConstraintChanges/the_source_file_loses_its_constraint
+=== RUN   TestBuildConstraintChanges/a_contract_declared_once_per_platform
+--- PASS: TestBuildConstraintChanges (1.13s)
+    --- PASS: TestBuildConstraintChanges/the_source_file_gains_a_constraint (0.77s)
+    --- PASS: TestBuildConstraintChanges/the_source_file_loses_its_constraint (0.36s)
+    --- PASS: TestBuildConstraintChanges/a_contract_declared_once_per_platform (0.00s)
+=== RUN   TestNewPackageLevelIdentifiers
+--- PASS: TestNewPackageLevelIdentifiers (1.34s)
+=== RUN   TestManuallyEditedGeneratedFile
+--- PASS: TestManuallyEditedGeneratedFile (2.09s)
+=== RUN   TestCompilerCheckedPropertiesOfGeneratedCode
+=== RUN   TestCompilerCheckedPropertiesOfGeneratedCode/an_operation_interface_with_a_miscopied_signature
+=== RUN   TestCompilerCheckedPropertiesOfGeneratedCode/a_registration_for_a_provider_without_the_method
+=== RUN   TestCompilerCheckedPropertiesOfGeneratedCode/a_forwarder_that_resolves_another_operation
+=== RUN   TestCompilerCheckedPropertiesOfGeneratedCode/a_reference_of_the_wrong_provider_type
+=== RUN   TestCompilerCheckedPropertiesOfGeneratedCode/a_wrapper_without_one_public_forwarder
+--- PASS: TestCompilerCheckedPropertiesOfGeneratedCode (4.38s)
+    --- PASS: TestCompilerCheckedPropertiesOfGeneratedCode/an_operation_interface_with_a_miscopied_signature (0.65s)
+    --- PASS: TestCompilerCheckedPropertiesOfGeneratedCode/a_registration_for_a_provider_without_the_method (0.66s)
+    --- PASS: TestCompilerCheckedPropertiesOfGeneratedCode/a_forwarder_that_resolves_another_operation (0.63s)
+    --- PASS: TestCompilerCheckedPropertiesOfGeneratedCode/a_reference_of_the_wrong_provider_type (0.61s)
+    --- PASS: TestCompilerCheckedPropertiesOfGeneratedCode/a_wrapper_without_one_public_forwarder (0.65s)
+=== RUN   TestOutputOfAnotherGeneratorVersion
+--- PASS: TestOutputOfAnotherGeneratorVersion (0.75s)
+=== RUN   TestCRLFOutputs
+--- PASS: TestCRLFOutputs (0.02s)
+=== RUN   TestContractEqualityAssertion
+=== RUN   TestContractEqualityAssertion/move_a_public_operation_into_the_private_contract
+=== RUN   TestContractEqualityAssertion/remove_a_public_operation
+=== RUN   TestContractEqualityAssertion/add_a_private_operation
+=== RUN   TestContractEqualityAssertion/change_an_operation's_signature
+=== RUN   TestContractEqualityAssertion/change_an_embedded_contract
+=== RUN   TestContractEqualityAssertion/replace_an_embedded_contract
+--- PASS: TestContractEqualityAssertion (1.88s)
+    --- PASS: TestContractEqualityAssertion/move_a_public_operation_into_the_private_contract (0.42s)
+    --- PASS: TestContractEqualityAssertion/remove_a_public_operation (0.28s)
+    --- PASS: TestContractEqualityAssertion/add_a_private_operation (0.29s)
+    --- PASS: TestContractEqualityAssertion/change_an_operation's_signature (0.28s)
+    --- PASS: TestContractEqualityAssertion/change_an_embedded_contract (0.22s)
+    --- PASS: TestContractEqualityAssertion/replace_an_embedded_contract (0.22s)
+=== RUN   TestSatisfactionAssertionAcceptsExtraMethods
+--- PASS: TestSatisfactionAssertionAcceptsExtraMethods (0.17s)
+=== RUN   TestPrivateNameAbsenceAssertion
+=== RUN   TestPrivateNameAbsenceAssertion/same_signature,_value_receiver
+=== RUN   TestPrivateNameAbsenceAssertion/another_signature
+=== RUN   TestPrivateNameAbsenceAssertion/same_signature,_pointer_receiver
+=== RUN   TestPrivateNameAbsenceAssertion/an_additional_method_with_another_name_is_accepted
+=== RUN   TestPrivateNameAbsenceAssertion/a_private_operation_behind_another_name_is_accepted
+=== RUN   TestPrivateNameAbsenceAssertion/a_promoted_method_is_not_seen
+--- PASS: TestPrivateNameAbsenceAssertion (0.97s)
+    --- PASS: TestPrivateNameAbsenceAssertion/same_signature,_value_receiver (0.16s)
+    --- PASS: TestPrivateNameAbsenceAssertion/another_signature (0.13s)
+    --- PASS: TestPrivateNameAbsenceAssertion/same_signature,_pointer_receiver (0.14s)
+    --- PASS: TestPrivateNameAbsenceAssertion/an_additional_method_with_another_name_is_accepted (0.19s)
+    --- PASS: TestPrivateNameAbsenceAssertion/a_private_operation_behind_another_name_is_accepted (0.17s)
+    --- PASS: TestPrivateNameAbsenceAssertion/a_promoted_method_is_not_seen (0.18s)
+=== RUN   TestGeneratedNamesDoNotCaptureApplicationIdentifiers
+--- PASS: TestGeneratedNamesDoNotCaptureApplicationIdentifiers (0.80s)
+=== RUN   TestGeneratedNameCollisionsAreReported
+--- PASS: TestGeneratedNameCollisionsAreReported (0.00s)
+=== RUN   TestSpecErrors
+--- PASS: TestSpecErrors (0.01s)
+=== RUN   TestGeneratedNamesAcrossFiles
+--- PASS: TestGeneratedNamesAcrossFiles (0.70s)
+=== RUN   TestObsoleteRemovalFailureReportsProgress
+    publish_test.go:64: error: removing obsolete d.heirygen.go: injected failure; already put in place: a.heirygen.go, b.heirygen.go; already removed: c.heirygen.go, and the obsolete outputs after it were not removed
+--- PASS: TestObsoleteRemovalFailureReportsProgress (0.02s)
+=== RUN   TestCleanupFailuresNameThePathsLeftBehind
+=== RUN   TestCleanupFailuresNameThePathsLeftBehind/temporary_file_of_a_linked_output
+    publish_test.go:97: error: every output is up to date, but heirygen could not remove the hidden files .heirygen-3827773668.tmp (injected failure), which the go command ignores: delete them
+=== RUN   TestCleanupFailuresNameThePathsLeftBehind/hard-link_probe
+    publish_test.go:97: error: every output is up to date, but heirygen could not remove the hidden files .heirygen-1590887533.tmp.link (injected failure), which the go command ignores: delete them
+=== RUN   TestCleanupFailuresNameThePathsLeftBehind/temporary_file_discarded_after_a_failure
+    publish_test.go:97: error: b.heirygen.go: linking it into place: injected failure; already put in place: a.heirygen.go, and every other output is unchanged; heirygen could not remove the hidden files .heirygen-686855014.tmp (injected failure), which the go command ignores: delete them
+=== RUN   TestCleanupFailuresNameThePathsLeftBehind/partial_temporary_file
+    publish_test.go:97: error: writing b.heirygen.go: injected failure; no output was changed; heirygen could not remove the hidden files .heirygen-3562019577.tmp (injected failure), .heirygen-520876753.tmp (injected failure), which the go command ignores: delete them
+--- PASS: TestCleanupFailuresNameThePathsLeftBehind (0.05s)
+    --- PASS: TestCleanupFailuresNameThePathsLeftBehind/temporary_file_of_a_linked_output (0.01s)
+    --- PASS: TestCleanupFailuresNameThePathsLeftBehind/hard-link_probe (0.01s)
+    --- PASS: TestCleanupFailuresNameThePathsLeftBehind/temporary_file_discarded_after_a_failure (0.01s)
+    --- PASS: TestCleanupFailuresNameThePathsLeftBehind/partial_temporary_file (0.01s)
+=== RUN   TestCaseOnlyRenameCleanupFailure
+    publish_test.go:123: file system at 001 is case-insensitive: true (darwin)
+    publish_test.go:141: error: every output is up to date, but heirygen could not remove the hidden files .heirygen-2641834092.tmp.old (injected failure), which the go command ignores: delete them
+--- PASS: TestCaseOnlyRenameCleanupFailure (0.03s)
+=== RUN   TestCaseOnlyRenameKeepsPermissions
+--- PASS: TestCaseOnlyRenameKeepsPermissions (0.01s)
+=== RUN   TestWrapperNeedsBothContractsListed
+--- PASS: TestWrapperNeedsBothContractsListed (0.15s)
+=== RUN   TestFreshnessAssertionCannotBeDisarmed
+=== RUN   TestFreshnessAssertionCannotBeDisarmed/the_spec_constant_becomes_a_variable
+=== RUN   TestFreshnessAssertionCannotBeDisarmed/the_package_redeclares_false
+=== RUN   TestFreshnessAssertionCannotBeDisarmed/the_package_redeclares_nil
+--- PASS: TestFreshnessAssertionCannotBeDisarmed (2.95s)
+    --- PASS: TestFreshnessAssertionCannotBeDisarmed/the_spec_constant_becomes_a_variable (0.21s)
+    --- PASS: TestFreshnessAssertionCannotBeDisarmed/the_package_redeclares_false (0.76s)
+    --- PASS: TestFreshnessAssertionCannotBeDisarmed/the_package_redeclares_nil (1.98s)
+=== RUN   TestSignaturesThatDifferOnlyInSpelling
+--- PASS: TestSignaturesThatDifferOnlyInSpelling (1.16s)
+=== RUN   TestForwardersWithNamedResults
+--- PASS: TestForwardersWithNamedResults (0.64s)
+=== RUN   TestSignatureUsingADotImport
+--- PASS: TestSignatureUsingADotImport (0.12s)
+=== RUN   TestSharedExistingInterfaceIsDeterministic
+=== RUN   TestSharedExistingInterfaceIsDeterministic/hierarchy_file_names_the_interface
+=== RUN   TestSharedExistingInterfaceIsDeterministic/declarations_in_two_other_files
+=== RUN   TestSharedExistingInterfaceIsDeterministic/builds
+--- PASS: TestSharedExistingInterfaceIsDeterministic (2.34s)
+    --- PASS: TestSharedExistingInterfaceIsDeterministic/hierarchy_file_names_the_interface (0.05s)
+    --- PASS: TestSharedExistingInterfaceIsDeterministic/declarations_in_two_other_files (0.11s)
+    --- PASS: TestSharedExistingInterfaceIsDeterministic/builds (2.18s)
+=== RUN   TestConflictingSharedExistingIsDeterministic
+    shared_test.go:193: exit 1: names.go:9:2: namedSpec, line 4: existing Name fmt.Stringer names fmt.Stringer for method Name, but labels.go:9:2: labeledSpec, line 4: existing String fmt.Stringer names it for method String; one interface identifies one operation in the whole package, whichever file or build holds the line: correct one of the two
+--- PASS: TestConflictingSharedExistingIsDeterministic (0.01s)
+=== RUN   TestDiagnosticPositions
+--- PASS: TestDiagnosticPositions (0.00s)
+=== RUN   TestUndeclaredSpecificationTypes
+--- PASS: TestUndeclaredSpecificationTypes (0.02s)
+=== RUN   TestMisspelledMarker
+--- PASS: TestMisspelledMarker (0.00s)
+=== RUN   TestRepeatedOption
+--- PASS: TestRepeatedOption (0.00s)
+=== RUN   TestUnsupportedContracts
+--- PASS: TestUnsupportedContracts (0.01s)
+=== RUN   TestStaleOutputWithSpecConstant
+=== RUN   TestStaleOutputWithSpecConstant/add_a_registration_while_an_ancestor_still_supplies_the_operation
+=== RUN   TestStaleOutputWithSpecConstant/remove_a_registration_while_an_ancestor_still_supplies_the_operation
+=== RUN   TestStaleOutputWithSpecConstant/change_a_component_path_between_two_same-type_components
+=== RUN   TestStaleOutputWithSpecConstant/select_the_other_embedded_parent
+=== RUN   TestStaleOutputWithSpecConstant/widen_a_level's_private_contract
+=== RUN   TestStaleOutputWithSpecConstant/add_a_level_to_the_hierarchy
+--- PASS: TestStaleOutputWithSpecConstant (11.49s)
+    --- PASS: TestStaleOutputWithSpecConstant/add_a_registration_while_an_ancestor_still_supplies_the_operation (1.51s)
+    --- PASS: TestStaleOutputWithSpecConstant/remove_a_registration_while_an_ancestor_still_supplies_the_operation (1.46s)
+    --- PASS: TestStaleOutputWithSpecConstant/change_a_component_path_between_two_same-type_components (1.93s)
+    --- PASS: TestStaleOutputWithSpecConstant/select_the_other_embedded_parent (2.18s)
+    --- PASS: TestStaleOutputWithSpecConstant/widen_a_level's_private_contract (2.47s)
+    --- PASS: TestStaleOutputWithSpecConstant/add_a_level_to_the_hierarchy (1.94s)
+=== RUN   TestCommentSpecIsRefused
+--- PASS: TestCommentSpecIsRefused (0.00s)
+=== RUN   TestStructChangesBreakTheGeneratedHelpers
+=== RUN   TestStructChangesBreakTheGeneratedHelpers/rename_a_component_field
+=== RUN   TestStructChangesBreakTheGeneratedHelpers/change_a_component_field's_type
+=== RUN   TestStructChangesBreakTheGeneratedHelpers/embed_the_parent_by_pointer
+=== RUN   TestStructChangesBreakTheGeneratedHelpers/remove_the_parent_embedding
+--- PASS: TestStructChangesBreakTheGeneratedHelpers (0.86s)
+    --- PASS: TestStructChangesBreakTheGeneratedHelpers/rename_a_component_field (0.16s)
+    --- PASS: TestStructChangesBreakTheGeneratedHelpers/change_a_component_field's_type (0.22s)
+    --- PASS: TestStructChangesBreakTheGeneratedHelpers/embed_the_parent_by_pointer (0.28s)
+    --- PASS: TestStructChangesBreakTheGeneratedHelpers/remove_the_parent_embedding (0.20s)
+=== RUN   TestWrongSpecIsRejectedByTheCompiler
+=== RUN   TestWrongSpecIsRejectedByTheCompiler/a_provider_that_does_not_implement_the_operation
+=== RUN   TestWrongSpecIsRejectedByTheCompiler/a_component_path_whose_field_has_another_type
+=== RUN   TestWrongSpecIsRejectedByTheCompiler/a_parent_field_that_does_not_exist
+--- PASS: TestWrongSpecIsRejectedByTheCompiler (0.41s)
+    --- PASS: TestWrongSpecIsRejectedByTheCompiler/a_provider_that_does_not_implement_the_operation (0.10s)
+    --- PASS: TestWrongSpecIsRejectedByTheCompiler/a_component_path_whose_field_has_another_type (0.21s)
+    --- PASS: TestWrongSpecIsRejectedByTheCompiler/a_parent_field_that_does_not_exist (0.10s)
+=== RUN   TestParentFieldChangesAreReportedAtValidation
+--- PASS: TestParentFieldChangesAreReportedAtValidation (1.40s)
+=== RUN   TestGoGenerateWorkflow
+=== RUN   TestGoGenerateWorkflow/go_run
+=== RUN   TestGoGenerateWorkflow/go_tool
+--- PASS: TestGoGenerateWorkflow (5.08s)
+    --- PASS: TestGoGenerateWorkflow/go_run (4.34s)
+    --- PASS: TestGoGenerateWorkflow/go_tool (0.75s)
+=== RUN   TestWrapperIsUnexported
+--- PASS: TestWrapperIsUnexported (0.00s)
+=== RUN   TestForwarderUsesTheEmbeddedHolder
+=== RUN   TestForwarderUsesTheEmbeddedHolder/a_named_holder_selected_explicitly
+=== RUN   TestForwarderUsesTheEmbeddedHolder/a_named_holder_selected_by_default
+--- PASS: TestForwarderUsesTheEmbeddedHolder (0.00s)
+    --- PASS: TestForwarderUsesTheEmbeddedHolder/a_named_holder_selected_explicitly (0.00s)
+    --- PASS: TestForwarderUsesTheEmbeddedHolder/a_named_holder_selected_by_default (0.00s)
+=== RUN   TestForwarderHolderControls
+=== RUN   TestForwarderHolderControls/embedded_Node_beside_a_named_one
+=== RUN   TestForwarderHolderControls/embedded_alias_beside_a_field_named_Node
+=== RUN   TestForwarderHolderControls/embedded_alias,_explicit_holder
+--- PASS: TestForwarderHolderControls (4.33s)
+    --- PASS: TestForwarderHolderControls/embedded_Node_beside_a_named_one (0.39s)
+    --- PASS: TestForwarderHolderControls/embedded_alias_beside_a_field_named_Node (0.43s)
+    --- PASS: TestForwarderHolderControls/embedded_alias,_explicit_holder (3.51s)
+=== RUN   TestStaleHolderEdit
+    wrapperguards_test.go:81: after the stale edit:
+        # probe
+        ./main.heirygen.go:86:22: cannot use &leaf.Node (value of type **heiry.Node) as *heiry.Node value in variable declaration
+        ./main.heirygen.go:94:22: cannot use &probe.Node (value of type **heiry.Node) as *heiry.Node value in variable declaration
+--- PASS: TestStaleHolderEdit (0.69s)
+=== RUN   TestHolderGuardControls
+=== RUN   TestHolderGuardControls/own_name
+=== RUN   TestHolderGuardControls/alias_name
+--- PASS: TestHolderGuardControls (2.03s)
+    --- PASS: TestHolderGuardControls/own_name (0.42s)
+    --- PASS: TestHolderGuardControls/alias_name (1.60s)
+=== RUN   TestWrapperCopiesItsOwnContracts
+--- PASS: TestWrapperCopiesItsOwnContracts (1.76s)
+=== RUN   TestStalePromotedHolder
+=== RUN   TestStalePromotedHolder/through_a_pointer
+    wrapperguards_test.go:280: after the stale edit:
+        # probe
+        ./main.heirygen.go:94:29: ambiguous selector probe.Dispatch
+=== RUN   TestStalePromotedHolder/through_a_value
+    wrapperguards_test.go:280: after the stale edit:
+        # probe
+        ./main.heirygen.go:94:29: ambiguous selector probe.Dispatch
+=== RUN   TestStalePromotedHolder/two_levels_down
+    wrapperguards_test.go:280: after the stale edit:
+        # probe
+        ./main.heirygen.go:94:22: cannot use &probe.Dispatch (value of type *struct{}) as *heiry.Node value in variable declaration
+--- PASS: TestStalePromotedHolder (3.66s)
+    --- PASS: TestStalePromotedHolder/through_a_pointer (1.46s)
+    --- PASS: TestStalePromotedHolder/through_a_value (1.00s)
+    --- PASS: TestStalePromotedHolder/two_levels_down (1.19s)
+=== RUN   TestHolderGuardForALeafNamedLikeItsHolder
+=== RUN   TestHolderGuardForALeafNamedLikeItsHolder/leaf_named_Node
+=== RUN   TestHolderGuardForALeafNamedLikeItsHolder/generic_leaf_named_Node
+=== RUN   TestHolderGuardForALeafNamedLikeItsHolder/leaf_alias_named_Node
+--- PASS: TestHolderGuardForALeafNamedLikeItsHolder (3.13s)
+    --- PASS: TestHolderGuardForALeafNamedLikeItsHolder/leaf_named_Node (1.01s)
+    --- PASS: TestHolderGuardForALeafNamedLikeItsHolder/generic_leaf_named_Node (1.31s)
+    --- PASS: TestHolderGuardForALeafNamedLikeItsHolder/leaf_alias_named_Node (0.81s)
+=== RUN   TestPrivateProbeForAnOperationNamedLikeItsContract
+=== RUN   TestPrivateProbeForAnOperationNamedLikeItsContract/contract_named_Reset
+=== RUN   TestPrivateProbeForAnOperationNamedLikeItsContract/local_alias_named_Reset
+--- PASS: TestPrivateProbeForAnOperationNamedLikeItsContract (1.71s)
+    --- PASS: TestPrivateProbeForAnOperationNamedLikeItsContract/contract_named_Reset (0.89s)
+    --- PASS: TestPrivateProbeForAnOperationNamedLikeItsContract/local_alias_named_Reset (0.82s)
+=== RUN   TestFailedWriteChangesNoOutput
+--- PASS: TestFailedWriteChangesNoOutput (0.00s)
+=== RUN   TestOutputPermissions
+--- PASS: TestOutputPermissions (0.02s)
+=== RUN   TestInjectedWriteFailures
+=== RUN   TestInjectedWriteFailures/the_second_temporary_file
+=== RUN   TestInjectedWriteFailures/publishing_the_second_output
+=== RUN   TestInjectedWriteFailures/a_file_system_without_hard_links
+=== RUN   TestInjectedWriteFailures/removing_an_obsolete_output
+--- PASS: TestInjectedWriteFailures (0.05s)
+    --- PASS: TestInjectedWriteFailures/the_second_temporary_file (0.01s)
+    --- PASS: TestInjectedWriteFailures/publishing_the_second_output (0.02s)
+    --- PASS: TestInjectedWriteFailures/a_file_system_without_hard_links (0.01s)
+    --- PASS: TestInjectedWriteFailures/removing_an_obsolete_output (0.01s)
+=== RUN   TestCheckModeWritesNothing
+--- PASS: TestCheckModeWritesNothing (0.00s)
+PASS
+ok  	github.com/lucaf/heiry/cmd/heirygen/internal/generator	104.422s
+=== RUN   Example
+--- PASS: Example (0.00s)
+PASS
+ok  	github.com/lucaf/heiry/examples/generated	2.978s
+=== RUN   TestWrapperExposesNoPrivateOperation
+--- PASS: TestWrapperExposesNoPrivateOperation (0.00s)
+=== RUN   TestGeneratedOperationsInBothModes
+--- PASS: TestGeneratedOperationsInBothModes (0.00s)
+=== RUN   TestNilInputs
+--- PASS: TestNilInputs (0.00s)
+=== RUN   TestHelpersMatchTheHandwrittenIdiom
+    helpers_test.go:75: valid, lazy                  helper and direct call: no error
+    helpers_test.go:76: valid, dynamic Plan          helper and direct call: no error
+    helpers_test.go:77: valid, precomputed Plan      helper and direct call: no error
+    helpers_test.go:87: repeated, lazy               helper and direct call: Code=AlreadyInitialized Target=main.tagged Level=0 Path="limited.base" Expected=<nil> Actual=<nil>
+    helpers_test.go:88: repeated, precomputed Plan   helper and direct call: Code=AlreadyInitialized Target=main.tagged Level=0 Path="limited.base" Expected=<nil> Actual=<nil>
+    helpers_test.go:104: partly initialized           helper and direct call: Code=AlreadyInitialized Target=main.tagged Level=0 Path="limited.base" Expected=<nil> Actual=<nil>
+    helpers_test.go:107: nil Plan                     helper and direct call: Code=InvalidPlan Target=main.tagged Level=0 Path="" Expected=<nil> Actual=<nil>
+    helpers_test.go:108: unprepared Plan              helper and direct call: Code=InvalidPlan Target=main.tagged Level=0 Path="" Expected=<nil> Actual=<nil>
+    helpers_test.go:109: nil Plan, initialized object helper and direct call: Code=InvalidPlan Target=main.tagged Level=0 Path="" Expected=<nil> Actual=<nil>
+--- PASS: TestHelpersMatchTheHandwrittenIdiom (0.00s)
+=== RUN   TestNilObjectIsReportedAsInitReportsIt
+    helpers_test.go:145: Init, well-formed refs       Code=InvalidProvider Target=main.tagged Level=0 Path="" Expected=<nil> Actual=<nil>
+    helpers_test.go:146: Init, typed-nil refs         Code=InvalidProvider Target=main.tagged Level=0 Path="limited.base" Expected=*main.base Actual=*main.base
+    helpers_test.go:147: Init, no refs                Code=BindingMismatch Target=main.tagged Level=0 Path="limited.base" Expected=*main.base Actual=<nil>
+    helpers_test.go:150: nil object, lazy             helper and direct call: Code=InvalidProvider Target=main.tagged Level=0 Path="" Expected=<nil> Actual=<nil>
+    helpers_test.go:151: nil object, dynamic Plan     helper and direct call: Code=InvalidProvider Target=main.tagged Level=0 Path="" Expected=<nil> Actual=<nil>
+    helpers_test.go:152: nil object, precomputed Plan helper and direct call: Code=InvalidProvider Target=main.tagged Level=0 Path="" Expected=<nil> Actual=<nil>
+--- PASS: TestNilObjectIsReportedAsInitReportsIt (0.00s)
+=== RUN   TestInvalidPlanTakesPrecedence
+--- PASS: TestInvalidPlanTakesPrecedence (0.00s)
+=== RUN   TestStandalonePlansAndIndependentObjects
+--- PASS: TestStandalonePlansAndIndependentObjects (0.00s)
+=== RUN   TestForeignPlanIsRejected
+    helpers_test.go:249: another definition's precomputed Plan helper and direct call: Code=BindingMismatch Target=main.tagged Level=0 Path="limited.base" Expected=<nil> Actual=*main.base
+    helpers_test.go:249: another definition's dynamic Plan helper and direct call: Code=BindingMismatch Target=main.tagged Level=0 Path="limited.base" Expected=<nil> Actual=*main.base
+--- PASS: TestForeignPlanIsRejected (0.00s)
+=== RUN   TestConcurrentFirstUseThroughHelpers
+--- PASS: TestConcurrentFirstUseThroughHelpers (0.00s)
+=== RUN   Example
+--- PASS: Example (0.00s)
+PASS
+ok  	github.com/lucaf/heiry/cmd/heirygen/internal/generator/testdata/basic	1.687s
+=== RUN   TestWrapperExposesNoPrivateOperation
+--- PASS: TestWrapperExposesNoPrivateOperation (0.00s)
+=== RUN   TestGeneratedOperationsInBothModes
+--- PASS: TestGeneratedOperationsInBothModes (0.00s)
+=== RUN   TestOwnershipAndNilObject
+--- PASS: TestOwnershipAndNilObject (0.00s)
+=== RUN   TestPutReplacesCachedValue
+--- PASS: TestPutReplacesCachedValue (0.00s)
+=== RUN   Example
+--- PASS: Example (0.00s)
+PASS
+ok  	github.com/lucaf/heiry/cmd/heirygen/internal/generator/testdata/components	2.692s
+=== RUN   TestTwoDefinitionsOverOneLeaf
+--- PASS: TestTwoDefinitionsOverOneLeaf (0.00s)
+=== RUN   TestStandaloneAncestor
+--- PASS: TestStandaloneAncestor (0.00s)
+=== RUN   TestNilLeafWithComponents
+--- PASS: TestNilLeafWithComponents (0.00s)
+=== RUN   TestForeignComponentThroughGeneratedReferences
+--- PASS: TestForeignComponentThroughGeneratedReferences (0.00s)
+PASS
+ok  	github.com/lucaf/heiry/cmd/heirygen/internal/generator/testdata/matrix	1.971s

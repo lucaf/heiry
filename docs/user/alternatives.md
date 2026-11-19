@@ -127,6 +127,6 @@ Nothing in this section is implemented, approved or scheduled. These are possibi
 
 A precomputed lookup now costs one table probe keyed by the operation type, an interface type assertion, and the call itself. A dynamic lookup still makes one probe to check that the operation is known and one more for each level it searches. The dynamic path could be given a similar layout. Removing the last probe would need another way to identify an operation at the call site. Neither has been designed.
 
-### Code generation
+### Generated dispatch accessors
 
-Much of what an author writes is repetitive: operation interfaces, registrations, public forwarders and the references passed to `Init`. A generator could produce some of it. Any such tool would have to preserve typed calls, explicit operation ownership, parent-call semantics, the existing diagnostics and the visibility guarantees. No generator interface, annotation format or design has been chosen.
+The optional [heirygen](generation.md) command already writes operation interfaces, registrations, references, and public wrappers from a specification string. Generating typed virtual and parent accessors on provider types, in place of `Node.Virtual[T]()` and `Node.Parent[T]()` calls, has not been designed: a provider type can serve several slots, levels, and definitions with different operations, so one set of methods per type cannot describe it.

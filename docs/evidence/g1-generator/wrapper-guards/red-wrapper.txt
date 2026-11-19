@@ -1,0 +1,20 @@
+# Red step of TestStaleHolderEdit, TestHolderGuardControls, and TestWrapperCopiesItsOwnContracts, before the change.
+# Recorded 2026-11-19 on this machine (go1.27.1 darwin/arm64) with go test -count=1 -v; the tree was not fingerprinted. Trailing whitespace was removed.
+=== RUN   TestStaleHolderEdit
+    wrapperguards_test.go:77: the stale wrapper compiled, and the program printed "second", the other object's label
+--- FAIL: TestStaleHolderEdit (1.47s)
+=== RUN   TestHolderGuardControls
+=== RUN   TestHolderGuardControls/own_name
+=== RUN   TestHolderGuardControls/alias_name
+--- PASS: TestHolderGuardControls (1.65s)
+    --- PASS: TestHolderGuardControls/own_name (0.72s)
+    --- PASS: TestHolderGuardControls/alias_name (0.94s)
+=== RUN   TestWrapperCopiesItsOwnContracts
+    wrapperguards_test.go:171: the ordinary build failed:
+        # probe
+        ./main.heirygen.go:107:26: undefined: status
+        ./main.heirygen.go:108:36: undefined: status
+--- FAIL: TestWrapperCopiesItsOwnContracts (0.26s)
+FAIL
+FAIL	github.com/lucaf/heiry/cmd/heirygen/internal/generator	3.638s
+FAIL

@@ -1,0 +1,13 @@
+# Red step of TestStalePromotedHolder, before any change, with its first two cases.
+# Recorded 2026-11-19 on this machine (go1.27.1 darwin/arm64) with go test -count=1 -v; the tree was not fingerprinted. Trailing whitespace was removed; the repository path is written <repo>.
+=== RUN   TestStalePromotedHolder
+=== RUN   TestStalePromotedHolder/through_a_pointer
+    wrapperguards_test.go:273: the stale wrapper compiled, and the program printed "peer" instead of its own object's label
+=== RUN   TestStalePromotedHolder/through_a_value
+    wrapperguards_test.go:273: the stale wrapper compiled, and the program printed "embedded peer" instead of its own object's label
+--- FAIL: TestStalePromotedHolder (4.24s)
+    --- FAIL: TestStalePromotedHolder/through_a_pointer (2.37s)
+    --- FAIL: TestStalePromotedHolder/through_a_value (1.87s)
+FAIL
+FAIL	github.com/lucaf/heiry/cmd/heirygen/internal/generator	4.666s
+FAIL

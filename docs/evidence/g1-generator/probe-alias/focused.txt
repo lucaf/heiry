@@ -1,0 +1,92 @@
+# The new regression and every holder and wrapper guard test, with go test -count=1 -v.
+# Recorded 2026-11-19T17:19:34Z on this machine by a local script, not by GitHub Actions.
+# Toolchain: go version go1.27.1 darwin/arm64
+# System: Darwin 25.5.0 arm64
+# Tree: branch generator-investigation at a726da8b9eead9d1f032ec4eda39baef79c93db3, with 6 uncommitted paths outside docs/
+# Tree fingerprint before the run: 6ecb399bb7e2c8f0b796e7cc02996ab02e41fd111e85d340ab77ad7d77ff4bbc
+# Tree fingerprint after the run:  6ecb399bb7e2c8f0b796e7cc02996ab02e41fd111e85d340ab77ad7d77ff4bbc
+# Fingerprint command: git ls-files -z -co --exclude-standard -- . ':!docs' ':(exclude,glob)**/.DS_Store' | sort -z | xargs -0 shasum -a 256 | shasum -a 256
+# Exit status of the recorded command: 0
+=== RUN   TestEveryBuildOfAWrapperChecksBothContracts
+=== RUN   TestEveryBuildOfAWrapperChecksBothContracts/operations_in_a_test_file,_private_contract
+=== RUN   TestEveryBuildOfAWrapperChecksBothContracts/operations_in_a_test_file,_public_contract
+=== RUN   TestEveryBuildOfAWrapperChecksBothContracts/operations_in_a_tagged_file,_private_contract
+=== RUN   TestEveryBuildOfAWrapperChecksBothContracts/operations_in_a_tagged_file,_public_contract
+=== RUN   TestEveryBuildOfAWrapperChecksBothContracts/initially_empty_private_contract,_operations_in_a_test_file,_private_contract
+=== RUN   TestEveryBuildOfAWrapperChecksBothContracts/initially_empty_private_contract,_operations_in_a_test_file,_public_contract
+=== RUN   TestEveryBuildOfAWrapperChecksBothContracts/initially_empty_private_contract,_operations_in_a_tagged_file,_private_contract
+=== RUN   TestEveryBuildOfAWrapperChecksBothContracts/initially_empty_private_contract,_operations_in_a_tagged_file,_public_contract
+--- PASS: TestEveryBuildOfAWrapperChecksBothContracts (7.55s)
+    --- PASS: TestEveryBuildOfAWrapperChecksBothContracts/operations_in_a_test_file,_private_contract (1.34s)
+    --- PASS: TestEveryBuildOfAWrapperChecksBothContracts/operations_in_a_test_file,_public_contract (1.16s)
+    --- PASS: TestEveryBuildOfAWrapperChecksBothContracts/operations_in_a_tagged_file,_private_contract (0.51s)
+    --- PASS: TestEveryBuildOfAWrapperChecksBothContracts/operations_in_a_tagged_file,_public_contract (0.67s)
+    --- PASS: TestEveryBuildOfAWrapperChecksBothContracts/initially_empty_private_contract,_operations_in_a_test_file,_private_contract (1.45s)
+    --- PASS: TestEveryBuildOfAWrapperChecksBothContracts/initially_empty_private_contract,_operations_in_a_test_file,_public_contract (1.20s)
+    --- PASS: TestEveryBuildOfAWrapperChecksBothContracts/initially_empty_private_contract,_operations_in_a_tagged_file,_private_contract (0.64s)
+    --- PASS: TestEveryBuildOfAWrapperChecksBothContracts/initially_empty_private_contract,_operations_in_a_tagged_file,_public_contract (0.57s)
+=== RUN   TestHolderOfALeafDeclaredAsATypeDefinition
+--- PASS: TestHolderOfALeafDeclaredAsATypeDefinition (1.31s)
+=== RUN   TestUnestablishedHolderRefusesTheWrapper
+=== RUN   TestUnestablishedHolderRefusesTheWrapper/a_holder_aliased_in_another_package
+=== RUN   TestUnestablishedHolderRefusesTheWrapper/a_leaf_declared_in_another_package
+=== RUN   TestUnestablishedHolderRefusesTheWrapper/a_leaf_that_embeds_a_pointer
+--- PASS: TestUnestablishedHolderRefusesTheWrapper (0.78s)
+    --- PASS: TestUnestablishedHolderRefusesTheWrapper/a_holder_aliased_in_another_package (0.00s)
+    --- PASS: TestUnestablishedHolderRefusesTheWrapper/a_leaf_declared_in_another_package (0.00s)
+    --- PASS: TestUnestablishedHolderRefusesTheWrapper/a_leaf_that_embeds_a_pointer (0.00s)
+=== RUN   TestForwarderUsesTheEmbeddedHolder
+=== RUN   TestForwarderUsesTheEmbeddedHolder/a_named_holder_selected_explicitly
+=== RUN   TestForwarderUsesTheEmbeddedHolder/a_named_holder_selected_by_default
+--- PASS: TestForwarderUsesTheEmbeddedHolder (0.00s)
+    --- PASS: TestForwarderUsesTheEmbeddedHolder/a_named_holder_selected_explicitly (0.00s)
+    --- PASS: TestForwarderUsesTheEmbeddedHolder/a_named_holder_selected_by_default (0.00s)
+=== RUN   TestForwarderHolderControls
+=== RUN   TestForwarderHolderControls/embedded_Node_beside_a_named_one
+=== RUN   TestForwarderHolderControls/embedded_alias_beside_a_field_named_Node
+=== RUN   TestForwarderHolderControls/embedded_alias,_explicit_holder
+--- PASS: TestForwarderHolderControls (2.26s)
+    --- PASS: TestForwarderHolderControls/embedded_Node_beside_a_named_one (0.70s)
+    --- PASS: TestForwarderHolderControls/embedded_alias_beside_a_field_named_Node (0.77s)
+    --- PASS: TestForwarderHolderControls/embedded_alias,_explicit_holder (0.79s)
+=== RUN   TestStaleHolderEdit
+    wrapperguards_test.go:79: after the stale edit:
+        # probe
+        ./main.heirygen.go:86:22: cannot use &leaf.Node (value of type **heiry.Node) as *heiry.Node value in variable declaration
+        ./main.heirygen.go:94:22: cannot use &probe.Node (value of type **heiry.Node) as *heiry.Node value in variable declaration
+--- PASS: TestStaleHolderEdit (0.90s)
+=== RUN   TestHolderGuardControls
+=== RUN   TestHolderGuardControls/own_name
+=== RUN   TestHolderGuardControls/alias_name
+--- PASS: TestHolderGuardControls (1.55s)
+    --- PASS: TestHolderGuardControls/own_name (0.78s)
+    --- PASS: TestHolderGuardControls/alias_name (0.78s)
+=== RUN   TestWrapperCopiesItsOwnContracts
+--- PASS: TestWrapperCopiesItsOwnContracts (1.11s)
+=== RUN   TestStalePromotedHolder
+=== RUN   TestStalePromotedHolder/through_a_pointer
+    wrapperguards_test.go:278: after the stale edit:
+        # probe
+        ./main.heirygen.go:94:29: ambiguous selector probe.Dispatch
+=== RUN   TestStalePromotedHolder/through_a_value
+    wrapperguards_test.go:278: after the stale edit:
+        # probe
+        ./main.heirygen.go:94:29: ambiguous selector probe.Dispatch
+=== RUN   TestStalePromotedHolder/two_levels_down
+    wrapperguards_test.go:278: after the stale edit:
+        # probe
+        ./main.heirygen.go:94:22: cannot use &probe.Dispatch (value of type *struct{}) as *heiry.Node value in variable declaration
+--- PASS: TestStalePromotedHolder (2.10s)
+    --- PASS: TestStalePromotedHolder/through_a_pointer (0.73s)
+    --- PASS: TestStalePromotedHolder/through_a_value (0.66s)
+    --- PASS: TestStalePromotedHolder/two_levels_down (0.71s)
+=== RUN   TestHolderGuardForALeafNamedLikeItsHolder
+=== RUN   TestHolderGuardForALeafNamedLikeItsHolder/leaf_named_Node
+=== RUN   TestHolderGuardForALeafNamedLikeItsHolder/generic_leaf_named_Node
+=== RUN   TestHolderGuardForALeafNamedLikeItsHolder/leaf_alias_named_Node
+--- PASS: TestHolderGuardForALeafNamedLikeItsHolder (2.78s)
+    --- PASS: TestHolderGuardForALeafNamedLikeItsHolder/leaf_named_Node (1.15s)
+    --- PASS: TestHolderGuardForALeafNamedLikeItsHolder/generic_leaf_named_Node (0.77s)
+    --- PASS: TestHolderGuardForALeafNamedLikeItsHolder/leaf_alias_named_Node (0.86s)
+PASS
+ok  	github.com/lucaf/heiry/cmd/heirygen/internal/generator	20.635s

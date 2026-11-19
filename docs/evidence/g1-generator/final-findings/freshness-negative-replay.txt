@@ -1,0 +1,18 @@
+# Negative control for the replay itself: only its freshness step, on a scratch copy of examples/generated with an edited specification and on the real example. The replay must exit 1.
+# Recorded 2026-11-19T15:57:53Z on this machine by a local script, not by GitHub Actions.
+# Toolchain: go version go1.27.1 darwin/arm64
+# System: Darwin 25.5.0 arm64
+# Tree: branch generator-investigation at a726da8b9eead9d1f032ec4eda39baef79c93db3, with 6 uncommitted paths outside docs/
+# Tree fingerprint before the run: 1f448444c914d2e578aad90707cf44c4812641cd49d0ce3c659fee7562d54aa3
+# Tree fingerprint after the run:  1f448444c914d2e578aad90707cf44c4812641cd49d0ce3c659fee7562d54aa3
+# Fingerprint command: git ls-files -z -co --exclude-standard -- . ':!docs' ':(exclude,glob)**/.DS_Store' | sort -z | xargs -0 shasum -a 256 | shasum -a 256
+# Exit status of the recorded command: 1
+Each step runs as bash -eo pipefail -c '<command>', so it stops at the first failing command, and its exit status is printed after it. The replay exits 1 if any step fails.
+
+## Generated output is up to date
+$ for d in <scratch>/stale ./examples/generated; do go run ./cmd/heirygen -check "$d" || exit 1; echo "$d up to date"; done
+<scratch>/stale/main.heirygen.go: differs from the expected output; run go generate
+exit status 1
+exit 1
+
+replay exit status: 1

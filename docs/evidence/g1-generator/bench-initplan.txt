@@ -1,0 +1,26 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/lucaf/heiry/cmd/heirygen/internal/generator/testdata/basic
+cpu: Apple M2
+BenchmarkInitPlanReferences/definition_references-8         	 1262418	       922.2 ns/op	    1680 B/op	      14 allocs/op
+BenchmarkInitPlanReferences/definition_references-8         	 1365676	       868.0 ns/op	    1680 B/op	      14 allocs/op
+BenchmarkInitPlanReferences/definition_references-8         	 1397374	       850.5 ns/op	    1680 B/op	      14 allocs/op
+BenchmarkInitPlanReferences/definition_references-8         	 1349264	       971.4 ns/op	    1680 B/op	      14 allocs/op
+BenchmarkInitPlanReferences/definition_references-8         	 1000000	      1326 ns/op	    1680 B/op	      14 allocs/op
+BenchmarkInitPlanReferences/definition_references,_parallel-8         	 1962798	       591.2 ns/op	    1680 B/op	      14 allocs/op
+BenchmarkInitPlanReferences/definition_references,_parallel-8         	 1993976	       579.9 ns/op	    1680 B/op	      14 allocs/op
+BenchmarkInitPlanReferences/definition_references,_parallel-8         	 1715318	       708.9 ns/op	    1680 B/op	      14 allocs/op
+BenchmarkInitPlanReferences/definition_references,_parallel-8         	 1523763	       809.1 ns/op	    1680 B/op	      14 allocs/op
+BenchmarkInitPlanReferences/definition_references,_parallel-8         	 1957178	       624.4 ns/op	    1680 B/op	      14 allocs/op
+BenchmarkInitPlanReferences/plan_references-8                         	 1502529	       803.3 ns/op	    1456 B/op	      13 allocs/op
+BenchmarkInitPlanReferences/plan_references-8                         	 1494945	       803.5 ns/op	    1456 B/op	      13 allocs/op
+BenchmarkInitPlanReferences/plan_references-8                         	 1405322	       838.2 ns/op	    1456 B/op	      13 allocs/op
+BenchmarkInitPlanReferences/plan_references-8                         	 1493293	       803.3 ns/op	    1456 B/op	      13 allocs/op
+BenchmarkInitPlanReferences/plan_references-8                         	 1471641	       809.6 ns/op	    1456 B/op	      13 allocs/op
+BenchmarkInitPlanReferences/plan_references,_parallel-8               	 2723887	       462.8 ns/op	    1456 B/op	      13 allocs/op
+BenchmarkInitPlanReferences/plan_references,_parallel-8               	 2456712	       517.7 ns/op	    1456 B/op	      13 allocs/op
+BenchmarkInitPlanReferences/plan_references,_parallel-8               	 2737581	       795.6 ns/op	    1456 B/op	      13 allocs/op
+BenchmarkInitPlanReferences/plan_references,_parallel-8               	 2185029	      1074 ns/op	    1456 B/op	      13 allocs/op
+BenchmarkInitPlanReferences/plan_references,_parallel-8               	 2721428	       450.9 ns/op	    1456 B/op	      13 allocs/op
+PASS
+ok  	github.com/lucaf/heiry/cmd/heirygen/internal/generator/testdata/basic	34.643s

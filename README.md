@@ -79,17 +79,18 @@ go run ./examples/basic
 go run ./examples/components
 go run ./examples/lifecycle
 go run ./examples/comparison
+go run ./examples/generated
 ```
 
 The [examples index](examples/README.md) describes each program and what its output shows.
 
 ## Limitations
 
-- **Authoring cost:** one interface per operation, explicit registrations, a hand-written forwarder per public operation, and explicit references for every object. Nothing is generated.
+- **Authoring cost:** one interface per operation, explicit registrations, a hand-written forwarder per public operation, and explicit references for every object. The optional [heirygen](docs/user/generation.md) command can write these from a specification string, through the same API.
 - **Run-time cost:** each virtual or parent call does a lookup that a plain interface call does not.
 - **Checks at preparation, not compilation:** hierarchy completeness is validated when a declaration is prepared.
 - **Trust in registrations:** heiry cannot tell a real override from a method merely inherited by promotion.
-- **Scope:** single inheritance through value embedding only. Deriving levels across packages and code generation are not supported.
+- **Scope:** single inheritance through value embedding only. Deriving levels across packages is not supported.
 
 The [user guide](docs/user/guide.md) covers these in detail.
 
@@ -98,6 +99,7 @@ The [user guide](docs/user/guide.md) covers these in detail.
 For users:
 
 - [User guide](docs/user/guide.md): concepts, declaration, lifecycle, dispatch, components, errors and limitations, with diagrams.
+- [Generating declarations with heirygen](docs/user/generation.md): the optional generator, its specification string, and its guards.
 - [Alternatives and future possibilities](docs/user/alternatives.md): comparison with a self interface, and possible future work.
 - [Examples](examples/README.md): runnable programs.
 

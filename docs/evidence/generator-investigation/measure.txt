@@ -1,0 +1,164 @@
+basic
+  handwritten                        shipped example              first prototype input        extended prototype input
+  whole program                      148 lines  3304 bytes        141 lines  3010 bytes        130 lines  2722 bytes
+  operation interfaces                 8 lines   186 bytes          8 lines   186 bytes          0 lines     0 bytes
+  declaration or spec                 12 lines   386 bytes          9 lines   193 bytes         11 lines   244 bytes
+  reference lists and Init calls       4 lines   123 bytes          1 lines    33 bytes          1 lines    33 bytes
+  wrapper type and forwarders          5 lines   218 bytes          5 lines   218 bytes          0 lines     0 bytes
+  boilerplate, total                  29 lines   913 bytes         23 lines   630 bytes         12 lines   277 bytes
+  everything else                    119 lines  2391 bytes        118 lines  2380 bytes        118 lines  2445 bytes
+  first prototype input against the shipped example: whole program -7 lines (4.7%), -294 bytes (8.9%); boilerplate -6 lines (20.7%), -283 bytes (31.0%)
+  extended prototype input against the shipped example: whole program -18 lines (12.2%), -582 bytes (17.6%); boilerplate -17 lines (58.6%), -636 bytes (69.7%)
+  generated, not handwritten:
+    first prototype input             48 lines  1280 bytes
+    extended prototype input          96 lines  2096 bytes
+  boilerplate lines counted in the shipped example (examples/basic/main.go):
+    operation interfaces              20  type (
+    operation interfaces              21  Processor interface {
+    operation interfaces              22  Process ( msg string ) ( string , error )
+    operation interfaces              23  }
+    operation interfaces              24  Describer interface { Describe ( ) string }
+    operation interfaces              25  Validator interface { Validate ( msg string ) error }
+    operation interfaces              26  Transformer interface { Transform ( msg string ) string }
+    operation interfaces              27  )
+    declaration or spec              113  var hierarchy = heiry . Define [ tagged ] ( ) .
+    declaration or spec              114  Level [ base , Public , Private ] ( "" ) .
+    declaration or spec              115  BindNode [ Processor ] ( ( * base ) ( nil ) ) .
+    declaration or spec              116  BindNode [ Describer ] ( ( * base ) ( nil ) ) .
+    declaration or spec              117  BindNode [ Validator ] ( ( * base ) ( nil ) ) .
+    declaration or spec              118  BindNode [ Transformer ] ( ( * base ) ( nil ) ) .
+    declaration or spec              119  Extend [ limited ] ( ) .
+    declaration or spec              120  BindNode [ Validator ] ( ( * limited ) ( nil ) ) .
+    declaration or spec              121  Extend [ tagged ] ( ) .
+    declaration or spec              122  BindNode [ Processor ] ( ( * tagged ) ( nil ) ) .
+    declaration or spec              123  BindNode [ Describer ] ( ( * tagged ) ( nil ) ) .
+    declaration or spec              124  BindNode [ Transformer ] ( ( * tagged ) ( nil ) )
+    reference lists and Init calls   132  err := hierarchy . Init ( t ,
+    reference lists and Init calls   133  hierarchy . NodeProvider ( & t . limited . base ) ,
+    reference lists and Init calls   134  hierarchy . NodeProvider ( & t . limited ) ,
+    reference lists and Init calls   135  hierarchy . NodeProvider ( t ) )
+    wrapper type and forwarders      151  type pipeline struct { state * tagged }
+    wrapper type and forwarders      153  func ( p * pipeline ) Process ( msg string ) ( string , error ) {
+    wrapper type and forwarders      154  return p . state . Node . Virtual [ Processor ] ( ) . Process ( msg )
+    wrapper type and forwarders      155  }
+    wrapper type and forwarders      157  func ( p * pipeline ) Describe ( ) string { return p . state . Node . Virtual [ Describer ] ( ) . Describe ( ) }
+  boilerplate lines counted in the first prototype input (testdata/genprobe/basic/main.go):
+    operation interfaces              22  type (
+    operation interfaces              23  Processor interface {
+    operation interfaces              24  Process ( msg string ) ( string , error )
+    operation interfaces              25  }
+    operation interfaces              26  Describer interface { Describe ( ) string }
+    operation interfaces              27  Validator interface { Validate ( msg string ) error }
+    operation interfaces              28  Transformer interface { Transform ( msg string ) string }
+    operation interfaces              29  )
+    declaration or spec              118  const hierarchySpec = `
+    declaration or spec              119  hierarchy hierarchy tagged
+    declaration or spec              120  level base public=Public private=Private
+    declaration or spec              121  node Processor Describer Validator Transformer
+    declaration or spec              122  level limited
+    declaration or spec              123  node Validator
+    declaration or spec              124  level tagged
+    declaration or spec              125  node Processor Describer Transformer
+    declaration or spec              126  `
+    reference lists and Init calls   136  if err := hierarchyInit ( t ) ; err != nil {
+    wrapper type and forwarders      151  type pipeline struct { state * tagged }
+    wrapper type and forwarders      153  func ( p * pipeline ) Process ( msg string ) ( string , error ) {
+    wrapper type and forwarders      154  return p . state . Node . Virtual [ Processor ] ( ) . Process ( msg )
+    wrapper type and forwarders      155  }
+    wrapper type and forwarders      157  func ( p * pipeline ) Describe ( ) string { return p . state . Node . Virtual [ Describer ] ( ) . Describe ( ) }
+  boilerplate lines counted in the extended prototype input (testdata/genprobe/basicfull/main.go):
+    declaration or spec              112  const hierarchySpec = `
+    declaration or spec              113  operations Public Private suffix=Op
+    declaration or spec              114  hierarchy hierarchy tagged
+    declaration or spec              115  level base public=Public private=Private
+    declaration or spec              116  node ProcessOp DescribeOp ValidateOp TransformOp
+    declaration or spec              117  level limited
+    declaration or spec              118  node ValidateOp
+    declaration or spec              119  level tagged
+    declaration or spec              120  node ProcessOp DescribeOp TransformOp
+    declaration or spec              121  wrapper pipeline
+    declaration or spec              122  `
+    reference lists and Init calls   132  if err := hierarchyInit ( t ) ; err != nil {
+
+components
+  handwritten                        shipped example              first prototype input        extended prototype input
+  whole program                      154 lines  3807 bytes        146 lines  3234 bytes        138 lines  2983 bytes
+  operation interfaces                 7 lines   125 bytes          7 lines   125 bytes          0 lines     0 bytes
+  declaration or spec                  7 lines   332 bytes          9 lines   240 bytes         11 lines   282 bytes
+  reference lists and Init calls      13 lines   580 bytes          2 lines    66 bytes          2 lines    66 bytes
+  wrapper type and forwarders          3 lines   212 bytes          3 lines   212 bytes          0 lines     0 bytes
+  boilerplate, total                  30 lines  1249 bytes         21 lines   643 bytes         13 lines   348 bytes
+  everything else                    124 lines  2558 bytes        125 lines  2591 bytes        125 lines  2635 bytes
+  first prototype input against the shipped example: whole program -8 lines (5.2%), -573 bytes (15.1%); boilerplate -9 lines (30.0%), -606 bytes (48.5%)
+  extended prototype input against the shipped example: whole program -16 lines (10.4%), -824 bytes (21.6%); boilerplate -17 lines (56.7%), -901 bytes (72.1%)
+  generated, not handwritten:
+    first prototype input             47 lines  1598 bytes
+    extended prototype input          86 lines  2251 bytes
+  boilerplate lines counted in the shipped example (examples/components/main.go):
+    operation interfaces              17  type (
+    operation interfaces              18  Getter interface {
+    operation interfaces              19  Get ( key string ) ( string , bool )
+    operation interfaces              20  }
+    operation interfaces              21  Putter interface { Put ( key , value string ) }
+    operation interfaces              22  Recorder interface { Record ( event string ) }
+    operation interfaces              23  )
+    declaration or spec              115  var hierarchy = heiry . Define [ cachedRepository ] ( ) .
+    declaration or spec              116  Level [ repository , Public , Private ] ( "" ) .
+    declaration or spec              117  BindGroup ( ( * store ) ( nil ) , "store" , heiry . Of [ Getter ] ( ) , heiry . Of [ Putter ] ( ) ) .
+    declaration or spec              118  Bind [ Recorder ] ( ( * auditLog ) ( nil ) , "log" ) .
+    declaration or spec              119  Extend [ cachedRepository ] ( ) .
+    declaration or spec              120  BindGroup ( ( * cache ) ( nil ) , "cache" , heiry . Of [ Getter ] ( ) , heiry . Of [ Putter ] ( ) ) .
+    declaration or spec              121  Bind [ Recorder ] ( ( * stamper ) ( nil ) , "stamper" )
+    reference lists and Init calls   132  func references ( r * cachedRepository ) [ ] heiry . ProviderRef [ cachedRepository ] {
+    reference lists and Init calls   133  return [ ] heiry . ProviderRef [ cachedRepository ] {
+    reference lists and Init calls   134  hierarchy . NodeProvider ( & r . repository ) ,
+    reference lists and Init calls   135  hierarchy . ComponentProvider [ repository ] ( "store" , & r . repository . store ) ,
+    reference lists and Init calls   136  hierarchy . ComponentProvider [ repository ] ( "log" , & r . repository . log ) ,
+    reference lists and Init calls   137  hierarchy . NodeProvider ( r ) ,
+    reference lists and Init calls   138  hierarchy . ComponentProvider [ cachedRepository ] ( "cache" , & r . cache ) ,
+    reference lists and Init calls   139  hierarchy . ComponentProvider [ cachedRepository ] ( "stamper" , & r . stamper ) ,
+    reference lists and Init calls   140  }
+    reference lists and Init calls   141  }
+    reference lists and Init calls   160  if err := hierarchy . Init ( r , references ( r ) ... ) ; err != nil {
+    reference lists and Init calls   174  err := hierarchy . Init ( r , refs ... )
+    reference lists and Init calls   182  if err := hierarchy . Init ( r , references ( r ) ... ) ; err != nil {
+    wrapper type and forwarders      149  type wrapper struct { state * cachedRepository }
+    wrapper type and forwarders      151  func ( w * wrapper ) Get ( key string ) ( string , bool ) { return w . state . Node . Virtual [ Getter ] ( ) . Get ( key ) }
+    wrapper type and forwarders      153  func ( w * wrapper ) Put ( key , value string ) { w . state . Node . Virtual [ Putter ] ( ) . Put ( key , value ) }
+  boilerplate lines counted in the first prototype input (testdata/genprobe/components/main.go):
+    operation interfaces              20  type (
+    operation interfaces              21  Getter interface {
+    operation interfaces              22  Get ( key string ) ( string , bool )
+    operation interfaces              23  }
+    operation interfaces              24  Putter interface { Put ( key , value string ) }
+    operation interfaces              25  Recorder interface { Record ( event string ) }
+    operation interfaces              26  )
+    declaration or spec              119  const hierarchySpec = `
+    declaration or spec              120  hierarchy hierarchy cachedRepository
+    declaration or spec              121  level repository public=Public private=Private
+    declaration or spec              122  component store store Getter Putter
+    declaration or spec              123  component log auditLog Recorder
+    declaration or spec              124  level cachedRepository
+    declaration or spec              125  component cache cache Getter Putter
+    declaration or spec              126  component stamper stamper Recorder
+    declaration or spec              127  `
+    reference lists and Init calls   153  if err := hierarchyInit ( r ) ; err != nil {
+    reference lists and Init calls   175  if err := hierarchyInit ( r ) ; err != nil {
+    wrapper type and forwarders      142  type wrapper struct { state * cachedRepository }
+    wrapper type and forwarders      144  func ( w * wrapper ) Get ( key string ) ( string , bool ) { return w . state . Node . Virtual [ Getter ] ( ) . Get ( key ) }
+    wrapper type and forwarders      146  func ( w * wrapper ) Put ( key , value string ) { w . state . Node . Virtual [ Putter ] ( ) . Put ( key , value ) }
+  boilerplate lines counted in the extended prototype input (testdata/genprobe/componentsfull/main.go):
+    declaration or spec              113  const hierarchySpec = `
+    declaration or spec              114  operations Public Private suffix=Op
+    declaration or spec              115  hierarchy hierarchy cachedRepository
+    declaration or spec              116  level repository public=Public private=Private
+    declaration or spec              117  component store store GetOp PutOp
+    declaration or spec              118  component log auditLog RecordOp
+    declaration or spec              119  level cachedRepository
+    declaration or spec              120  component cache cache GetOp PutOp
+    declaration or spec              121  component stamper stamper RecordOp
+    declaration or spec              122  wrapper wrapper
+    declaration or spec              123  `
+    reference lists and Init calls   144  if err := hierarchyInit ( r ) ; err != nil {
+    reference lists and Init calls   166  if err := hierarchyInit ( r ) ; err != nil {
+

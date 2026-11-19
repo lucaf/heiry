@@ -1,0 +1,13 @@
+# The freshness loop of the CI workflow: heirygen -check on the generated example and the three fixtures.
+# Recorded 2026-11-19T13:45:51Z on this machine by a local script, not by GitHub Actions.
+# Toolchain: go version go1.27.1 darwin/arm64
+# System: Darwin 25.5.0 arm64
+# Tree: branch generator-investigation at a726da8b9eead9d1f032ec4eda39baef79c93db3, with 5 uncommitted paths outside docs/
+# Tree fingerprint before the run: 307085a5bc0d2d00584cef55023386cf32f7143206fa2111465b3af5408d99c1
+# Tree fingerprint after the run:  307085a5bc0d2d00584cef55023386cf32f7143206fa2111465b3af5408d99c1
+# Fingerprint command: git ls-files -z -co --exclude-standard -- . ':!docs' ':(exclude,glob)**/.DS_Store' | sort -z | xargs -0 shasum -a 256 | shasum -a 256
+# Exit status of the recorded command: 0
+./examples/generated up to date
+./cmd/heirygen/internal/generator/testdata/basic up to date
+./cmd/heirygen/internal/generator/testdata/components up to date
+./cmd/heirygen/internal/generator/testdata/matrix up to date
