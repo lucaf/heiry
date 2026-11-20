@@ -91,8 +91,9 @@ The [examples index](examples/README.md) describes each program and what its out
 - **Checks at preparation, not compilation:** hierarchy completeness is validated when a declaration is prepared.
 - **Trust in registrations:** heiry cannot tell a real override from a method merely inherited by promotion.
 - **Scope:** single inheritance through value embedding only. Deriving levels across packages is not supported.
+- **Generator platforms:** heirygen is supported on Linux (including WSL2 on the Linux file system) and macOS; native Windows is not supported or tested. The library and generated code are plain Go.
 
-The [user guide](docs/user/guide.md) covers these in detail.
+The [user guide](docs/user/guide.md) covers these in detail, and the [generation guide](docs/user/generation.md#installation-and-version) lists the generator's platforms.
 
 ## Documentation
 

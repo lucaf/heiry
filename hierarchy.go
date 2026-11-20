@@ -81,7 +81,7 @@ func validateNodeDefinition(levels []nodeLevel) (*validatedNodes, error) {
 			field := typ.Field(index)
 			if field.Type == reflect.TypeFor[Node]() && field.Anonymous {
 				if nodeIndex != -1 {
-					return nil, &Error{Code: MissingNode, Level: level, Target: target, Path: v.nodePath(level), Expected: reflect.TypeFor[Node]()}
+					return nil, &Error{Code: MissingNode, Level: level, Target: target, Path: v.nodePath(level, "Node"), Expected: reflect.TypeFor[Node]()}
 				}
 				nodeIndex = index
 			}
@@ -90,7 +90,14 @@ func validateNodeDefinition(levels []nodeLevel) (*validatedNodes, error) {
 			}
 		}
 		if nodeIndex == -1 {
-			return nil, &Error{Code: MissingNode, Level: level, Target: target, Path: v.nodePath(level), Expected: reflect.TypeFor[Node]()}
+			return nil, &Error{Code: MissingNode, Level: level, Target: target, Path: v.nodePath(level, "Node"), Expected: reflect.TypeFor[Node]()}
+		}
+		// The binder reaches a holder through reflection on its field,
+		// which cannot use a field with an unexported name, so a holder
+		// embedded under an unexported alias counts as missing; the path
+		// names that field.
+		if holder := typ.Field(nodeIndex); !holder.IsExported() {
+			return nil, &Error{Code: MissingNode, Level: level, Target: target, Path: v.nodePath(level, holder.Name), Expected: reflect.TypeFor[Node]()}
 		}
 		v.nodeFields[level] = nodeIndex
 		if level == 0 {
@@ -203,6 +210,9 @@ func (v *validatedNodes) resolveComponentSlot(level int, path string) (providerS
 	if nodeField < 0 {
 		return providerSlot{}, &Error{Code: MissingNode, Target: v.levels[len(v.levels)-1].typ, Level: level, Path: v.fullProviderPath(level, path) + ".Node"}
 	}
+	if holder := current.Field(nodeField); !holder.IsExported() { // as for level nodes
+		return providerSlot{}, &Error{Code: MissingNode, Target: v.levels[len(v.levels)-1].typ, Level: level, Path: v.fullProviderPath(level, path) + "." + holder.Name}
+	}
 	return providerSlot{path: path, typ: current, fields: indices, nodeField: nodeField}, nil
 }
 
@@ -304,12 +314,14 @@ func bindValidatedProviders(v *validatedNodes, leaf any, providers []map[string]
 				return &Error{Code: ProviderOwnership, Target: target, Level: level, Path: path, Expected: reflect.PointerTo(slot.typ), Actual: provider.Type()}
 			}
 			holder := provider.Elem().Field(slot.nodeField)
+			// The holder path names the holder field, which is Node unless it
+			// is embedded through an alias.
 			if !holder.IsValid() || !holder.CanAddr() || !holder.Addr().CanInterface() {
-				return &Error{Code: MissingNode, Target: target, Level: level, Path: v.fullNodePath(level, slot.path)}
+				return &Error{Code: MissingNode, Target: target, Level: level, Path: v.fullNodePath(level, slot.path, slot.typ.Field(slot.nodeField).Name)}
 			}
 			node, ok := holder.Addr().Interface().(*Node)
 			if !ok {
-				return &Error{Code: MissingNode, Target: target, Level: level, Path: v.fullNodePath(level, slot.path)}
+				return &Error{Code: MissingNode, Target: target, Level: level, Path: v.fullNodePath(level, slot.path, slot.typ.Field(slot.nodeField).Name)}
 			}
 			if node.Scope().dispatch != nil {
 				return &Error{Code: AlreadyInitialized, Target: target, Level: level, Path: path}
@@ -379,8 +391,9 @@ func (v *validatedNodes) edgePath(level int) string {
 	return strings.Join(nonempty(v.providerPath(level), v.levels[level].parentField), ".")
 }
 
-func (v *validatedNodes) nodePath(level int) string {
-	return strings.Join(nonempty(v.providerPath(level), "Node"), ".")
+// nodePath appends a level node's holder field name to its path.
+func (v *validatedNodes) nodePath(level int, holder string) string {
+	return strings.Join(nonempty(v.providerPath(level), holder), ".")
 }
 
 func (v *validatedNodes) fullProviderPath(level int, path string) string {
@@ -395,8 +408,8 @@ func (v *validatedNodes) fullProviderPath(level int, path string) string {
 	return strings.Join(nonempty(v.providerPath(level), path), ".")
 }
 
-func (v *validatedNodes) fullNodePath(level int, path string) string {
-	return strings.Join(nonempty(v.fullProviderPath(level, path), "Node"), ".")
+func (v *validatedNodes) fullNodePath(level int, path, holder string) string {
+	return strings.Join(nonempty(v.fullProviderPath(level, path), holder), ".")
 }
 
 func nonempty(parts ...string) []string {

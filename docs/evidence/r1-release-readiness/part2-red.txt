@@ -1,0 +1,38 @@
+# Part 2 Red: Error() omits target, path, and cause (library unchanged, test added)
+# Recorded 2026-11-20T11:10:14Z on this machine by a local script, not by GitHub Actions.
+# Toolchain: go version go1.27.1 darwin/arm64
+# System: Darwin 25.5.0 arm64
+# Tree: branch release-readiness at e6ead020fe72ee4704534ed8eca9fab6c5479d3d, with 1 uncommitted paths outside docs/
+# Tree fingerprint before the run: 4c53a3c2c4369b4503978a90432b3780051d6855b98407ffb725073af800549e
+# Tree fingerprint after the run:  4c53a3c2c4369b4503978a90432b3780051d6855b98407ffb725073af800549e
+# Fingerprint command: git ls-files -z -co --exclude-standard -- . ':!docs' ':(exclude,glob)**/.DS_Store' | sort -z | xargs -0 shasum -a 256 | shasum -a 256
+# Exit status of the recorded command: 1
+=== RUN   TestR1ErrorMessageContext
+    errors_message_external_test.go:77: Init ownership:
+         got ProviderOwnership:   capability <nil> at level 0 (expected *heiry_test.r1DirectRoot, actual *heiry_test.r1DirectRoot)
+        want ProviderOwnership: target heiry_test.r1DirectRootLeaf, level 0, path "r1DirectRoot", expected *heiry_test.r1DirectRoot, actual *heiry_test.r1DirectRoot
+    errors_message_external_test.go:77: unknown owner:
+         got InvalidProvider:   capability <nil> at level -1 (expected <nil>, actual *heiry_test.r1ShownRoot)
+        want InvalidProvider: target heiry_test.r1DirectRootLeaf, level -1 (unknown owner), path ".", actual *heiry_test.r1ShownRoot
+    errors_message_external_test.go:77: validation with a path:
+         got MissingNode:   capability <nil> at level 0 (expected heiry.Node, actual <nil>)
+        want MissingNode: target heiry_test.r1HiddenRootLeaf, level 0, path "r1HiddenRoot.Node", expected heiry.Node
+    errors_message_external_test.go:77: missing method:
+         got MissingMethods: public Read capability <nil> at level 1 (expected func() int, actual <nil>)
+        want MissingMethods: target heiry_test.r1DirectRootLeaf, level 1, public Read capability, expected func() int
+    errors_message_external_test.go:77: uninitialized scope:
+         got Uninitialized:   capability heiry_test.r1Read at level 0 (expected <nil>, actual <nil>)
+        want Uninitialized: capability heiry_test.r1Read
+    errors_message_external_test.go:77: whole target:
+         got InvalidPlan:   capability <nil> at level 0 (expected <nil>, actual <nil>)
+        want InvalidPlan: target heiry_test.r1DirectRootLeaf
+    errors_message_external_test.go:77: joined cause:
+         got InvalidPlan:   capability <nil> at level 0 (expected <nil>, actual <nil>)
+        want InvalidPlan: target heiry_test.r1DirectRootLeaf, cause: first; second; third
+    errors_message_external_test.go:77: code only:
+         got MissingNode:   capability <nil> at level 0 (expected <nil>, actual <nil>)
+        want MissingNode
+--- FAIL: TestR1ErrorMessageContext (0.00s)
+FAIL
+FAIL	github.com/lucaf/heiry	0.531s
+FAIL

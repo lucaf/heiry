@@ -152,7 +152,7 @@ The `-short` race run skips the cases that build throwaway modules: they spend t
 
 Run bounded fuzz campaigns in CI for the resolution fuzz target, and compile/run maintained usage examples when milestone 9 adds them. The root-package fuzz command is `go test . -run '^$' -fuzz '^FuzzResolution$' -fuzztime=5s -parallel=1`. Root-package benchmarks use `go test -run '^$' -bench . -benchmem -count=5 .`; apply the same source/package exclusions when extending these gates.
 
-CI tests the go.mod minimum and the latest available patch in the same minor series. The current minimum is Go 1.27.1; the additional matrix entry is 1.27.x. Changing the minimum requires an explicit compatibility decision. Remote CI configuration is not proof that its jobs have run.
+CI tests the go.mod minimum and the latest available patch in the same minor series. The current minimum is Go 1.27.1; the additional matrix entry is 1.27.x. Both run on Linux (`ubuntu-latest`), and 1.27.x also runs on macOS (`macos-latest`), the generator's other supported platform under S10; every Go step runs in each of the three configurations, and the documentation job runs on Linux only. Native Windows is not tested. Changing the minimum requires an explicit compatibility decision. Remote CI configuration is not proof that its jobs have run.
 
 For documentation/layout-only changes, check local links, document ownership, obsolete paths, and consistency with the actual tree. Sandbox runs may set GOCACHE to a writable temporary directory. Report environment failures separately from implementation failures.
 

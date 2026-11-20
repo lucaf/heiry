@@ -1,0 +1,40 @@
+# Holder path Red: MissingNode paths end in Node instead of naming the unexported holder field (library at the Part 1-3 state, tests updated and added)
+# Recorded 2026-11-20T11:36:31Z on this machine by a local script, not by GitHub Actions.
+# Toolchain: go version go1.27.1 darwin/arm64
+# System: Darwin 25.5.0 arm64
+# Tree: branch release-readiness at 9b738c0ce752bfee0f589d50a7394b4f2113d359, with 9 uncommitted paths outside docs/
+# Tree fingerprint before the run: 934c6441f5129036613282c4fd1b0f5cab52184a5302024a8fa972753e767605
+# Tree fingerprint after the run:  934c6441f5129036613282c4fd1b0f5cab52184a5302024a8fa972753e767605
+# Fingerprint command: git ls-files -z -co --exclude-standard -- . ':!docs' ':(exclude,glob)**/.DS_Store' | sort -z | xargs -0 shasum -a 256 | shasum -a 256
+# Exit status of the recorded command: 1
+=== RUN   TestR1BinderNamesTheUnexportedHolderField
+    holder_alias_binder_test.go:79: level node: MissingNode: target heiry.r1BinderRootLeaf, level 0, path "r1BinderRoot.Node", want MissingNode at level 0, path "r1BinderRoot.r1binderHidden"
+    holder_alias_binder_test.go:79: component: MissingNode: target heiry.r1BinderOwnerLeaf, level 0, path "r1BinderOwner.store.Node", want MissingNode at level 0, path "r1BinderOwner.store.r1binderHidden"
+--- FAIL: TestR1BinderNamesTheUnexportedHolderField (0.00s)
+=== RUN   TestR1ErrorMessageContext
+    errors_message_external_test.go:77: validation with a path:
+         got MissingNode: target heiry_test.r1HiddenRootLeaf, level 0, path "r1HiddenRoot.Node", expected heiry.Node
+        want MissingNode: target heiry_test.r1HiddenRootLeaf, level 0, path "r1HiddenRoot.r1hidden", expected heiry.Node
+--- FAIL: TestR1ErrorMessageContext (0.00s)
+=== RUN   TestR1UnexportedAliasHolderRejectedAtValidation
+    holder_alias_external_test.go:288: level node Validate: MissingNode diagnostics [MissingNode: target heiry_test.r1HiddenRootLeaf, level 0, path "r1HiddenRoot.Node", expected heiry.Node] in MissingNode: target heiry_test.r1HiddenRootLeaf, level 0, path "r1HiddenRoot.Node", expected heiry.Node, want one at level 0, path "r1HiddenRoot.r1hidden"
+    holder_alias_external_test.go:290: level node Prepare: MissingNode diagnostics [MissingNode: target heiry_test.r1HiddenRootLeaf, level 0, path "r1HiddenRoot.Node", expected heiry.Node] in MissingNode: target heiry_test.r1HiddenRootLeaf, level 0, path "r1HiddenRoot.Node", expected heiry.Node, want one at level 0, path "r1HiddenRoot.r1hidden"
+    holder_alias_external_test.go:293: level node Init: MissingNode diagnostics [MissingNode: target heiry_test.r1HiddenRootLeaf, level 0, path "r1HiddenRoot.Node", expected heiry.Node] in MissingNode: target heiry_test.r1HiddenRootLeaf, level 0, path "r1HiddenRoot.Node", expected heiry.Node, want one at level 0, path "r1HiddenRoot.r1hidden"
+    holder_alias_external_test.go:288: component Validate: MissingNode diagnostics [MissingNode: target heiry_test.r1HiddenOwnerLeaf, level 0, path "r1HiddenOwner.store.Node"] in MissingNode: target heiry_test.r1HiddenOwnerLeaf, level 0, path "r1HiddenOwner.store.Node"
+        MissingMethods: target heiry_test.r1HiddenOwnerLeaf, level 1, public Read capability, expected func() int, want one at level 0, path "r1HiddenOwner.store.r1hidden"
+    holder_alias_external_test.go:290: component Prepare: MissingNode diagnostics [MissingNode: target heiry_test.r1HiddenOwnerLeaf, level 0, path "r1HiddenOwner.store.Node"] in MissingNode: target heiry_test.r1HiddenOwnerLeaf, level 0, path "r1HiddenOwner.store.Node"
+        MissingMethods: target heiry_test.r1HiddenOwnerLeaf, level 1, public Read capability, expected func() int, want one at level 0, path "r1HiddenOwner.store.r1hidden"
+    holder_alias_external_test.go:293: component Init: MissingNode diagnostics [MissingNode: target heiry_test.r1HiddenOwnerLeaf, level 0, path "r1HiddenOwner.store.Node"] in MissingNode: target heiry_test.r1HiddenOwnerLeaf, level 0, path "r1HiddenOwner.store.Node"
+        MissingMethods: target heiry_test.r1HiddenOwnerLeaf, level 1, public Read capability, expected func() int, want one at level 0, path "r1HiddenOwner.store.r1hidden"
+    holder_alias_external_test.go:288: level node without a holder Validate: MissingNode at level 0, path "r1BareRoot.Node"
+    holder_alias_external_test.go:290: level node without a holder Prepare: MissingNode at level 0, path "r1BareRoot.Node"
+    holder_alias_external_test.go:293: level node without a holder Init: MissingNode at level 0, path "r1BareRoot.Node"
+    holder_alias_external_test.go:288: component without a holder Validate: MissingNode at level 0, path "r1BareOwner.store.Node"
+    holder_alias_external_test.go:290: component without a holder Prepare: MissingNode at level 0, path "r1BareOwner.store.Node"
+    holder_alias_external_test.go:293: component without a holder Init: MissingNode at level 0, path "r1BareOwner.store.Node"
+--- FAIL: TestR1UnexportedAliasHolderRejectedAtValidation (0.00s)
+=== RUN   TestR1ExportedAndDirectHoldersUnaffected
+--- PASS: TestR1ExportedAndDirectHoldersUnaffected (0.00s)
+FAIL
+FAIL	github.com/lucaf/heiry	0.599s
+FAIL

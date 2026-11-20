@@ -1,0 +1,22 @@
+# Part 1 Red: unexported alias holders pass Validate and Prepare and fail only at Init (library unchanged, test added)
+# Recorded 2026-11-20T11:05:05Z on this machine by a local script, not by GitHub Actions.
+# Toolchain: go version go1.27.1 darwin/arm64
+# System: Darwin 25.5.0 arm64
+# Tree: branch release-readiness at 9b738c0ce752bfee0f589d50a7394b4f2113d359, with 1 uncommitted paths outside docs/
+# Tree fingerprint before the run: 7d953f1ab0c717a2082424471573fff9819df8e15b23557683ef4e2003af8495
+# Tree fingerprint after the run:  7d953f1ab0c717a2082424471573fff9819df8e15b23557683ef4e2003af8495
+# Fingerprint command: git ls-files -z -co --exclude-standard -- . ':!docs' ':(exclude,glob)**/.DS_Store' | sort -z | xargs -0 shasum -a 256 | shasum -a 256
+# Exit status of the recorded command: 1
+=== RUN   TestR1UnexportedAliasHolderRejectedAtValidation
+    holder_alias_external_test.go:245: level node Validate: MissingNode diagnostics [] in <nil>, want one at level 0, path "r1HiddenRoot.Node"
+    holder_alias_external_test.go:247: level node Prepare: MissingNode diagnostics [] in <nil>, want one at level 0, path "r1HiddenRoot.Node"
+    holder_alias_external_test.go:251: level node Init: MissingNode at level 0, path "r1HiddenRoot.Node"
+    holder_alias_external_test.go:245: component Validate: MissingNode diagnostics [] in <nil>, want one at level 0, path "r1HiddenOwner.store.Node"
+    holder_alias_external_test.go:247: component Prepare: MissingNode diagnostics [] in <nil>, want one at level 0, path "r1HiddenOwner.store.Node"
+    holder_alias_external_test.go:251: component Init: MissingNode at level 0, path "r1HiddenOwner.store.Node"
+--- FAIL: TestR1UnexportedAliasHolderRejectedAtValidation (0.00s)
+=== RUN   TestR1ExportedAndDirectHoldersUnaffected
+--- PASS: TestR1ExportedAndDirectHoldersUnaffected (0.00s)
+FAIL
+FAIL	github.com/lucaf/heiry	0.478s
+FAIL

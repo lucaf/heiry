@@ -1,0 +1,48 @@
+# R1 focused tests on the final tree
+# Recorded 2026-11-20T15:08:13Z on this machine by a local script, not by GitHub Actions.
+# Toolchain: go version go1.27.1 darwin/arm64
+# System: Darwin 25.5.0 arm64
+# Tree: branch release-readiness at 9b738c0ce752bfee0f589d50a7394b4f2113d359, with 9 uncommitted paths outside docs/
+# Tree fingerprint before the run: f3539bc77f234ae62b1745342f765fbde7ab5c9d8e56bcff2b8fdb68d645407a
+# Tree fingerprint after the run:  f3539bc77f234ae62b1745342f765fbde7ab5c9d8e56bcff2b8fdb68d645407a
+# Fingerprint command: git ls-files -z -co --exclude-standard -- . ':!docs' ':(exclude,glob)**/.DS_Store' | sort -z | xargs -0 shasum -a 256 | shasum -a 256
+# Exit status of the recorded command: 0
+# Recorded command: go test -count=1 -run '^TestR1' -v .
+# Uncommitted paths outside docs/ at the start of the run (git status, SHA-256, path):
+#    M cd6a2ebff4b5a0beb181867ab47aef1cdf70797f45aff9de9c1eb3d781cfc6d8 .github/workflows/test.yml
+#    M 973df7a5d651b09b0299050c0f7a4c1db43b5d23ad6b9d11381ea9f225c6db21 README.md
+#    M e533dcf9cd2da39b0d93ed7b9fbab5cbcf228f1e14f1b6c2797ae83db9d755c4 cmd/heirygen/internal/generator/full_test.go
+#    M ff4dcdbc029ee4ecfda69be9b307993b7ccbb712173f7c7197dd9289bb6f81dd cmd/heirygen/internal/generator/stale_test.go
+#    M 63340413d01f0dc58cf41fcc8265779e5bf53bfda03c5b3b8bdde9b5123d7a02 errors.go
+#    M 674a8c67806df059677491f18df371887790ceb76c5fc88a11914e70b49e3958 hierarchy.go
+#   ?? 2fc8801f5b14df97fa5bfc29f9d4cc3d78e9de664cc20d0e9bf494e531bb403d errors_message_external_test.go
+#   ?? 97bfc405770edbe289b679eed7760be3888d6d50ba955ec87d43892df40602d4 holder_alias_binder_test.go
+#   ?? 122a7b6440a95f100cf7fffacf676dd28dc2f918316e0e9e8f103bed203297f5 holder_alias_external_test.go
+=== RUN   TestR1BinderNamesTheUnexportedHolderField
+--- PASS: TestR1BinderNamesTheUnexportedHolderField (0.00s)
+=== RUN   TestR1ErrorMessageContext
+--- PASS: TestR1ErrorMessageContext (0.00s)
+=== RUN   TestR1UnexportedAliasHolderRejectedAtValidation
+    holder_alias_external_test.go:340: level node Validate: MissingNode at level 0, path "r1HiddenRoot.r1hidden"
+    holder_alias_external_test.go:342: level node Prepare: MissingNode at level 0, path "r1HiddenRoot.r1hidden"
+    holder_alias_external_test.go:345: level node Init: MissingNode at level 0, path "r1HiddenRoot.r1hidden"
+    holder_alias_external_test.go:340: component Validate: MissingNode at level 0, path "r1HiddenOwner.store.r1hidden"
+    holder_alias_external_test.go:342: component Prepare: MissingNode at level 0, path "r1HiddenOwner.store.r1hidden"
+    holder_alias_external_test.go:345: component Init: MissingNode at level 0, path "r1HiddenOwner.store.r1hidden"
+    holder_alias_external_test.go:340: level node without a holder Validate: MissingNode at level 0, path "r1BareRoot.Node"
+    holder_alias_external_test.go:342: level node without a holder Prepare: MissingNode at level 0, path "r1BareRoot.Node"
+    holder_alias_external_test.go:345: level node without a holder Init: MissingNode at level 0, path "r1BareRoot.Node"
+    holder_alias_external_test.go:340: component without a holder Validate: MissingNode at level 0, path "r1BareOwner.store.Node"
+    holder_alias_external_test.go:342: component without a holder Prepare: MissingNode at level 0, path "r1BareOwner.store.Node"
+    holder_alias_external_test.go:345: component without a holder Init: MissingNode at level 0, path "r1BareOwner.store.Node"
+    holder_alias_external_test.go:340: level node with two holders Validate: MissingNode at level 0, path "r1TwoRoot.Node"
+    holder_alias_external_test.go:342: level node with two holders Prepare: MissingNode at level 0, path "r1TwoRoot.Node"
+    holder_alias_external_test.go:345: level node with two holders Init: MissingNode at level 0, path "r1TwoRoot.Node"
+    holder_alias_external_test.go:340: component with two holders Validate: MissingNode at level 0, path "r1TwoOwner.store.Node"
+    holder_alias_external_test.go:342: component with two holders Prepare: MissingNode at level 0, path "r1TwoOwner.store.Node"
+    holder_alias_external_test.go:345: component with two holders Init: MissingNode at level 0, path "r1TwoOwner.store.Node"
+--- PASS: TestR1UnexportedAliasHolderRejectedAtValidation (0.00s)
+=== RUN   TestR1ExportedAndDirectHoldersUnaffected
+--- PASS: TestR1ExportedAndDirectHoldersUnaffected (0.00s)
+PASS
+ok  	github.com/lucaf/heiry	0.643s

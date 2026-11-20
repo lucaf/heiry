@@ -328,7 +328,7 @@ Write the call through the holder field that the receiver's own type declares:
 - Normally that field is named `Node`: `l.Node.Parent[Validator]()`.
 - If the type embeds its holder through an alias, the field has the alias name. With `type Dispatch = heiry.Node` and an embedded `Dispatch`, write `l.Dispatch.Parent[Validator]()`. In such a type `l.Node` would be an ancestor's holder and would dispatch from the ancestor's level.
 
-A current limitation applies to alias-named holders only: when the alias name is unexported, the declaration validates but `Init` returns `MissingNode`, because the binder cannot reach that holder field. An exported alias name works. This does not affect components stored in unexported fields, which are supported.
+An alias name for a holder must be exported. heiry installs a scope only through a holder field with an exported name, so validation rejects a holder embedded under an unexported alias name with `MissingNode`: `Validate` and `Prepare` report it, and so does every `Init`, because a failed preparation is not cached and each `Init` prepares the declaration again. This does not affect components stored in unexported fields, which are supported.
 
 Go also accepts the shorter `l.Parent[Validator]()`, because the methods are promoted from the embedded holder. Do not use it. An application field or method named `Parent` or `Virtual` makes it fail to compile, and an application generic method with that name and shape silently takes its place. The form through the holder field cannot be affected by application names.
 

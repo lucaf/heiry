@@ -1,0 +1,17 @@
+# Uninitialized level Red: a caller-built Uninitialized error with Level 2 prints a level (errors.go unchanged, test case added)
+# Recorded 2026-11-20T13:02:26Z on this machine by a local script, not by GitHub Actions.
+# Toolchain: go version go1.27.1 darwin/arm64
+# System: Darwin 25.5.0 arm64
+# Tree: branch release-readiness at 9b738c0ce752bfee0f589d50a7394b4f2113d359, with 9 uncommitted paths outside docs/
+# Tree fingerprint before the run: 70bc8bf951be09cb2106efe7651965324540dfefc021715854b701b3a2451221
+# Tree fingerprint after the run:  70bc8bf951be09cb2106efe7651965324540dfefc021715854b701b3a2451221
+# Fingerprint command: git ls-files -z -co --exclude-standard -- . ':!docs' ':(exclude,glob)**/.DS_Store' | sort -z | xargs -0 shasum -a 256 | shasum -a 256
+# Exit status of the recorded command: 1
+=== RUN   TestR1ErrorMessageContext
+    errors_message_external_test.go:79: uninitialized with a level:
+         got Uninitialized: level 2
+        want Uninitialized
+--- FAIL: TestR1ErrorMessageContext (0.00s)
+FAIL
+FAIL	github.com/lucaf/heiry	0.622s
+FAIL

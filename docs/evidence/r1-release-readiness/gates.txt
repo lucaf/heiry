@@ -1,0 +1,98 @@
+# R1 local replay of every Go step of the CI workflow except the fuzz step, on darwin as the macos-latest job runs them, on the final tree
+# Recorded 2026-11-20T15:08:39Z on this machine by a local script, not by GitHub Actions.
+# Toolchain: go version go1.27.1 darwin/arm64
+# System: Darwin 25.5.0 arm64
+# Tree: branch release-readiness at 9b738c0ce752bfee0f589d50a7394b4f2113d359, with 9 uncommitted paths outside docs/
+# Tree fingerprint before the run: f3539bc77f234ae62b1745342f765fbde7ab5c9d8e56bcff2b8fdb68d645407a
+# Tree fingerprint after the run:  f3539bc77f234ae62b1745342f765fbde7ab5c9d8e56bcff2b8fdb68d645407a
+# Fingerprint command: git ls-files -z -co --exclude-standard -- . ':!docs' ':(exclude,glob)**/.DS_Store' | sort -z | xargs -0 shasum -a 256 | shasum -a 256
+# Exit status of the recorded command: 0
+# Recorded command: bash docs/evidence/r1-release-readiness/replay-gates.sh
+# Uncommitted paths outside docs/ at the start of the run (git status, SHA-256, path):
+#    M cd6a2ebff4b5a0beb181867ab47aef1cdf70797f45aff9de9c1eb3d781cfc6d8 .github/workflows/test.yml
+#    M 973df7a5d651b09b0299050c0f7a4c1db43b5d23ad6b9d11381ea9f225c6db21 README.md
+#    M e533dcf9cd2da39b0d93ed7b9fbab5cbcf228f1e14f1b6c2797ae83db9d755c4 cmd/heirygen/internal/generator/full_test.go
+#    M ff4dcdbc029ee4ecfda69be9b307993b7ccbb712173f7c7197dd9289bb6f81dd cmd/heirygen/internal/generator/stale_test.go
+#    M 63340413d01f0dc58cf41fcc8265779e5bf53bfda03c5b3b8bdde9b5123d7a02 errors.go
+#    M 674a8c67806df059677491f18df371887790ceb76c5fc88a11914e70b49e3958 hierarchy.go
+#   ?? 2fc8801f5b14df97fa5bfc29f9d4cc3d78e9de664cc20d0e9bf494e531bb403d errors_message_external_test.go
+#   ?? 97bfc405770edbe289b679eed7760be3888d6d50ba955ec87d43892df40602d4 holder_alias_binder_test.go
+#   ?? 122a7b6440a95f100cf7fffacf676dd28dc2f918316e0e9e8f103bed203297f5 holder_alias_external_test.go
+Each step runs as bash -eo pipefail -c '<command>', so it stops at the first failing command, and its exit status is printed after it. The replay exits 1 if any step fails.
+
+## Discover root package
+$ test "$(go list -f "{{len .GoFiles}}" .)" -gt 0 && test "$(go list -f "{{len .TestGoFiles}}" .)" -gt 0 && echo "root: $(go list -f "{{len .GoFiles}} source, {{len .TestGoFiles}} test, {{len .XTestGoFiles}} external test files" .)"
+root: 7 source, 27 test, 5 external test files
+exit 0
+
+## Discover examples, generator packages, and fixtures
+$ for p in ./examples/basic ./examples/components ./examples/lifecycle ./examples/comparison ./examples/generated ./cmd/heirygen ./cmd/heirygen/internal/generator ./cmd/heirygen/internal/generator/testdata/basic ./cmd/heirygen/internal/generator/testdata/components ./cmd/heirygen/internal/generator/testdata/matrix; do g=$(go list -f "{{len .GoFiles}}" $p); t=$(go list -f "{{len .TestGoFiles}}" $p); test $g -gt 0; test $t -gt 0; echo "$p: $g source, $t test files"; done
+./examples/basic: 1 source, 1 test files
+./examples/components: 1 source, 1 test files
+./examples/lifecycle: 1 source, 1 test files
+./examples/comparison: 3 source, 1 test files
+./examples/generated: 2 source, 1 test files
+./cmd/heirygen: 1 source, 1 test files
+./cmd/heirygen/internal/generator: 5 source, 28 test files
+./cmd/heirygen/internal/generator/testdata/basic: 2 source, 3 test files
+./cmd/heirygen/internal/generator/testdata/components: 2 source, 2 test files
+./cmd/heirygen/internal/generator/testdata/matrix: 2 source, 1 test files
+exit 0
+
+## Formatting (workflow selection)
+$ files="$(gofmt -l ./*.go testdata/stage4boundary/*.go testdata/stage4positive/*.go testdata/stage4negative/*.go testdata/stage5vet/*.go testdata/m4positive/*.go testdata/m4negative/*.go testdata/m6positive/*.go testdata/m6negativebind/*.go testdata/m6negativepointer/*.go testdata/m6negativetoken/*.go testdata/m8positive/*.go testdata/m8negativepointer/*.go testdata/m8negativebind/*.go testdata/e1positive/*.go testdata/e1negativeshadow/*.go testdata/e2negativebindnode/*.go testdata/e2negativegroup/*.go examples/basic/*.go examples/components/*.go examples/lifecycle/*.go examples/comparison/*.go examples/generated/*.go cmd/heirygen/*.go cmd/heirygen/internal/generator/*.go cmd/heirygen/internal/generator/testdata/*/*.go)"; if [ -n "$files" ]; then echo "$files"; exit 1; fi; echo "no files"
+no files
+exit 0
+
+## Vet
+$ go vet . ./examples/basic ./examples/components ./examples/lifecycle ./examples/comparison ./examples/generated ./cmd/heirygen/... ./cmd/heirygen/internal/generator/testdata/basic ./cmd/heirygen/internal/generator/testdata/components ./cmd/heirygen/internal/generator/testdata/matrix
+exit 0
+
+## Package tests
+$ go test -count=1 . ./examples/basic ./examples/components ./examples/lifecycle ./examples/comparison ./examples/generated ./cmd/heirygen/... ./cmd/heirygen/internal/generator/testdata/basic ./cmd/heirygen/internal/generator/testdata/components ./cmd/heirygen/internal/generator/testdata/matrix
+ok  	github.com/lucaf/heiry	8.208s
+ok  	github.com/lucaf/heiry/examples/basic	0.655s
+ok  	github.com/lucaf/heiry/examples/components	1.272s
+ok  	github.com/lucaf/heiry/examples/lifecycle	0.927s
+ok  	github.com/lucaf/heiry/examples/comparison	1.568s
+ok  	github.com/lucaf/heiry/examples/generated	1.905s
+ok  	github.com/lucaf/heiry/cmd/heirygen	2.264s
+ok  	github.com/lucaf/heiry/cmd/heirygen/internal/generator	97.771s
+ok  	github.com/lucaf/heiry/cmd/heirygen/internal/generator/testdata/basic	2.246s
+ok  	github.com/lucaf/heiry/cmd/heirygen/internal/generator/testdata/components	2.244s
+ok  	github.com/lucaf/heiry/cmd/heirygen/internal/generator/testdata/matrix	2.657s
+exit 0
+
+## Race tests
+$ go test -race -count=1 . ./examples/basic ./examples/components ./examples/lifecycle ./examples/comparison ./examples/generated ./cmd/heirygen/internal/generator/testdata/basic ./cmd/heirygen/internal/generator/testdata/components ./cmd/heirygen/internal/generator/testdata/matrix && go test -race -short -count=1 ./cmd/heirygen/...
+ok  	github.com/lucaf/heiry	6.985s
+ok  	github.com/lucaf/heiry/examples/basic	1.457s
+ok  	github.com/lucaf/heiry/examples/components	3.666s
+ok  	github.com/lucaf/heiry/examples/lifecycle	2.170s
+ok  	github.com/lucaf/heiry/examples/comparison	2.511s
+ok  	github.com/lucaf/heiry/examples/generated	3.178s
+ok  	github.com/lucaf/heiry/cmd/heirygen/internal/generator/testdata/basic	3.995s
+ok  	github.com/lucaf/heiry/cmd/heirygen/internal/generator/testdata/components	2.852s
+ok  	github.com/lucaf/heiry/cmd/heirygen/internal/generator/testdata/matrix	2.864s
+ok  	github.com/lucaf/heiry/cmd/heirygen	1.513s
+ok  	github.com/lucaf/heiry/cmd/heirygen/internal/generator	4.172s
+exit 0
+
+## Run examples
+$ for p in ./examples/basic ./examples/components ./examples/lifecycle ./examples/comparison ./examples/generated; do go run $p > /dev/null; echo "$p ran"; done
+./examples/basic ran
+./examples/components ran
+./examples/lifecycle ran
+./examples/comparison ran
+./examples/generated ran
+exit 0
+
+## Generated output is up to date
+$ for d in ./examples/generated ./cmd/heirygen/internal/generator/testdata/basic ./cmd/heirygen/internal/generator/testdata/components ./cmd/heirygen/internal/generator/testdata/matrix; do go run ./cmd/heirygen -check "$d" || exit 1; echo "$d up to date"; done
+./examples/generated up to date
+./cmd/heirygen/internal/generator/testdata/basic up to date
+./cmd/heirygen/internal/generator/testdata/components up to date
+./cmd/heirygen/internal/generator/testdata/matrix up to date
+exit 0
+
+replay exit status: 0
