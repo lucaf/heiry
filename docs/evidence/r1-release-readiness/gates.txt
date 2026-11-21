@@ -1,23 +1,16 @@
-# R1 local replay of every Go step of the CI workflow except the fuzz step, on darwin as the macos-latest job runs them, on the final tree
-# Recorded 2026-11-20T15:08:39Z on this machine by a local script, not by GitHub Actions.
+# R1 local replay of every Go step of the CI workflow except the fuzz step, on darwin as the macos-latest job runs them, on the final tree of the closing follow-up
+# Recorded 2026-11-21T13:12:50Z on this machine by a local script, not by GitHub Actions.
 # Toolchain: go version go1.27.1 darwin/arm64
 # System: Darwin 25.5.0 arm64
-# Tree: branch release-readiness at 9b738c0ce752bfee0f589d50a7394b4f2113d359, with 9 uncommitted paths outside docs/
-# Tree fingerprint before the run: f3539bc77f234ae62b1745342f765fbde7ab5c9d8e56bcff2b8fdb68d645407a
-# Tree fingerprint after the run:  f3539bc77f234ae62b1745342f765fbde7ab5c9d8e56bcff2b8fdb68d645407a
+# Tree: branch close-R1 at 4edad0ef3bf546fcd0d174c5d53850f430c8bdef, with 2 uncommitted paths outside docs/
+# Tree fingerprint before the run: 290dc09659ec83edc0386beae9b99fab82d96b575783244831b1072c062e84f6
+# Tree fingerprint after the run:  290dc09659ec83edc0386beae9b99fab82d96b575783244831b1072c062e84f6
 # Fingerprint command: git ls-files -z -co --exclude-standard -- . ':!docs' ':(exclude,glob)**/.DS_Store' | sort -z | xargs -0 shasum -a 256 | shasum -a 256
 # Exit status of the recorded command: 0
 # Recorded command: bash docs/evidence/r1-release-readiness/replay-gates.sh
 # Uncommitted paths outside docs/ at the start of the run (git status, SHA-256, path):
-#    M cd6a2ebff4b5a0beb181867ab47aef1cdf70797f45aff9de9c1eb3d781cfc6d8 .github/workflows/test.yml
-#    M 973df7a5d651b09b0299050c0f7a4c1db43b5d23ad6b9d11381ea9f225c6db21 README.md
-#    M e533dcf9cd2da39b0d93ed7b9fbab5cbcf228f1e14f1b6c2797ae83db9d755c4 cmd/heirygen/internal/generator/full_test.go
-#    M ff4dcdbc029ee4ecfda69be9b307993b7ccbb712173f7c7197dd9289bb6f81dd cmd/heirygen/internal/generator/stale_test.go
-#    M 63340413d01f0dc58cf41fcc8265779e5bf53bfda03c5b3b8bdde9b5123d7a02 errors.go
-#    M 674a8c67806df059677491f18df371887790ceb76c5fc88a11914e70b49e3958 hierarchy.go
-#   ?? 2fc8801f5b14df97fa5bfc29f9d4cc3d78e9de664cc20d0e9bf494e531bb403d errors_message_external_test.go
-#   ?? 97bfc405770edbe289b679eed7760be3888d6d50ba955ec87d43892df40602d4 holder_alias_binder_test.go
-#   ?? 122a7b6440a95f100cf7fffacf676dd28dc2f918316e0e9e8f103bed203297f5 holder_alias_external_test.go
+#    M 868a1abb2cb6b734d9b1991968946db8fa5338683fe5d84038029a1b277196d8 README.md
+#    M 1570587d33165fc50bc501045876c97541b9d23c2efcda5305cd6a01ce381cb4 holder_alias_external_test.go
 Each step runs as bash -eo pipefail -c '<command>', so it stops at the first failing command, and its exit status is printed after it. The replay exits 1 if any step fails.
 
 ## Discover root package
@@ -50,32 +43,32 @@ exit 0
 
 ## Package tests
 $ go test -count=1 . ./examples/basic ./examples/components ./examples/lifecycle ./examples/comparison ./examples/generated ./cmd/heirygen/... ./cmd/heirygen/internal/generator/testdata/basic ./cmd/heirygen/internal/generator/testdata/components ./cmd/heirygen/internal/generator/testdata/matrix
-ok  	github.com/lucaf/heiry	8.208s
-ok  	github.com/lucaf/heiry/examples/basic	0.655s
-ok  	github.com/lucaf/heiry/examples/components	1.272s
-ok  	github.com/lucaf/heiry/examples/lifecycle	0.927s
-ok  	github.com/lucaf/heiry/examples/comparison	1.568s
-ok  	github.com/lucaf/heiry/examples/generated	1.905s
-ok  	github.com/lucaf/heiry/cmd/heirygen	2.264s
-ok  	github.com/lucaf/heiry/cmd/heirygen/internal/generator	97.771s
-ok  	github.com/lucaf/heiry/cmd/heirygen/internal/generator/testdata/basic	2.246s
-ok  	github.com/lucaf/heiry/cmd/heirygen/internal/generator/testdata/components	2.244s
-ok  	github.com/lucaf/heiry/cmd/heirygen/internal/generator/testdata/matrix	2.657s
+ok  	github.com/lucaf/heiry	2.300s
+ok  	github.com/lucaf/heiry/examples/basic	0.870s
+ok  	github.com/lucaf/heiry/examples/components	0.557s
+ok  	github.com/lucaf/heiry/examples/lifecycle	1.186s
+ok  	github.com/lucaf/heiry/examples/comparison	1.512s
+ok  	github.com/lucaf/heiry/examples/generated	1.769s
+ok  	github.com/lucaf/heiry/cmd/heirygen	2.085s
+ok  	github.com/lucaf/heiry/cmd/heirygen/internal/generator	80.547s
+ok  	github.com/lucaf/heiry/cmd/heirygen/internal/generator/testdata/basic	2.231s
+ok  	github.com/lucaf/heiry/cmd/heirygen/internal/generator/testdata/components	2.446s
+ok  	github.com/lucaf/heiry/cmd/heirygen/internal/generator/testdata/matrix	2.435s
 exit 0
 
 ## Race tests
 $ go test -race -count=1 . ./examples/basic ./examples/components ./examples/lifecycle ./examples/comparison ./examples/generated ./cmd/heirygen/internal/generator/testdata/basic ./cmd/heirygen/internal/generator/testdata/components ./cmd/heirygen/internal/generator/testdata/matrix && go test -race -short -count=1 ./cmd/heirygen/...
-ok  	github.com/lucaf/heiry	6.985s
-ok  	github.com/lucaf/heiry/examples/basic	1.457s
-ok  	github.com/lucaf/heiry/examples/components	3.666s
-ok  	github.com/lucaf/heiry/examples/lifecycle	2.170s
-ok  	github.com/lucaf/heiry/examples/comparison	2.511s
-ok  	github.com/lucaf/heiry/examples/generated	3.178s
-ok  	github.com/lucaf/heiry/cmd/heirygen/internal/generator/testdata/basic	3.995s
-ok  	github.com/lucaf/heiry/cmd/heirygen/internal/generator/testdata/components	2.852s
-ok  	github.com/lucaf/heiry/cmd/heirygen/internal/generator/testdata/matrix	2.864s
-ok  	github.com/lucaf/heiry/cmd/heirygen	1.513s
-ok  	github.com/lucaf/heiry/cmd/heirygen/internal/generator	4.172s
+ok  	github.com/lucaf/heiry	6.622s
+ok  	github.com/lucaf/heiry/examples/basic	2.461s
+ok  	github.com/lucaf/heiry/examples/components	2.028s
+ok  	github.com/lucaf/heiry/examples/lifecycle	1.708s
+ok  	github.com/lucaf/heiry/examples/comparison	3.415s
+ok  	github.com/lucaf/heiry/examples/generated	2.781s
+ok  	github.com/lucaf/heiry/cmd/heirygen/internal/generator/testdata/basic	3.099s
+ok  	github.com/lucaf/heiry/cmd/heirygen/internal/generator/testdata/components	3.670s
+ok  	github.com/lucaf/heiry/cmd/heirygen/internal/generator/testdata/matrix	2.353s
+ok  	github.com/lucaf/heiry/cmd/heirygen	1.785s
+ok  	github.com/lucaf/heiry/cmd/heirygen/internal/generator	2.660s
 exit 0
 
 ## Run examples

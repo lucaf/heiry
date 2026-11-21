@@ -112,3 +112,7 @@ For contributors:
 - [Roadmap](docs/roadmap.md): implementation status and verification evidence.
 - [Decisions](docs/decisions/): approved choices and design history.
 - [AGENTS.md](AGENTS.md): mandatory working rules for Codex.
+
+## Development
+
+This project was conducted through Claude (Anthropic) and Codex (OpenAI).

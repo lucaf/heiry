@@ -1,27 +1,20 @@
-# R1 documentation checks, run by docs-checks.sh after the documentation was final; the documentation fingerprint below excludes this record
-# Recorded 2026-11-20T16:48:58Z on this machine by a local script, not by GitHub Actions.
+# R1 documentation checks, run by docs-checks.sh last, after the documentation of the closing follow-up and its review fixes was final; the documentation fingerprint below excludes this record
+# Recorded 2026-11-21T13:21:13Z on this machine by a local script, not by GitHub Actions.
 # Toolchain: go version go1.27.1 darwin/arm64
 # System: Darwin 25.5.0 arm64
-# Tree: branch release-readiness at 9b738c0ce752bfee0f589d50a7394b4f2113d359, with 9 uncommitted paths outside docs/
-# Tree fingerprint before the run: f3539bc77f234ae62b1745342f765fbde7ab5c9d8e56bcff2b8fdb68d645407a
-# Tree fingerprint after the run:  f3539bc77f234ae62b1745342f765fbde7ab5c9d8e56bcff2b8fdb68d645407a
+# Tree: branch close-R1 at 4edad0ef3bf546fcd0d174c5d53850f430c8bdef, with 2 uncommitted paths outside docs/
+# Tree fingerprint before the run: 290dc09659ec83edc0386beae9b99fab82d96b575783244831b1072c062e84f6
+# Tree fingerprint after the run:  290dc09659ec83edc0386beae9b99fab82d96b575783244831b1072c062e84f6
 # Fingerprint command: git ls-files -z -co --exclude-standard -- . ':!docs' ':(exclude,glob)**/.DS_Store' | sort -z | xargs -0 shasum -a 256 | shasum -a 256
 # Exit status of the recorded command: 0
 # Recorded command: bash docs/evidence/r1-release-readiness/docs-checks.sh
 # Uncommitted paths outside docs/ at the start of the run (git status, SHA-256, path):
-#    M cd6a2ebff4b5a0beb181867ab47aef1cdf70797f45aff9de9c1eb3d781cfc6d8 .github/workflows/test.yml
-#    M 973df7a5d651b09b0299050c0f7a4c1db43b5d23ad6b9d11381ea9f225c6db21 README.md
-#    M e533dcf9cd2da39b0d93ed7b9fbab5cbcf228f1e14f1b6c2797ae83db9d755c4 cmd/heirygen/internal/generator/full_test.go
-#    M ff4dcdbc029ee4ecfda69be9b307993b7ccbb712173f7c7197dd9289bb6f81dd cmd/heirygen/internal/generator/stale_test.go
-#    M 63340413d01f0dc58cf41fcc8265779e5bf53bfda03c5b3b8bdde9b5123d7a02 errors.go
-#    M 674a8c67806df059677491f18df371887790ceb76c5fc88a11914e70b49e3958 hierarchy.go
-#   ?? 2fc8801f5b14df97fa5bfc29f9d4cc3d78e9de664cc20d0e9bf494e531bb403d errors_message_external_test.go
-#   ?? 97bfc405770edbe289b679eed7760be3888d6d50ba955ec87d43892df40602d4 holder_alias_binder_test.go
-#   ?? 122a7b6440a95f100cf7fffacf676dd28dc2f918316e0e9e8f103bed203297f5 holder_alias_external_test.go
+#    M 868a1abb2cb6b734d9b1991968946db8fa5338683fe5d84038029a1b277196d8 README.md
+#    M 1570587d33165fc50bc501045876c97541b9d23c2efcda5305cd6a01ce381cb4 holder_alias_external_test.go
 
 ## Documentation fingerprint, without this record
 $ git ls-files -z -co --exclude-standard -- docs ':!docs/evidence/r1-release-readiness/docs-checks.txt' | sort -z | xargs -0 shasum -a 256 | shasum -a 256 | cut -d' ' -f1
-64444cba49004d57a0a6e39dd330808c2a9429957105f768c9a4104eeb77bc42
+a8ee750d34e0dc29790249f642c6668f25c9136a7043bf58e8f3c848070c1ad0
 exit 0
 
 ## Documentation checker
@@ -33,7 +26,7 @@ exit 0
 $ python3 -m unittest discover -s scripts -p 'test_*.py' 2>&1
 .......
 ----------------------------------------------------------------------
-Ran 7 tests in 0.013s
+Ran 7 tests in 0.009s
 
 OK
 exit 0
@@ -45,21 +38,6 @@ exit 0
 
 ## Whitespace in untracked files
 $ for f in $(git ls-files --others --exclude-standard); do set +e; git diff --no-index --check /dev/null "$f"; s=$?; set -e; if [ $((s & 2)) -ne 0 ]; then echo "problem: $f"; exit 1; fi; echo "no problems: $f"; done
-no problems: docs/evidence/r1-release-readiness/README.md
-no problems: docs/evidence/r1-release-readiness/docs-checks.sh
-no problems: docs/evidence/r1-release-readiness/docs-checks.txt
-no problems: docs/evidence/r1-release-readiness/focused.txt
-no problems: docs/evidence/r1-release-readiness/fuzz.txt
-no problems: docs/evidence/r1-release-readiness/gates.txt
-no problems: docs/evidence/r1-release-readiness/holder-path-red.txt
-no problems: docs/evidence/r1-release-readiness/part1-red.txt
-no problems: docs/evidence/r1-release-readiness/part2-red.txt
-no problems: docs/evidence/r1-release-readiness/record.sh
-no problems: docs/evidence/r1-release-readiness/replay-gates.sh
-no problems: docs/evidence/r1-release-readiness/uninitialized-level-red.txt
-no problems: errors_message_external_test.go
-no problems: holder_alias_binder_test.go
-no problems: holder_alias_external_test.go
 exit 0
 
 ## Workflow parses as YAML

@@ -2,6 +2,7 @@ package heiry_test
 
 import (
 	"errors"
+	"reflect"
 	"testing"
 
 	"github.com/lucaf/heiry"
@@ -167,12 +168,14 @@ type r1DirectOwnerLeaf struct {
 
 // r1Holder is one declaration case: fresh builds a new, unprepared
 // definition, and object allocates and initializes one object through it,
-// returning the holder the registered provider dispatches through.
+// returning the holder the registered provider dispatches through. initTwice
+// initializes two objects through one definition.
 type r1Holder struct {
-	name     string
-	validate func() error
-	prepare  func() error
-	object   func() (holder *heiry.Node, provider r1Read, err error)
+	name      string
+	validate  func() error
+	prepare   func() error
+	object    func() (holder *heiry.Node, provider r1Read, err error)
+	initTwice func() (first, second error)
 }
 
 func r1Case[Leaf any](name string, fresh func() *heiry.Definition[Leaf], object func(*heiry.Definition[Leaf]) (*heiry.Node, r1Read, error)) r1Holder {
@@ -190,18 +193,30 @@ func r1Case[Leaf any](name string, fresh func() *heiry.Definition[Leaf], object 
 			return err
 		},
 		object: func() (*heiry.Node, r1Read, error) { return object(fresh()) },
+		initTwice: func() (error, error) {
+			d := fresh()
+			_, _, first := object(d)
+			_, _, second := object(d)
+			return first, second
+		},
 	}
 }
 
+// r1Rejected lists the rejected cases. whole, when set, is everything
+// Validate and Prepare report: for a level node, validation stops at the
+// holder check, and the same layout without a holder reports the same
+// diagnostic apart from its path and its own leaf type.
 func r1Rejected() []struct {
 	r1Holder
 	level int
 	path  string
+	whole *heiry.Error
 } {
 	return []struct {
 		r1Holder
 		level int
 		path  string
+		whole *heiry.Error
 	}{
 		{r1Case("level node", func() *heiry.Definition[r1HiddenRootLeaf] {
 			d := heiry.Define[r1HiddenRootLeaf]()
@@ -211,7 +226,7 @@ func r1Rejected() []struct {
 			x := &r1HiddenRootLeaf{r1HiddenRoot: r1HiddenRoot{value: 1}}
 			err := d.Init(x, d.NodeProvider(&x.r1HiddenRoot), d.NodeProvider(x))
 			return &x.r1HiddenRoot.r1hidden, &x.r1HiddenRoot, err
-		}), 0, "r1HiddenRoot.r1hidden"},
+		}), 0, "r1HiddenRoot.r1hidden", &heiry.Error{Code: heiry.MissingNode, Level: 0, Target: reflect.TypeFor[r1HiddenRootLeaf](), Path: "r1HiddenRoot.r1hidden", Expected: reflect.TypeFor[heiry.Node]()}},
 		{r1Case("component", func() *heiry.Definition[r1HiddenOwnerLeaf] {
 			d := heiry.Define[r1HiddenOwnerLeaf]()
 			d.Level[r1HiddenOwner, r1Read, r1Empty]("").Bind[r1Read]((*r1HiddenStore)(nil), "store").Extend[r1HiddenOwnerLeaf]()
@@ -220,7 +235,7 @@ func r1Rejected() []struct {
 			x := &r1HiddenOwnerLeaf{r1HiddenOwner: r1HiddenOwner{store: r1HiddenStore{value: 1}}}
 			err := d.Init(x, d.NodeProvider(&x.r1HiddenOwner), d.ComponentProvider[r1HiddenOwner]("store", &x.store), d.NodeProvider(x))
 			return &x.store.r1hidden, &x.store, err
-		}), 0, "r1HiddenOwner.store.r1hidden"},
+		}), 0, "r1HiddenOwner.store.r1hidden", nil},
 		// Without a holder field the path keeps naming the Node it lacks.
 		{r1Case("level node without a holder", func() *heiry.Definition[r1BareRootLeaf] {
 			d := heiry.Define[r1BareRootLeaf]()
@@ -230,7 +245,7 @@ func r1Rejected() []struct {
 			x := &r1BareRootLeaf{r1BareRoot: r1BareRoot{value: 1}}
 			err := d.Init(x, d.NodeProvider(&x.r1BareRoot), d.NodeProvider(x))
 			return &x.Node, &x.r1BareRoot, err
-		}), 0, "r1BareRoot.Node"},
+		}), 0, "r1BareRoot.Node", &heiry.Error{Code: heiry.MissingNode, Level: 0, Target: reflect.TypeFor[r1BareRootLeaf](), Path: "r1BareRoot.Node", Expected: reflect.TypeFor[heiry.Node]()}},
 		{r1Case("component without a holder", func() *heiry.Definition[r1BareOwnerLeaf] {
 			d := heiry.Define[r1BareOwnerLeaf]()
 			d.Level[r1BareOwner, r1Read, r1Empty]("").Bind[r1Read]((*r1BareStore)(nil), "store").Extend[r1BareOwnerLeaf]()
@@ -239,7 +254,7 @@ func r1Rejected() []struct {
 			x := &r1BareOwnerLeaf{r1BareOwner: r1BareOwner{store: r1BareStore{value: 1}}}
 			err := d.Init(x, d.NodeProvider(&x.r1BareOwner), d.ComponentProvider[r1BareOwner]("store", &x.store), d.NodeProvider(x))
 			return &x.r1BareOwner.Node, &x.store, err
-		}), 0, "r1BareOwner.store.Node"},
+		}), 0, "r1BareOwner.store.Node", nil},
 		// With two holders the path also names Node, not one of them.
 		{r1Case("level node with two holders", func() *heiry.Definition[r1TwoRootLeaf] {
 			d := heiry.Define[r1TwoRootLeaf]()
@@ -249,7 +264,7 @@ func r1Rejected() []struct {
 			x := &r1TwoRootLeaf{r1TwoRoot: r1TwoRoot{value: 1}}
 			err := d.Init(x, d.NodeProvider(&x.r1TwoRoot), d.NodeProvider(x))
 			return &x.r1TwoRoot.Node, &x.r1TwoRoot, err
-		}), 0, "r1TwoRoot.Node"},
+		}), 0, "r1TwoRoot.Node", nil},
 		{r1Case("component with two holders", func() *heiry.Definition[r1TwoOwnerLeaf] {
 			d := heiry.Define[r1TwoOwnerLeaf]()
 			d.Level[r1TwoOwner, r1Read, r1Empty]("").Bind[r1Read]((*r1TwoStore)(nil), "store").Extend[r1TwoOwnerLeaf]()
@@ -258,7 +273,7 @@ func r1Rejected() []struct {
 			x := &r1TwoOwnerLeaf{r1TwoOwner: r1TwoOwner{store: r1TwoStore{value: 1}}}
 			err := d.Init(x, d.NodeProvider(&x.r1TwoOwner), d.ComponentProvider[r1TwoOwner]("store", &x.store), d.NodeProvider(x))
 			return &x.store.Node, &x.store, err
-		}), 0, "r1TwoOwner.store.Node"},
+		}), 0, "r1TwoOwner.store.Node", nil},
 	}
 }
 
@@ -326,6 +341,22 @@ func r1MissingNode(err error) []*heiry.Error {
 	return found
 }
 
+// r1Reported returns every error that err joins, in order, of any type.
+func r1Reported(err error) []error {
+	if err == nil {
+		return nil
+	}
+	joined, ok := err.(interface{ Unwrap() []error })
+	if !ok {
+		return []error{err}
+	}
+	var all []error
+	for _, item := range joined.Unwrap() {
+		all = append(all, r1Reported(item)...)
+	}
+	return all
+}
+
 func TestR1UnexportedAliasHolderRejectedAtValidation(t *testing.T) {
 	for _, tc := range r1Rejected() {
 		check := func(stage string, err error) {
@@ -337,14 +368,42 @@ func TestR1UnexportedAliasHolderRejectedAtValidation(t *testing.T) {
 			}
 			t.Logf("%s %s: MissingNode at level %d, path %q", tc.name, stage, found[0].Level, found[0].Path)
 		}
-		check("Validate", tc.validate())
+		whole := func(stage string, err error) {
+			t.Helper()
+			if tc.whole == nil {
+				return
+			}
+			reported := r1Reported(err)
+			var diagnostic *heiry.Error
+			if len(reported) == 1 {
+				diagnostic, _ = reported[0].(*heiry.Error)
+			}
+			if diagnostic == nil || *diagnostic != *tc.whole {
+				t.Errorf("%s %s: reported %d errors %v, want only %+v", tc.name, stage, len(reported), reported, *tc.whole)
+				return
+			}
+			t.Logf("%s %s: reports only %+v", tc.name, stage, *tc.whole)
+		}
+		err := tc.validate()
+		check("Validate", err)
+		whole("Validate", err)
 		// Eager preparation reports it before any object exists.
-		check("Prepare", tc.prepare())
+		err = tc.prepare()
+		check("Prepare", err)
+		whole("Prepare", err)
 		// Init prepares lazily and reports the same diagnostic.
 		holder, _, err := tc.object()
 		check("Init", err)
 		if holder.Scope() != (heiry.Scope{}) {
 			t.Errorf("%s: the rejected holder received a scope", tc.name)
+		}
+		// A failed preparation is not cached, so each Init on one definition
+		// prepares again and reports the same diagnostic.
+		first, second := tc.initTwice()
+		check("first Init of one definition", first)
+		check("second Init of one definition", second)
+		if a, b := r1MissingNode(first), r1MissingNode(second); len(a) == 1 && len(b) == 1 && *a[0] != *b[0] {
+			t.Errorf("%s: the two Init calls of one definition report %+v and %+v", tc.name, *a[0], *b[0])
 		}
 	}
 }
