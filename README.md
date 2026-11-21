@@ -2,7 +2,15 @@
 
 heiry is a Go library for single inheritance with overridable methods. Ancestors are embedded by value in one object, implementations are registered explicitly, and virtual and parent calls are ordinary typed method calls.
 
-It is under development and has not been released. It needs the Go version declared in `go.mod`.
+It is released as `v0.x`: until `v1.0.0`, the API may still change between versions. The [changelog](CHANGELOG.md) lists each release. It needs the Go version declared in `go.mod`.
+
+## Installation
+
+```sh
+go get github.com/lucaf/heiry@latest
+```
+
+The optional generator, heirygen, is part of the same module; the [generation guide](docs/user/generation.md#installation-and-version) explains how to install and run it.
 
 ## Why
 
@@ -103,6 +111,7 @@ For users:
 - [Generating declarations with heirygen](docs/user/generation.md): the optional generator, its specification string, and its guards.
 - [Alternatives and future possibilities](docs/user/alternatives.md): comparison with a self interface, and possible future work.
 - [Examples](examples/README.md): runnable programs.
+- [Changelog](CHANGELOG.md): what each release contains.
 
 For contributors:
 

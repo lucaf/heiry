@@ -2,7 +2,7 @@
 
 This guide explains how to use heiry. It describes the implemented package; the [specification](../specification.md) remains the authority on required behavior, and the [examples](../../examples/README.md) are runnable programs for everything shown here.
 
-heiry is under development and has not been released. It needs the Go version declared in `go.mod`.
+heiry is released as `v0.x`: until `v1.0.0`, the API may still change between versions. The [changelog](../../CHANGELOG.md) lists each release. It needs the Go version declared in `go.mod`.
 
 ## What heiry does
 
