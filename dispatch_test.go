@@ -137,3 +137,33 @@ func assertDispatchPanic(t *testing.T, code Code, capability reflect.Type, level
 	}()
 	call()
 }
+
+// nodeBinding is one node provider at a level, as input to bindNodeLevels.
+// Tests supply pointers to the leaf's actual embedded subobjects.
+type nodeBinding struct {
+	node         *Node
+	provider     any
+	capabilities []reflect.Type
+}
+
+// bindNodeLevels creates one object's provider table and installs a fixed
+// scope in each embedded node. It trusts the caller's pointers and performs
+// none of the validation or ownership checks of Plan.Init.
+func bindNodeLevels(bindings []nodeBinding) *dispatch {
+	d := &dispatch{
+		known:  make(map[reflect.Type]struct{}),
+		levels: make([]map[reflect.Type]any, len(bindings)),
+	}
+	for level, binding := range bindings {
+		methods := make(map[reflect.Type]any, len(binding.capabilities))
+		for _, capability := range binding.capabilities {
+			d.known[capability] = struct{}{}
+			methods[capability] = binding.provider
+		}
+		d.levels[level] = methods
+	}
+	for level, binding := range bindings {
+		binding.node.scope = Scope{dispatch: d, level: level}
+	}
+	return d
+}

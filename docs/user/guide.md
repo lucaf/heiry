@@ -1,6 +1,6 @@
 # User guide
 
-This guide explains how to use heiry. It describes the implemented package; the [specification](../specification.md) remains the authority on required behavior, and the [examples](../../examples/README.md) are runnable programs for everything shown here.
+This guide explains how to use heiry. It describes the implemented package; the [specification](../specification.md) remains the authority on required behavior, and the [examples](../../examples/README.md) are runnable programs. Not every fragment shown here is taken from them.
 
 heiry is released as `v0.x`: until `v1.0.0`, the API may still change between versions. The [changelog](../../CHANGELOG.md) lists each release. It needs the Go version declared in `go.mod`.
 
@@ -13,7 +13,7 @@ Go embedding reuses fields and methods, but a method of an embedded type cannot 
 - Ancestors are embedded **by value**, so one allocated object holds all the state.
 - Calls stay ordinary typed Go method calls on an interface. There is no reflective invocation and no `unsafe`.
 
-Consider heiry when a hierarchy has several levels or several implementation providers per level, and you want explicit registration, validation of the whole hierarchy, and checked binding of every object. For a small hierarchy in one package, plain embedding or a hand-written self interface is usually simpler and faster; see [alternatives](alternatives.md).
+heiry becomes worth its cost when levels are assembled from several components that need parent calls, when the same provider types are reused at different levels or in different hierarchies, or when a project wants one uniform set of validation, diagnostics and object checks across many hierarchies. For a small hierarchy in one package, plain embedding or a hand-written self interface is usually simpler and faster; see [alternatives](alternatives.md).
 
 ## Running the examples
 
@@ -42,7 +42,7 @@ The [examples index](../../examples/README.md) says what each one shows.
 
 ## Structure of an object
 
-Each level embeds its parent as an anonymous **value** field and embeds its own `heiry.Node`:
+Each level embeds its parent as an anonymous **value** field and embeds its own `heiry.Node`. These are the three levels of the [basic example](../../examples/basic/main.go), without their methods and comments:
 
 ```go
 type base struct {
@@ -149,7 +149,7 @@ There are two ways to register, each with a form for the node and a form for a c
 
 With the individual forms the compiler checks that the witness type implements `Operation`.
 
-The grouped forms register several operations for one provider in a single call:
+The grouped forms register several operations for one provider in a single call. From the declaration in the [components example](../../examples/components/main.go), without the rest of the chain:
 
 ```go
 BindGroup((*store)(nil), "store", heiry.Of[Getter](), heiry.Of[Putter]())
@@ -171,7 +171,7 @@ type repository struct {
 }
 ```
 
-The registration path names the field that holds the component, relative to the level's node:
+The registration path names the field that holds the component, relative to the level's node. From the same declaration, without the rest of the chain:
 
 ```go
 Level[repository, Public, Private]("").
@@ -247,7 +247,7 @@ Both schedules use the same declaration and behave identically afterwards:
 
 ### Initializing an object
 
-Allocate the leaf with an ordinary constructor, then hand `Init` one reference per level node and one per registered component:
+Allocate the leaf with an ordinary constructor, then hand `Init` one reference per level node and one per registered component. From the [components example](../../examples/components/main.go):
 
 ```go
 func references(r *cachedRepository) []heiry.ProviderRef[cachedRepository] {
@@ -261,7 +261,13 @@ func references(r *cachedRepository) []heiry.ProviderRef[cachedRepository] {
 	}
 }
 
-err := hierarchy.Init(r, references(r)...)
+func NewRepository() (Repository, error) {
+	r := newObject()
+	if err := hierarchy.Init(r, references(r)...); err != nil {
+		return nil, err
+	}
+	return &wrapper{state: r}, nil
+}
 ```
 
 - A node reference is needed for every level, even one whose node registers nothing.
@@ -313,6 +319,7 @@ func (l *limited) Validate(msg string) error {
 	if len(msg) > l.maxLen {
 		return fmt.Errorf("message longer than %d bytes", l.maxLen)
 	}
+	// Parent call: the closest Validator below this level.
 	return l.Node.Parent[Validator]().Validate(msg)
 }
 ```

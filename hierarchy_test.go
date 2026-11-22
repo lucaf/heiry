@@ -245,3 +245,22 @@ func TestStage5StructuralDiagnosticContext(t *testing.T) {
 		t.Fatalf("registration-provider context = %+v", typed)
 	}
 }
+
+// bindValidatedNodes checks every address and holder before installing scopes.
+func bindValidatedNodes(v *validatedNodes, leaf any, providers []any) error {
+	return bindValidatedNodesWithOwners(v, leaf, providers, nil)
+}
+
+func bindValidatedNodesWithOwners(v *validatedNodes, leaf any, providers []any, owners map[reflect.Type]ownerRow) error {
+	if v == nil || len(v.levels) == 0 {
+		return &Error{Code: BindingMismatch}
+	}
+	if len(providers) != len(v.levels) {
+		return &Error{Code: BindingMismatch, Target: v.levels[len(v.levels)-1].typ}
+	}
+	bySlot := make([]map[string]any, len(providers))
+	for level, provider := range providers {
+		bySlot[level] = map[string]any{".": provider}
+	}
+	return bindValidatedProviders(v, leaf, bySlot, owners)
+}

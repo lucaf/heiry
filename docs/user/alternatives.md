@@ -27,8 +27,13 @@ func (b *selfBase) Render(item string) (string, error) {
 }
 
 func (f *selfFancy) Render(item string) (string, error) {
-	out, err := f.selfStrict.Render(item) // parent call through a selector
-	...
+	// Parent call through a selector. selfStrict declares no Render, so Go
+	// selects the one promoted from selfBase.
+	out, err := f.selfStrict.Render(item)
+	if err != nil {
+		return "", err
+	}
+	return "<" + out + ">", nil
 }
 ```
 

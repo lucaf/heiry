@@ -46,6 +46,8 @@ wrapper mailer
 `
 ```
 
+The [generated example](../../examples/generated/main.go) has these declarations, with comments. Its `go:generate` line uses `go run github.com/lucaf/heiry/cmd/heirygen`, the alternative given in [Installation and version](#installation-and-version).
+
 Run `go generate ./...`. heirygen writes `main.heirygen.go` next to the file that holds the specification. It contains `SendOp`, `FormatOp`, and `RecordOp`; the declaration `notifier`; the helpers `notifierRefs`, `notifierInit`, and `notifierInitPlan`; and the wrapper type `mailer`. Method bodies use the generated operation interfaces in their dispatch calls, for example `s.Node.Parent[FormatOp]().Format(text)`.
 
 A constructor allocates the object as usual and calls the helper:

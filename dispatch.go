@@ -32,37 +32,6 @@ type ownerRow struct {
 	slot []int
 }
 
-// nodeBinding is an internal stage-3 input for one node provider at a level.
-// Fixtures supply pointers to the leaf's actual embedded subobjects. Later
-// validation will establish those identities from declared paths.
-type nodeBinding struct {
-	node         *Node
-	provider     any
-	capabilities []reflect.Type
-}
-
-// bindNodeLevels creates one object's provider table and installs a fixed
-// scope in each embedded node. It is used only after the fixture has selected
-// its real subobjects; public initialization and ownership checks come later.
-func bindNodeLevels(bindings []nodeBinding) *dispatch {
-	d := &dispatch{
-		known:  make(map[reflect.Type]struct{}),
-		levels: make([]map[reflect.Type]any, len(bindings)),
-	}
-	for level, binding := range bindings {
-		methods := make(map[reflect.Type]any, len(binding.capabilities))
-		for _, capability := range binding.capabilities {
-			d.known[capability] = struct{}{}
-			methods[capability] = binding.provider
-		}
-		d.levels[level] = methods
-	}
-	for level, binding := range bindings {
-		binding.node.scope = Scope{dispatch: d, level: level}
-	}
-	return d
-}
-
 // Method returns the most-derived provider of T in the complete object.
 func Method[T any](scope Scope) T {
 	return resolve(scope, reflect.TypeFor[T](), false).(T)

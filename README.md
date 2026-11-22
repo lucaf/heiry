@@ -2,6 +2,8 @@
 
 heiry is a Go library for single inheritance with overridable methods. Ancestors are embedded by value in one object, implementations are registered explicitly, and virtual and parent calls are ordinary typed method calls.
 
+heiry is an exploratory project. It explores whether Go 1.27's generic methods can give typed, checked inheritance with virtual and parent calls, and at what cost. It promises no support, and no stability beyond the `v0.x` note below. Calling it exploratory describes its purpose, not the quality of its code.
+
 It is released as `v0.x`: until `v1.0.0`, the API may still change between versions. The [changelog](CHANGELOG.md) lists each release. It needs the Go version declared in `go.mod`.
 
 ## Installation
@@ -21,7 +23,33 @@ A method of an embedded Go type cannot reach an override declared by the type th
 - **Several providers per level:** a level's operations can come from components stored inside it.
 - **Checked setup:** the whole hierarchy is validated once, and every object is checked when it is initialized.
 
-For a small hierarchy in one package, plain embedding or a hand-written self interface is usually simpler and faster. [Alternatives](docs/user/alternatives.md) compares the approaches and says when each fits.
+Virtual and parent calls end in ordinary interface method calls. heiry uses no reflective invocation and no `unsafe`.
+
+## Who is this for
+
+heiry becomes worth its cost when levels are assembled from several components that need parent calls, when the same provider types are reused at different levels or in different hierarchies, or when a project wants one uniform set of validation, diagnostics and object checks across many hierarchies. For a small hierarchy in one package, plain embedding or a hand-written self interface is usually simpler and faster. [Alternatives](docs/user/alternatives.md#when-the-simpler-approach-is-better) says when each approach fits.
+
+The [comparison example](examples/comparison/withheiry.go) shows the simplest form of the first case: one component that makes a parent call. Its strict level stores a limit component, which rejects long items and passes the others to the check below its level:
+
+```go
+// hLimiter is a component of the strict level. Its scope records that level,
+// so the parent call needs no hand-wired link.
+type hLimiter struct {
+	heiry.Node
+	max      int
+	rejected int
+}
+
+func (l *hLimiter) Check(item string) error {
+	if len(item) > l.max {
+		l.rejected++
+		return errTooLong
+	}
+	return l.Node.Parent[Checking]().Check(item)
+}
+```
+
+The [self-interface version](examples/comparison/selfiface.go) of the same program needs a link wired by hand in its constructor, `f.limits.parent = &f.selfBase`, which is right only for this hierarchy. [Alternatives](docs/user/alternatives.md#virtual-and-parent-calls) explains the difference.
 
 ## Example
 
@@ -80,17 +108,7 @@ func Example() {
 }
 ```
 
-## Runnable examples
-
-```sh
-go run ./examples/basic
-go run ./examples/components
-go run ./examples/lifecycle
-go run ./examples/comparison
-go run ./examples/generated
-```
-
-The [examples index](examples/README.md) describes each program and what its output shows.
+The [examples index](examples/README.md) lists five runnable programs, with the command for each and what its output shows.
 
 ## Limitations
 
@@ -99,13 +117,11 @@ The [examples index](examples/README.md) describes each program and what its out
 - **Checks at preparation, not compilation:** hierarchy completeness is validated when a declaration is prepared.
 - **Trust in registrations:** heiry cannot tell a real override from a method merely inherited by promotion.
 - **Scope:** single inheritance through value embedding only. Deriving levels across packages is not supported.
-- **Generator platforms:** heirygen is supported on Linux (including WSL2 on the Linux file system) and macOS; native Windows is not supported or tested. The library and generated code are plain Go.
+- **Generator platforms:** heirygen is supported on Linux, including WSL2 on the Linux file system, and on macOS. Native Windows is not supported or tested. The library and generated code are plain Go.
 
 The [user guide](docs/user/guide.md) covers these in detail, and the [generation guide](docs/user/generation.md#installation-and-version) lists the generator's platforms.
 
 ## Documentation
-
-For users:
 
 - [User guide](docs/user/guide.md): concepts, declaration, lifecycle, dispatch, components, errors and limitations, with diagrams.
 - [Generating declarations with heirygen](docs/user/generation.md): the optional generator, its specification string, and its guards.
@@ -113,15 +129,6 @@ For users:
 - [Examples](examples/README.md): runnable programs.
 - [Changelog](CHANGELOG.md): what each release contains.
 
-For contributors:
-
-- [Specification](docs/specification.md): what the library must do.
-- [Architecture](docs/architecture.md): how it is designed.
-- [Testing](docs/testing.md): implementation milestones, tests and acceptance criteria.
-- [Roadmap](docs/roadmap.md): implementation status and verification evidence.
-- [Decisions](docs/decisions/): approved choices and design history.
-- [AGENTS.md](AGENTS.md): mandatory working rules for Codex.
-
 ## Development
 
-This project was conducted through Claude (Anthropic) and Codex (OpenAI).
+This project was conducted through Claude (Anthropic) and Codex (OpenAI). The way it was built is part of the exploration: see [How heiry was built](docs/development.md).
