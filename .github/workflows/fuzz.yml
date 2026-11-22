@@ -1,0 +1,28 @@
+name: Scheduled fuzzing
+on:
+  schedule:
+    # Every Monday at 03:17 UTC.
+    - cron: '17 3 * * 1'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  resolution:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.27.1'
+          check-latest: true
+          cache: false
+      - name: Resolution fuzzing, 10 minutes
+        run: go test . -run '^$' -fuzz '^FuzzResolution$' -fuzztime=10m -parallel=1
+      - name: Keep failing inputs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fuzz-failing-inputs
+          path: testdata/fuzz
+          if-no-files-found: ignore

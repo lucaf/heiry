@@ -60,6 +60,24 @@ jobs:
         run: go vet . ./examples/basic ./examples/components ./examples/lifecycle ./examples/comparison ./examples/generated ./cmd/heirygen/... ./cmd/heirygen/internal/generator/testdata/basic ./cmd/heirygen/internal/generator/testdata/components ./cmd/heirygen/internal/generator/testdata/matrix
       - name: Package tests
         run: go test . ./examples/basic ./examples/components ./examples/lifecycle ./examples/comparison ./examples/generated ./cmd/heirygen/... ./cmd/heirygen/internal/generator/testdata/basic ./cmd/heirygen/internal/generator/testdata/components ./cmd/heirygen/internal/generator/testdata/matrix
+      - name: Coverage
+        # Reported once: coverage does not depend on the configuration, and the
+        # generator's tests take over a minute.
+        if: matrix.os == 'ubuntu-latest' && matrix.go == '1.27.1'
+        run: |
+          go test -count=1 -coverprofile="$RUNNER_TEMP/root.cover" .
+          go test -count=1 -coverprofile="$RUNNER_TEMP/generator.cover" ./cmd/heirygen/...
+          root="$(go tool cover -func="$RUNNER_TEMP/root.cover" | tail -n 1 | awk '{print $NF}')"
+          generator="$(go tool cover -func="$RUNNER_TEMP/generator.cover" | tail -n 1 | awk '{print $NF}')"
+          echo "Statement coverage: root package $root, ./cmd/heirygen/... $generator"
+          {
+            echo "### Statement coverage"
+            echo ""
+            echo "| Packages | Coverage |"
+            echo "| --- | --- |"
+            echo "| Root package | $root |"
+            echo "| \`./cmd/heirygen/...\` | $generator |"
+          } >> "$GITHUB_STEP_SUMMARY"
       - name: Race tests
         run: |
           go test -race . ./examples/basic ./examples/components ./examples/lifecycle ./examples/comparison ./examples/generated ./cmd/heirygen/internal/generator/testdata/basic ./cmd/heirygen/internal/generator/testdata/components ./cmd/heirygen/internal/generator/testdata/matrix
