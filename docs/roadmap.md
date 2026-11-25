@@ -612,12 +612,12 @@ Code existence, documentation alone, empty package runs, and tests of a separate
 
 ## V4. Fourth release (`v0.3.0`)
 
-- **Status:** In progress — the release preparation is uncommitted in the working tree on `main`. Completion needs the owner's commit, the `v0.3.0` tag on that commit, and a CI run on it green.
+- **Status:** Completed — committed by the owner as `0247019`, which is on main and carries the `v0.3.0` tag, and the CI runs on that commit are green.
 - **Objective:** Publish `v0.3.0`. The middle number goes up because the release removes `BindNode`, `BindNodeGroup`, and the level-handle forwarders, which breaks code that uses them; the [changelog](../CHANGELOG.md) says how to migrate.
 - **Scope and authorization:** On 2026-11-26 the owner authorized the `v0.3.0` release at `cc4112b`: the changelog's "Unreleased" section becomes `v0.3.0`, the [alias-removal entry](#remove-the-aliases) is closed with its CI run, and this entry records the release.
 - **Changes:** The changelog's "Unreleased" heading becomes `v0.3.0 — 2026-11-26`, with its entries unchanged and no new "Unreleased" section. The alias-removal entry above is Completed on the green CI run on `289f382`.
 - **Verification:** A documentation-only change, checked as AGENTS.md requires: the documentation checker, its tests, and `git diff --check` pass.
-- **CI status and evidence:** Not yet run for V4. The owner commits, tags, and pushes; record the run here with its commit.
+- **CI status and evidence:** Green: the "Project checks" runs 45720381690, for the push to main, and 45720381371, for the `v0.3.0` tag, both on commit `0247019`, completed with success on 2026-11-25, as read with `gh run view`.
 
 ## Deferred investigations
 
