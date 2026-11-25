@@ -61,6 +61,14 @@ func TestR1ErrorMessageContext(t *testing.T) {
 		(*heiry.Node)(nil).Virtual[r1Read]()
 		return nil
 	}
+	// A declaration call after preparation says why it was refused.
+	late := func() error {
+		d := r1RootDefinition()
+		d.MustPrepare()
+		d.Extend[r1DirectRootLeaf]()
+		x := &r1DirectRootLeaf{}
+		return d.Init(x, d.NodeProvider(&x.r1DirectRoot), d.NodeProvider(x))
+	}
 	for _, tc := range []struct {
 		name string
 		err  *heiry.Error
@@ -80,6 +88,8 @@ func TestR1ErrorMessageContext(t *testing.T) {
 		// target's, so it carries no note.
 		{"missing method at dispatch", &heiry.Error{Code: heiry.MissingMethods, Capability: reflect.TypeFor[r1Read](), Level: 2},
 			`MissingMethods: level 2, capability heiry_test.r1Read`},
+		{"declaration after preparation", r1Diagnostic(t, late()),
+			`InvalidDeclaration: target heiry_test.r1DirectRootLeaf, level 2, actual heiry_test.r1DirectRootLeaf, cause: the Definition was already prepared and no longer accepts changes`},
 		{"uninitialized scope", r1Diagnostic(t, uninitialized()),
 			`Uninitialized: capability heiry_test.r1Read`},
 		// An unset scope has no level, even in an error a caller builds.
@@ -97,6 +107,67 @@ func TestR1ErrorMessageContext(t *testing.T) {
 		}
 		if strings.ContainsAny(got, "\r\n") || got != tc.err.Error() {
 			t.Errorf("%s: message is not one deterministic line: %q", tc.name, got)
+		}
+	}
+}
+
+// Every declaration call refused because the Definition is prepared names
+// that reason in its message. The other sticky InvalidDeclaration errors,
+// an extension with no level before it and an empty group, name their own.
+func TestStickyDeclarationErrorsNameTheirReason(t *testing.T) {
+	const reason = "already prepared"
+	d := heiry.Define[r1DirectRootLeaf]()
+	root := d.Level[r1DirectRoot, r1Read, r1Empty]("").BindNode[r1Read]((*r1DirectRoot)(nil))
+	root.Extend[r1DirectRootLeaf]()
+	plan := d.MustPrepare()
+	root.Bind[r1Read]((*r1DirectRoot)(nil), ".")
+	root.BindNode[r1Read]((*r1DirectRoot)(nil))
+	root.BindGroup((*r1DirectRoot)(nil), ".", heiry.Of[r1Read]())
+	root.BindNodeGroup((*r1DirectRoot)(nil), heiry.Of[r1Read]())
+	d.Level[r1DirectRootLeaf, r1Read, r1Empty]("r1DirectRoot")
+	d.Extend[r1DirectRootLeaf]()
+	d.ExtendWith[r1DirectRootLeaf, r1Read, r1Empty]()
+	err := d.Validate()
+	if !errors.Is(err, &heiry.Error{Code: heiry.InvalidDeclaration}) {
+		t.Fatalf("Validate = %v, want InvalidDeclaration", err)
+	}
+	joined, ok := err.(interface{ Unwrap() []error })
+	if !ok || len(joined.Unwrap()) != 7 {
+		t.Fatalf("Validate = %v, want the 7 refused calls", err)
+	}
+	for _, item := range joined.Unwrap() {
+		diagnostic := r1Diagnostic(t, item)
+		if diagnostic.Code != heiry.InvalidDeclaration || !strings.Contains(diagnostic.Error(), reason) {
+			t.Errorf("refused call after preparation: %v, want InvalidDeclaration naming %q", diagnostic, reason)
+		}
+	}
+	x := &r1DirectRootLeaf{}
+	if err := plan.Init(x, plan.NodeProvider(&x.r1DirectRoot), plan.NodeProvider(x)); err != nil {
+		t.Fatalf("the earlier Plan stopped working: %v", err)
+	}
+
+	// The other sticky InvalidDeclaration errors name their own reasons.
+	first := heiry.Define[r1DirectRootLeaf]()
+	first.Extend[r1DirectRootLeaf]()
+	firstWith := heiry.Define[r1DirectRootLeaf]()
+	firstWith.ExtendWith[r1DirectRootLeaf, r1Read, r1Empty]()
+	empty := heiry.Define[r1DirectRootLeaf]()
+	empty.Level[r1DirectRootLeaf, r1Read, r1Empty]("").BindNodeGroup((*r1DirectRootLeaf)(nil))
+	emptyPath := heiry.Define[r1DirectRootLeaf]()
+	emptyPath.Level[r1DirectRootLeaf, r1Read, r1Empty]("").BindGroup((*r1DirectRootLeaf)(nil), ".")
+	for _, tc := range []struct {
+		name string
+		err  error
+		want string
+	}{
+		{"Extend first", first.Validate(), "cause: the Definition has no level to extend: declare the root with Level"},
+		{"ExtendWith first", firstWith.Validate(), "cause: the Definition has no level to extend: declare the root with Level"},
+		{"empty BindNodeGroup", empty.Validate(), "cause: the group names no operation: pass at least one Of token"},
+		{"empty BindGroup", emptyPath.Validate(), "cause: the group names no operation: pass at least one Of token"},
+	} {
+		var diagnostic *heiry.Error
+		if !errors.As(tc.err, &diagnostic) || diagnostic.Code != heiry.InvalidDeclaration || !strings.Contains(diagnostic.Error(), tc.want) || strings.Contains(tc.err.Error(), reason) {
+			t.Errorf("%s: %v, want InvalidDeclaration naming %q and not %q", tc.name, tc.err, tc.want, reason)
 		}
 	}
 }

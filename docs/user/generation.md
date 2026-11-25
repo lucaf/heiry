@@ -149,7 +149,7 @@ For a hierarchy `H` with leaf type `L`:
 | prefix + method + suffix | One operation interface per contract method, unless an `existing` line names it. |
 | the `wrapper` type | The public wrapper struct and its forwarders. You can add your own methods to it in your own files. |
 
-The generator refuses a generated name that your package already declares, and refuses helper names that `go test` would read as tests when the specification is in a test file. Names it introduces inside functions, such as parameters, are chosen so they never hide a name you use.
+The generator refuses a generated name that your package already declares, and refuses helper names that `go test` would read as tests when the specification is in a test file. It also refuses three kinds of generated name. `init` is reserved for init functions, and a hierarchy named `_` could not be referred to by its helpers. A predeclared identifier, such as `error` or `len`, is one Go lets a package redeclare, but the redeclaration could hide the meaning that generated or handwritten code relies on, so heirygen refuses it. A name that an import binds in any file of the package, including its test files of the same package clause, such as `fmt` for `import "fmt"`, clashes with that import. heirygen reads an unnamed import's name from its path: the last element, or the element before a major version such as `v2`, so `rand` for `import "math/rand/v2"`. When a package's name differs from that element, a generated name equal to the element is refused although the import does not bind it. These clashes are not detected, and the build reports them: with such a package's actual name, with an import such as `gopkg.in/yaml.v3`, whose path gives no name, and with a name that a dot import provides. Names it introduces inside functions, such as parameters, are chosen so they never hide a name you use.
 
 ## Initialization helpers
 
@@ -187,7 +187,7 @@ go tool heirygen -check ./internal/shapes
 
 | Exit status | Meaning |
 | --- | --- |
-| 0 | Success; with `-check`, everything is up to date |
+| 0 | Success; with `-check`, everything is up to date; with `-h`, the usage was printed |
 | 1 | `-check` found outputs that are not up to date |
 | 2 | Usage error |
 | 3 | Generation or checking failed; the message says why and where |
@@ -240,6 +240,7 @@ Supported: several hierarchies in one package, several definitions over one leaf
 Refused with a diagnostic:
 
 - A contract that embeds an interface of another package, or is an alias of one. Write its methods in your contract, and add an `existing` line if that interface identifies the operation.
+- A contract that embeds a predeclared identifier that your package does not declare, such as `error`. Write `Error() string` in your contract instead of embedding `error`, and remove any other predeclared identifier.
 - Generic contracts, methods with type parameters, and type-set elements.
 - A contract declared more than once in the directory, for example once per platform. heirygen reads every file of the directory regardless of build constraints.
 - A contract that embeds an operation interface generated from it.
@@ -295,7 +296,8 @@ heirygen checks only the unqualified names of a signature it copies into a guard
 | `undefined: XOp` in a generated file of an untagged or non-test file | The operations line that generates `XOp` is in a test file or a tagged file that this build leaves out. Move it to a file every such build includes. |
 | `has the name of a heirygen output but does not start with its marker` | A file with an output name was not written by heirygen, or its marker was changed. Rename it, or remove it if it is a stale copy. |
 | `starts with a heirygen marker but is not named as the output of ...` | A generated file was renamed or copied. Remove it and regenerate. |
-| `... would generate X, which ... already declares` | A generated name collides with one of yours. Rename the hierarchy, the wrapper, or the operation prefix or suffix. |
+| `... would generate X, which ... already declares` | A generated name collides with one of yours, or with an import name when the message names an import. Rename the hierarchy, the wrapper, or the operation prefix or suffix. |
+| `... would generate init, which Go reserves for init functions` or `... which would hide the predeclared X` | heirygen refuses that name: `init` names only init functions, and a predeclared identifier is refused so that it keeps its meaning in generated and handwritten code. Rename the hierarchy, the wrapper, or the operation prefix or suffix. |
 | `"// heiry:spec" is not a marker` | Write `//heiry:spec` without a space. |
 
 Positions in heirygen's messages point at the file line of the offending specification line when the constant is a raw string literal.

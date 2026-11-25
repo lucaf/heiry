@@ -1,6 +1,8 @@
 package generator
 
 import (
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -157,5 +159,70 @@ func TestGeneratedNamesAcrossFiles(t *testing.T) {
 	exit, message := gen(dir)
 	if exit != 1 || !strings.Contains(message, "imports a package as text") || !strings.Contains(message, "other.go") {
 		t.Fatalf("import name collision: exit %d:\n%s", exit, message)
+	}
+}
+
+// heirygen refuses a generated package-level name that is init, which Go
+// reserves for init functions; a hierarchy named _, which its helpers could
+// not refer to; a predeclared identifier, which Go lets a package redeclare,
+// but whose meaning the generated or the handwritten code may rely on; or the
+// name of an import of a file of the package clause, which shares its block
+// with the package. Each is refused at its position before anything is
+// written.
+func TestRefusedGeneratedNames(t *testing.T) {
+	base := holderSource("heiry.Node", "Aux", "wrapper view", "(&view{state: n})")
+	for _, tc := range []struct {
+		name, old, new string
+		other          map[string]string
+		want           []string
+	}{
+		{"hierarchy init", "hierarchy records", "hierarchy init", nil, []string{"main.go:", "would generate init, which Go reserves for init functions"}},
+		{"wrapper init", "wrapper view", "wrapper init", nil, []string{"main.go:", "would generate init, which Go reserves for init functions"}},
+		{"hierarchy _", "hierarchy records", "hierarchy _", nil, []string{"main.go:", "hierarchy _ must be named"}},
+		{"hierarchy error", "hierarchy records", "hierarchy error", nil, []string{"main.go:", "would generate error, which would hide the predeclared error"}},
+		{"hierarchy len", "hierarchy records", "hierarchy len", nil, []string{"main.go:", "would generate len, which would hide the predeclared len"}},
+		{"wrapper error", "wrapper view", "wrapper error", nil, []string{"main.go:", "would generate error, which would hide the predeclared error"}},
+		{"hierarchy fmt", "hierarchy records", "hierarchy fmt", nil, []string{"main.go:", "would generate fmt, which ", `main.go:5:2: import "fmt" already declares in its file`}},
+		{"hierarchy heiry", "hierarchy records", "hierarchy heiry", nil, []string{"main.go:", "would generate heiry, which ", `main.go:7:2: import "github.com/lucaf/heiry" already declares in its file`}},
+		{"wrapper errors", "wrapper view", "wrapper errors", nil, []string{"main.go:", "would generate errors, which ", `main.go:4:2: import "errors" already declares in its file`}},
+		{"operation named as an import of another file", "", "", map[string]string{"other.go": "package main\n\nimport ReadOp \"strings\"\n\nvar _ = ReadOp.ToUpper\n"},
+			[]string{"main.go:", "would generate ReadOp, which ", `other.go:3:8: import ReadOp "strings" already declares in its file`}},
+		{"major version import", "hierarchy records", "hierarchy rand", map[string]string{"other.go": "package main\n\nimport \"math/rand/v2\"\n\nvar _ = rand.N[int]\n"},
+			[]string{"main.go:", "would generate rand, which ", `other.go:3:8: import "math/rand/v2" already declares in its file`}},
+		{"import of a test file", "hierarchy records", "hierarchy testing", map[string]string{"main_test.go": "package main\n\nimport \"testing\"\n\nfunc TestX(t *testing.T) {}\n"},
+			[]string{"main.go:", "would generate testing, which ", `main_test.go:3:8: import "testing" already declares in its file`}},
+	} {
+		files := map[string]string{"main.go": strings.Replace(base, tc.old, tc.new, 1)}
+		for name, content := range tc.other {
+			files[name] = content
+		}
+		dir := sourceDir(t, files)
+		exit, message := gen(dir)
+		if exit != 1 {
+			t.Errorf("%s: exit %d, want a refusal:\n%s", tc.name, exit, message)
+			continue
+		}
+		for _, want := range tc.want {
+			if !strings.Contains(message, want) {
+				t.Errorf("%s: want a message containing %q:\n%s", tc.name, want, message)
+			}
+		}
+		if _, err := os.Stat(filepath.Join(dir, "main.heirygen.go")); !os.IsNotExist(err) {
+			t.Errorf("%s: an output was written: %v", tc.name, err)
+		}
+	}
+
+	// A blank import declares no name, and the external test package has a
+	// block of its own, so both leave the name free.
+	for _, tc := range []struct{ name, hierarchy, file, content string }{
+		{"blank import", "embed", "other.go", "package main\n\nimport _ \"embed\"\n"},
+		{"external test package", "strings", "main_ext_test.go", "package main_test\n\nimport (\n\t\"strings\"\n\t\"testing\"\n)\n\nfunc TestX(t *testing.T) { _ = strings.ToUpper }\n"},
+	} {
+		dir := tempModule(t, map[string]string{"main.go": strings.ReplaceAll(base, "records", tc.hierarchy), tc.file: tc.content})
+		mustGen(t, dir)
+		mustBuild(t, dir)
+		if got := mustRun(t, dir); got != "read" {
+			t.Errorf("%s: output = %q, want read", tc.name, got)
+		}
 	}
 }

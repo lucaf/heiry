@@ -64,6 +64,9 @@ type pkgInfo struct {
 	// generated name is listed under the source file whose output has it.
 	declaredIn map[string][]string
 	builds     map[string]fileBuild // file name -> the builds that compile it
+	// imported maps each name that an import of a file binds to the first
+	// such import, which a package-level name cannot also declare.
+	imported map[string]fileImport
 }
 
 // A fileBuild describes the builds that compile a file, in the terms the
@@ -134,6 +137,15 @@ func expected(dir string, files []string, contents map[string][]byte) (map[strin
 				}
 				if where, exists := claimed[source.pkg][name]; exists {
 					return nil, errorAt(s.pos, "%s would generate %s, which the specification at %s already generates", s.constName, name, where)
+				}
+				// The package block cannot declare these either.
+				switch imported, exists := packages[source.pkg].imported[name]; {
+				case name == "init":
+					return nil, errorAt(s.pos, "%s would generate init, which Go reserves for init functions", s.constName)
+				case predeclared[name]:
+					return nil, errorAt(s.pos, "%s would generate %s, which would hide the predeclared %s", s.constName, name, name)
+				case exists:
+					return nil, errorAt(s.pos, "%s would generate %s, which %s already declares in its file", s.constName, name, imported.binding())
 				}
 				claimed[source.pkg][name] = s.pos.String()
 				packages[source.pkg].declaredIn[name] = append(packages[source.pkg].declaredIn[name], source.name)
@@ -545,6 +557,7 @@ func loadSources(dir string, files []string, contents map[string][]byte) ([]*sou
 				index:      &packageIndex{fset: fset, types: make(map[string][]*typeDecl)},
 				declaredIn: make(map[string][]string),
 				builds:     make(map[string]fileBuild),
+				imported:   make(map[string]fileImport),
 			}
 		}
 		info := packages[pkg]
@@ -565,6 +578,11 @@ func loadSources(dir string, files []string, contents map[string][]byte) ([]*sou
 				entry.name = imported.Name.Name
 			}
 			fileData.imports = append(fileData.imports, entry)
+			if bound := entry.boundName(); bound != "" {
+				if _, exists := info.imported[bound]; !exists {
+					info.imported[bound] = entry
+				}
+			}
 		}
 		constraintLine, err := buildConstraint(contents[name], file)
 		if err != nil {

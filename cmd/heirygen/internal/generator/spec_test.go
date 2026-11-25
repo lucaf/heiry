@@ -84,6 +84,8 @@ func TestUnsupportedContracts(t *testing.T) {
 		{"type-set element", "type Public interface{ ~int | string }\ntype Private interface{}\n", "contract Public has the element ~int | string"},
 		{"alias of an imported interface", "import \"io\"\n\ntype Public = io.Reader\ntype Private interface{}\n", "Public is declared as io.Reader"},
 		{"embedded imported interface", "import \"io\"\n\ntype Public interface{ io.Reader }\ntype Private interface{}\n", "contract Public embeds io.Reader, whose methods cannot be read from this package"},
+		{"embedded predeclared error", "type Public interface{ error }\ntype Private interface{}\n", "main.go:3:24: contract Public embeds the predeclared interface error, whose method the generator does not read; write it out in Public: Error() string"},
+		{"embedded predeclared any", "type Public interface{ any }\ntype Private interface{}\n", "main.go:3:24: contract Public embeds the predeclared any, which the generator does not read as a contract; remove it from Public"},
 		{"self-embedding", "type Public interface{ Private }\ntype Private interface{ Public }\n", "embeds itself"},
 		{"method with type parameters", "type Public interface{ Get[T any]() T }\ntype Private interface{}\n", ""},
 		{"import name not in its path", "import yaml \"gopkg.in/yaml.v3\"\n\nvar _ yaml.Node\n\ntype Public interface{ Decode(n *yaml.Node) error }\ntype Private interface{}\n", ""},

@@ -11,13 +11,15 @@
 // writes one generated file next to each file that holds a specification.
 // With -check it writes nothing and reports outputs that are not up to date.
 //
-// Exit status: 0 on success, 1 when -check finds outputs that are not up to
-// date, 2 for a usage error, and 3 when generation or checking fails.
+// Exit status: 0 on success, also when -h prints the usage, 1 when -check
+// finds outputs that are not up to date, 2 for a usage error, and 3 when
+// generation or checking fails.
 //
 // See docs/user/generation.md in the heiry repository.
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -51,6 +53,10 @@ func run(args []string, stdout, stderr io.Writer) int {
 	verbose := flags.Bool("v", false, "list the files written or removed")
 	showVersion := flags.Bool("version", false, "print the module and version the command was built from")
 	if err := flags.Parse(args); err != nil {
+		// Parse has printed the usage. Asking for it is not a usage error.
+		if errors.Is(err, flag.ErrHelp) {
+			return exitOK
+		}
 		return exitUsage
 	}
 	if *showVersion {

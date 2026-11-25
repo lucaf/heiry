@@ -128,7 +128,7 @@ Level[limited, Public, Private]("base")
 
 The name is the field's declared name: the parent's type name, or the alias name when the parent is embedded through a type alias. `Level` with a name is always available, also when inference would work.
 
-`Extend` and `ExtendWith` need a level before them. Called first on a Definition, they add nothing and record an `InvalidDeclaration` error that the Definition then reports.
+`Extend` and `ExtendWith` need a level before them. Called first on a Definition, they add nothing and record an `InvalidDeclaration` error, whose message says that there is no level to extend, and which the Definition then reports.
 
 Registration is always explicit. A level that lists nothing for an operation inherits it. heiry never infers an override from a type's method set.
 
@@ -237,7 +237,7 @@ Arrows from objects point to the Plan they use. No arrow leaves a Plan toward an
 
 - `Validate()` checks the current Definition and returns every problem it can establish, without freezing anything.
 - `Prepare()` validates and returns the Plan. Calling it again returns the same Plan without repeating the work.
-- Preparation freezes the Definition. A later declaration call changes nothing and records an `InvalidDeclaration` error that the Definition then reports from `Validate`, `Prepare` and `Init`. A Plan obtained earlier keeps working.
+- Preparation freezes the Definition. A later declaration call changes nothing and records an `InvalidDeclaration` error, whose message says that the Definition was already prepared, and which the Definition then reports from `Validate`, `Prepare` and `Init`. A refused `Level`, `Extend` or `ExtendWith` returns an inert handle, and calls on that handle record nothing more. A Plan obtained earlier keeps working.
 - A failed preparation publishes no Plan and leaves the Definition editable; the next call validates it again. Errors recorded by a malformed declaration call stay with that Definition.
 
 ### Eager and lazy preparation

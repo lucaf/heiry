@@ -45,6 +45,9 @@ func TestExitStatuses(t *testing.T) {
 		{"no such directory", nil, func(d string) []string { return []string{filepath.Join(d, "absent")} }, 3, "heirygen: "},
 		{"two directories", nil, func(d string) []string { return []string{d, d} }, 2, "usage: heirygen"},
 		{"unknown flag", nil, func(d string) []string { return []string{"-x", d} }, 2, "flag provided but not defined"},
+		// Asking for help is not a usage error.
+		{"help", nil, func(d string) []string { return []string{"-h"} }, 0, "usage: heirygen"},
+		{"help, long form", nil, func(d string) []string { return []string{"-help", d} }, 0, "usage: heirygen"},
 		{"comment specifications are not a mode", nil, func(d string) []string { return []string{"-comments", d} }, 2, "flag provided but not defined: -comments"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

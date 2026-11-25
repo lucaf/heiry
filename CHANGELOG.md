@@ -2,6 +2,13 @@
 
 This file lists what each release of heiry contains. Versions follow [semantic versioning](https://semver.org/); before `v1.0.0`, any release may change the API.
 
+## Unreleased
+
+- **heirygen refuses more generated names:** `init`, a hierarchy named `_`, any predeclared identifier such as `error` or `len`, and a name that an import binds in a file of the package, including its test files of the same package clause. All were generated before. `init`, `_`, an import's name, and a predeclared name that generated or handwritten code uses then failed `go build`, sometimes with errors in handwritten files; a predeclared name that no code uses compiled, and is now refused as a precaution. An unnamed import's name is read from its path, so a package whose name differs from its path can still clash, as can a name that a dot import provides; the build reports those. A name equal to the path's element is refused although the import does not bind it.
+- **`heirygen -h` exits 0:** it printed the usage and exited 2, as for a usage error.
+- **A contract that embeds a predeclared identifier gets its own message:** for `error`, it says to write `Error() string` in the contract; it said that the contract `error` is not declared in the package.
+- **Sticky `InvalidDeclaration` errors say why:** a declaration call after preparation, an `Extend` or `ExtendWith` with no level before it, and a group with no operation each carry a cause that the message ends with, such as `cause: the Definition was already prepared and no longer accepts changes`. The code and the other fields are unchanged.
+
 ## v0.2.0 — 2026-11-25
 
 - **heirygen checks parent fields and component paths:** every generated file whose hierarchy has a level after the root, or a component, gains compile-time probes. The build fails when a level's parent field, or the first field of a component's path, is reached only through another embedded struct, for example because the specification leaves out a level. Regenerate them: until then, `heirygen -check` reports each of them that `v0.1.0` wrote as out of date, although it still compiles.

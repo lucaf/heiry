@@ -46,6 +46,39 @@ type fileImport struct {
 	pos  token.Position
 }
 
+// boundName returns the name the import binds in its file: its explicit
+// name, or else the last element of its path, or the element before a
+// major-version element such as v2. It is "" for a blank or dot import, and
+// for a path whose package name cannot be read from it.
+func (i fileImport) boundName() string {
+	switch i.name {
+	case "_", ".":
+		return ""
+	case "":
+	default:
+		return i.name
+	}
+	elements := strings.Split(i.path, "/")
+	last := elements[len(elements)-1]
+	if len(elements) > 1 && majorVersion(last) {
+		last = elements[len(elements)-2]
+	}
+	if !token.IsIdentifier(last) {
+		return ""
+	}
+	return last
+}
+
+// majorVersion reports whether a path element is a major-version suffix of a
+// module path, v2 or later.
+func majorVersion(element string) bool {
+	digits, found := strings.CutPrefix(element, "v")
+	if !found || digits == "" || digits == "1" || digits[0] == '0' {
+		return false
+	}
+	return strings.Trim(digits, "0123456789") == ""
+}
+
 // binding describes the import as its file declares it, with its position.
 func (i fileImport) binding() string {
 	if i.name == "" {
@@ -155,6 +188,14 @@ func (ix *packageIndex) collect(name string, use token.Position, visiting map[st
 			case !isMethod && len(field.Names) == 0:
 				switch embedded := field.Type.(type) {
 				case *ast.Ident:
+					// A predeclared name that the package does not declare
+					// is not a contract of the package.
+					if len(ix.types[embedded.Name]) == 0 && predeclared[embedded.Name] {
+						if embedded.Name == "error" {
+							return errorAt(ix.fset.Position(field.Pos()), "contract %s embeds the predeclared interface error, whose method the generator does not read; write it out in %s: Error() string", name, name)
+						}
+						return errorAt(ix.fset.Position(field.Pos()), "contract %s embeds the predeclared %s, which the generator does not read as a contract; remove it from %s", name, embedded.Name, name)
+					}
 					if err := ix.collect(embedded.Name, ix.fset.Position(field.Pos()), visiting, methods, index); err != nil {
 						return err
 					}

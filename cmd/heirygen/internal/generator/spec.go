@@ -414,6 +414,9 @@ func parseSpec(s *spec) error {
 			if len(args) < 2 || !token.IsIdentifier(args[0]) || strings.Contains(args[1], "=") {
 				return fail(number, "want: hierarchy <Name> <LeafType> [from=<Name>] [omit=InitPlan]")
 			}
+			if args[0] == "_" {
+				return fail(number, "hierarchy _ must be named: the generated declaration and its helpers are named after it")
+			}
 			values, err := options(number, "hierarchy", args[2:], "from", "omit")
 			if err != nil {
 				return err

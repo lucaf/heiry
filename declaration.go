@@ -35,6 +35,15 @@ type declaredBinding struct {
 	providerPath string
 }
 
+// The causes of the sticky InvalidDeclaration errors: a declaration call
+// after preparation has frozen the definition, an extension with no level
+// before it, and a group with no operation.
+var (
+	errPrepared     = errors.New("the Definition was already prepared and no longer accepts changes")
+	errNoLevel      = errors.New("the Definition has no level to extend: declare the root with Level")
+	errNoOperations = errors.New("the group names no operation: pass at least one Of token")
+)
+
 // OperationToken identifies one explicitly selected capability without a receiver.
 type OperationToken struct{ capability reflect.Type }
 
@@ -59,7 +68,7 @@ func (d *Definition[Leaf]) Level[Node, Public, Private any](parentField string) 
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	if d.plan != nil {
-		d.recorded = append(d.recorded, &Error{Code: InvalidDeclaration, Target: reflect.TypeFor[Leaf](), Level: len(d.levels), Path: parentField})
+		d.recorded = append(d.recorded, &Error{Code: InvalidDeclaration, Target: reflect.TypeFor[Leaf](), Level: len(d.levels), Path: parentField, Cause: errPrepared})
 		return &LevelHandle[Leaf]{definition: d, rejected: true}
 	}
 	level := &declaredLevel{
@@ -89,7 +98,11 @@ func (d *Definition[Leaf]) extend(node, public, private reflect.Type) *LevelHand
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	if d.plan != nil || len(d.levels) == 0 {
-		d.recorded = append(d.recorded, &Error{Code: InvalidDeclaration, Target: reflect.TypeFor[Leaf](), Level: len(d.levels), Actual: node})
+		refused := &Error{Code: InvalidDeclaration, Target: reflect.TypeFor[Leaf](), Level: len(d.levels), Actual: node, Cause: errNoLevel}
+		if d.plan != nil {
+			refused.Cause = errPrepared
+		}
+		d.recorded = append(d.recorded, refused)
 		return &LevelHandle[Leaf]{definition: d, rejected: true}
 	}
 	level := &declaredLevel{typ: node, public: public, private: private, inferParent: true, index: len(d.levels)}
@@ -159,7 +172,7 @@ func (l *LevelHandle[Leaf]) Bind[Operation any](provider Operation, providerPath
 	l.definition.mu.Lock()
 	defer l.definition.mu.Unlock()
 	if l.definition.plan != nil {
-		l.definition.recorded = append(l.definition.recorded, &Error{Code: InvalidDeclaration, Target: reflect.TypeFor[Leaf](), Level: l.level.index, Path: providerPath, Capability: reflect.TypeFor[Operation]()})
+		l.definition.recorded = append(l.definition.recorded, &Error{Code: InvalidDeclaration, Target: reflect.TypeFor[Leaf](), Level: l.level.index, Path: providerPath, Capability: reflect.TypeFor[Operation](), Cause: errPrepared})
 		return l
 	}
 	capability := reflect.TypeFor[Operation]()
@@ -200,12 +213,12 @@ func (l *LevelHandle[Leaf]) BindGroup[Provider any](provider *Provider, provider
 	target := reflect.TypeFor[Leaf]()
 	level := l.level.index
 	if l.definition.plan != nil {
-		l.definition.recorded = append(l.definition.recorded, &Error{Code: InvalidDeclaration, Target: target, Level: level, Path: providerPath})
+		l.definition.recorded = append(l.definition.recorded, &Error{Code: InvalidDeclaration, Target: target, Level: level, Path: providerPath, Cause: errPrepared})
 		return l
 	}
 	var invalid []error
 	if len(operations) == 0 {
-		invalid = append(invalid, &Error{Code: InvalidDeclaration, Target: target, Level: level, Path: providerPath})
+		invalid = append(invalid, &Error{Code: InvalidDeclaration, Target: target, Level: level, Path: providerPath, Cause: errNoOperations})
 	}
 	providerType := reflect.TypeOf(provider)
 	if provider != nil || !validProviderPath(providerPath) {
