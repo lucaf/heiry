@@ -108,6 +108,38 @@ func hierarchyInitPlan(plan *heiry.Plan[tagged], leaf *tagged) error {
 	return plan.Init(leaf, hierarchyRefs(leaf)...)
 }
 
+// Each probe below compiles only while a struct declares a field itself, as
+// the library requires: a level's parent field, and the first field of each
+// component's path. If a selector below is ambiguous or has another type,
+// that field is gone, has another type, or is reached only through another
+// embedded struct; for a parent field, a level between the two is then
+// missing from hierarchySpec. Regenerating writes the same probes, so first correct
+// the levels or paths of hierarchySpec, or the struct; then run go generate.
+
+// limited declares its parent field base, of type base.
+func _() {
+	type subject = limited
+	type decoy struct{ base struct{} }
+	type deeper struct{ decoy }
+	var probe struct {
+		*subject
+		deeper
+	}
+	var _ *base = &probe.base
+}
+
+// tagged declares its parent field limited, of type limited.
+func _() {
+	type subject = tagged
+	type decoy struct{ limited struct{} }
+	type deeper struct{ decoy }
+	var probe struct {
+		*subject
+		deeper
+	}
+	var _ *limited = &probe.limited
+}
+
 // pipeline is the public wrapper of hierarchy. It holds the object in a named field,
 // so nothing is promoted onto it, and forwards every operation of Public
 // through a virtual call.

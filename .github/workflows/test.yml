@@ -45,7 +45,7 @@ jobs:
           done
       - name: Discover generator packages and fixtures
         run: |
-          for package in ./cmd/heirygen ./cmd/heirygen/internal/generator ./cmd/heirygen/internal/generator/testdata/basic ./cmd/heirygen/internal/generator/testdata/components ./cmd/heirygen/internal/generator/testdata/matrix; do
+          for package in ./cmd/heirygen ./cmd/heirygen/internal/generator ./cmd/heirygen/internal/generator/testdata/basic ./cmd/heirygen/internal/generator/testdata/components ./cmd/heirygen/internal/generator/testdata/matrix ./cmd/heirygen/internal/generator/testdata/chains; do
             test "$(go list -f '{{len .GoFiles}}' "$package")" -gt 0
             test "$(go list -f '{{len .TestGoFiles}}' "$package")" -gt 0
           done
@@ -57,9 +57,9 @@ jobs:
             exit 1
           fi
       - name: Vet
-        run: go vet . ./examples/basic ./examples/components ./examples/lifecycle ./examples/comparison ./examples/generated ./cmd/heirygen/... ./cmd/heirygen/internal/generator/testdata/basic ./cmd/heirygen/internal/generator/testdata/components ./cmd/heirygen/internal/generator/testdata/matrix
+        run: go vet . ./examples/basic ./examples/components ./examples/lifecycle ./examples/comparison ./examples/generated ./cmd/heirygen/... ./cmd/heirygen/internal/generator/testdata/basic ./cmd/heirygen/internal/generator/testdata/components ./cmd/heirygen/internal/generator/testdata/matrix ./cmd/heirygen/internal/generator/testdata/chains
       - name: Package tests
-        run: go test . ./examples/basic ./examples/components ./examples/lifecycle ./examples/comparison ./examples/generated ./cmd/heirygen/... ./cmd/heirygen/internal/generator/testdata/basic ./cmd/heirygen/internal/generator/testdata/components ./cmd/heirygen/internal/generator/testdata/matrix
+        run: go test . ./examples/basic ./examples/components ./examples/lifecycle ./examples/comparison ./examples/generated ./cmd/heirygen/... ./cmd/heirygen/internal/generator/testdata/basic ./cmd/heirygen/internal/generator/testdata/components ./cmd/heirygen/internal/generator/testdata/matrix ./cmd/heirygen/internal/generator/testdata/chains
       - name: Coverage
         # Reported once: coverage does not depend on the configuration, and the
         # generator's tests take over a minute.
@@ -80,7 +80,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Race tests
         run: |
-          go test -race . ./examples/basic ./examples/components ./examples/lifecycle ./examples/comparison ./examples/generated ./cmd/heirygen/internal/generator/testdata/basic ./cmd/heirygen/internal/generator/testdata/components ./cmd/heirygen/internal/generator/testdata/matrix
+          go test -race . ./examples/basic ./examples/components ./examples/lifecycle ./examples/comparison ./examples/generated ./cmd/heirygen/internal/generator/testdata/basic ./cmd/heirygen/internal/generator/testdata/components ./cmd/heirygen/internal/generator/testdata/matrix ./cmd/heirygen/internal/generator/testdata/chains
           go test -race -short ./cmd/heirygen/...
       - name: Run examples
         run: |
@@ -89,7 +89,7 @@ jobs:
           done
       - name: Generated output is up to date
         run: |
-          for dir in ./examples/generated ./cmd/heirygen/internal/generator/testdata/basic ./cmd/heirygen/internal/generator/testdata/components ./cmd/heirygen/internal/generator/testdata/matrix; do
+          for dir in ./examples/generated ./cmd/heirygen/internal/generator/testdata/basic ./cmd/heirygen/internal/generator/testdata/components ./cmd/heirygen/internal/generator/testdata/matrix ./cmd/heirygen/internal/generator/testdata/chains; do
             go run ./cmd/heirygen -check "$dir"
           done
       - name: Bounded resolution fuzzing

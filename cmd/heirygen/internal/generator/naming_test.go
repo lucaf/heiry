@@ -98,7 +98,7 @@ func TestGeneratedNameCollisionsAreReported(t *testing.T) {
 func TestSpecErrors(t *testing.T) {
 	for _, tc := range []struct{ name, spec, want string }{
 		{"no hierarchy line", "level base public=Public private=Private\n", "level needs a preceding line: hierarchy"},
-		{"empty spec", "// nothing\n", "a hierarchy line, an operations line, or both"},
+		{"empty spec", "// nothing\n", "a hierarchy, chain, or part line, an operations line, or both"},
 		{"two hierarchies", "hierarchy a top\nhierarchy b top\n", "at most one hierarchy"},
 		{"root without contracts", "hierarchy shape top\nlevel top\n", "root level names public= and private="},
 		{"root with parent", "hierarchy shape top\nlevel top parent=x public=Public private=Private\n", "root level has no parent"},

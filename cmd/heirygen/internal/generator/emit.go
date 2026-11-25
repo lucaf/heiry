@@ -3,7 +3,10 @@ package generator
 import (
 	"bytes"
 	"fmt"
+	"go/ast"
 	"go/format"
+	"go/parser"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -27,15 +30,30 @@ func emitFile(source *sourceFile, taken map[string]bool) ([]byte, error) {
 		avoid[name] = true
 	}
 	needsHeiry := false
-	imports := &importSet{paths: make(map[string]string)}
+	imports := &importSet{paths: make(map[string]string), bindings: make(map[string]binding)}
 	for _, s := range source.specs {
 		needsHeiry = needsHeiry || s.name != ""
+		atConstant := reporter{report: func(message string) error { return errorAt(s.pos, "%s", message) }}
 		for name := range s.identifiers() {
 			avoid[name] = true
 		}
-		for _, declared := range s.imports {
+		for name := range s.takenIdentifiers() {
+			avoid[name] = true
+		}
+		// Each output imports what its own code uses, under the names it
+		// uses: the spec's import lines, except those that only a chain's
+		// levels or a part's component lines use, whose own output declares
+		// nothing for them; then those that taken lines use, with the
+		// meaning their own constants give them.
+		for _, declared := range s.emittedImports() {
 			avoid[declared.name] = true
-			if err := imports.add(declared, s); err != nil {
+			if err := imports.add(declared, atConstant); err != nil {
+				return nil, err
+			}
+		}
+		for _, use := range s.takenImports() {
+			avoid[use.imported.name] = true
+			if err := imports.add(use.imported, reporter{report: func(message string) error { return use.line.errorf("%s", message) }, taken: true}); err != nil {
 				return nil, err
 			}
 		}
@@ -46,7 +64,7 @@ func emitFile(source *sourceFile, taken map[string]bool) ([]byte, error) {
 				// the signature.
 				for _, needed := range op.method.imports {
 					avoid[needed.name] = true
-					if err := imports.add(needed, s); err != nil {
+					if err := imports.add(needed, atConstant); err != nil {
 						return nil, err
 					}
 				}
@@ -56,7 +74,7 @@ func emitFile(source *sourceFile, taken map[string]bool) ([]byte, error) {
 			// The repeated guard copies the signature.
 			for _, needed := range use.op.method.imports {
 				avoid[needed.name] = true
-				if err := imports.add(needed, s); err != nil {
+				if err := imports.add(needed, atConstant); err != nil {
 					return nil, err
 				}
 			}
@@ -66,7 +84,7 @@ func emitFile(source *sourceFile, taken map[string]bool) ([]byte, error) {
 				// The contract guard copies private signatures too.
 				for _, needed := range op.method.imports {
 					avoid[needed.name] = true
-					if err := imports.add(needed, s); err != nil {
+					if err := imports.add(needed, atConstant); err != nil {
 						return nil, err
 					}
 				}
@@ -76,7 +94,7 @@ func emitFile(source *sourceFile, taken map[string]bool) ([]byte, error) {
 				// specification may spell with its own imports.
 				for _, needed := range append(op.method.imports, op.typeImports...) {
 					avoid[needed.name] = true
-					if err := imports.add(needed, s); err != nil {
+					if err := imports.add(needed, atConstant); err != nil {
 						return nil, err
 					}
 				}
@@ -115,7 +133,10 @@ func emitFile(source *sourceFile, taken map[string]bool) ([]byte, error) {
 	}
 
 	for _, s := range source.specs {
-		emitFreshness(&b, s, names)
+		emitFreshness(&b, s, names, "were generated from")
+		for _, taken := range s.takenConstants() {
+			emitFreshness(&b, taken, names, "also take lines from")
+		}
 		for _, set := range s.operations {
 			emitOperations(&b, set)
 		}
@@ -134,22 +155,178 @@ func emitFile(source *sourceFile, taken map[string]bool) ([]byte, error) {
 }
 
 // An importSet collects the imports of one generated file, each under an
-// explicit name.
+// explicit name, with where each name was bound and how to report a
+// conflict there.
 type importSet struct {
-	paths map[string]string
-	order []string
+	paths    map[string]string
+	bindings map[string]binding
+	order    []string
 }
 
-func (set *importSet) add(needed specImport, s *spec) error {
+// A reporter reports a problem with an import's binding: at a taken line,
+// naming the hierarchy that takes it, or at the specification's position.
+type reporter struct {
+	report func(string) error
+	taken  bool
+}
+
+type binding struct {
+	text string
+	at   reporter
+}
+
+// add adds an import. A name bound to another path already is refused,
+// naming both bindings. A conflict that a taken line causes is reported at
+// that line, whichever binding came first; when both come from taken
+// lines, at the one added second.
+func (set *importSet) add(needed specImport, at reporter) error {
 	if path, seen := set.paths[needed.name]; seen {
 		if path != needed.path {
-			return errorAt(s.pos, "import name %s is used for %q and %q in one generated file; give one of the imports another name", needed.name, path, needed.path)
+			first := set.bindings[needed.name]
+			report := at.report
+			if !at.taken && first.at.taken {
+				report = first.at.report
+			}
+			return report(fmt.Sprintf("import name %s is used for %q and %q in one generated file, by %s, and by %s; give one of the imports another name", needed.name, path, needed.path, first.text, needed.binding()))
 		}
 		return nil
 	}
 	set.paths[needed.name] = needed.path
+	set.bindings[needed.name] = binding{needed.binding(), at}
 	set.order = append(set.order, needed.name)
 	return nil
+}
+
+// emittedImports returns the spec's import lines that its own output's code
+// uses: all of them, except for a chain or a part, whose levels or
+// component lines its own output declares nothing for, so that only its
+// existing lines count.
+func (s *spec) emittedImports() []specImport {
+	if s.chain == "" && s.part == "" {
+		return s.imports
+	}
+	used := make(map[string]bool)
+	for _, set := range s.operations {
+		for _, entry := range set.existing {
+			for _, declared := range s.importsOf(entry.typ) {
+				used[declared.name] = true
+			}
+		}
+	}
+	var imports []specImport
+	for _, declared := range s.imports {
+		if used[declared.name] {
+			imports = append(imports, declared)
+		}
+	}
+	return imports
+}
+
+// A takenImport is an import that a taken line uses, and that line.
+type takenImport struct {
+	imported specImport
+	line     specLine
+}
+
+// writtenExprs calls each with the type expressions of a spec's levels,
+// each with the line it is written on, in the order of the written-out
+// levels: each level line, then the level's node, component and use lines
+// as they are written, each use line replaced by its part's component
+// lines. A component slot's provider counts at every line that adds to the
+// slot, each read with its own constant's imports, as the written-out form
+// spells it on each.
+func (s *spec) writtenExprs(each func(expr string, line specLine)) {
+	type written struct {
+		expr string
+		line specLine
+		at   [2]int // the line in the level's constant, then the part's line
+	}
+	for _, l := range s.levels {
+		each(l.node, l.line)
+		each(l.public, l.contracts)
+		each(l.private, l.contracts)
+		// The level's lines are numbered in the constant that writes the
+		// level, and a part's lines sit at the use line that names the part.
+		uses := make(map[*spec]int)
+		for _, item := range l.items {
+			if _, seen := uses[item.part]; item.part != nil && !seen {
+				uses[item.part] = item.line
+			}
+		}
+		var exprs []written
+		add := func(expr string, line specLine) {
+			at := [2]int{line.number, 0}
+			if line.usedIn != nil {
+				at = [2]int{uses[line.spec], line.number}
+			}
+			exprs = append(exprs, written{expr, line, at})
+		}
+		for index, sl := range l.slots {
+			for at, op := range sl.ops {
+				line := sl.lines[at]
+				if index != 0 && (at == 0 || line.spec != sl.lines[at-1].spec || line.number != sl.lines[at-1].number) {
+					add(sl.provider, line)
+				}
+				add(op, line)
+			}
+		}
+		slices.SortStableFunc(exprs, func(a, b written) int { return slices.Compare(a.at[:], b.at[:]) })
+		for _, e := range exprs {
+			each(e.expr, e.line)
+		}
+	}
+}
+
+// takenExprs calls each with the type expressions of a hierarchy's lines
+// that another constant holds, through from= or use, each with the line it
+// is written on, in the order of the written-out hierarchy.
+func (s *spec) takenExprs(each func(expr string, line specLine)) {
+	if s.name == "" {
+		// A chain's or part's own output declares nothing for its lines,
+		// the taken ones included.
+		return
+	}
+	s.writtenExprs(func(expr string, line specLine) {
+		if line.spec != nil && line.spec != s {
+			each(expr, line)
+		}
+	})
+}
+
+// takenImports returns the imports that taken lines use, each read with
+// the imports of its own constant, in the order of first use.
+func (s *spec) takenImports() []takenImport {
+	var uses []takenImport
+	seen := make(map[specImport]bool)
+	s.takenExprs(func(expr string, line specLine) {
+		for _, declared := range line.spec.importsOf(expr) {
+			declared.used = false
+			if !seen[declared] {
+				seen[declared] = true
+				uses = append(uses, takenImport{declared, line})
+			}
+		}
+	})
+	return uses
+}
+
+// takenIdentifiers returns the identifiers that taken lines use, which the
+// output's local names must avoid as the written-out hierarchy's do.
+func (s *spec) takenIdentifiers() map[string]bool {
+	names := make(map[string]bool)
+	s.takenExprs(func(expr string, _ specLine) {
+		parsed, err := parser.ParseExpr(expr)
+		if err != nil {
+			return
+		}
+		ast.Inspect(parsed, func(n ast.Node) bool {
+			if ident, ok := n.(*ast.Ident); ok {
+				names[ident.Name] = true
+			}
+			return true
+		})
+	})
+	return names
 }
 
 // emitNames are the identifiers the generated file introduces besides its
@@ -184,7 +361,7 @@ func (s *spec) generatedNames() []string {
 		}
 	}
 	if s.name != "" {
-		names = append(names, s.name, s.name+"Refs", s.name+"Init", s.name+"InitPlan")
+		names = append(append(names, s.name), s.helpers()...)
 	}
 	if s.wrapper != nil {
 		names = append(names, s.wrapper.name)
@@ -192,9 +369,20 @@ func (s *spec) generatedNames() []string {
 	return names
 }
 
+// helpers lists the helper functions a hierarchy generates.
+func (s *spec) helpers() []string {
+	names := []string{s.name + "Refs", s.name + "Init"}
+	if !s.omitInitPlan {
+		names = append(names, s.name+"InitPlan")
+	}
+	return names
+}
+
 // emitFreshness writes the compile-time assertion that the spec constant
-// still has the text the file was generated from.
-func emitFreshness(b *bytes.Buffer, s *spec, n emitNames) {
+// still has the text the file was generated from. verb is "were generated
+// from" for the output's own constant, and "also take lines from" for a
+// constant whose lines a hierarchy takes.
+func emitFreshness(b *bytes.Buffer, s *spec, n emitNames, verb string) {
 	// The comparison is first bound to a constant, so the compiler has to
 	// evaluate it: if the handwritten declaration stops being a constant,
 	// that binding does not compile. When the two texts differ the constant
@@ -203,7 +391,7 @@ func emitFreshness(b *bytes.Buffer, s *spec, n emitNames) {
 	// as an empty interface, so the assertion does not depend on what the
 	// package makes of the names false and bool. The function is never
 	// compiled into the program.
-	fmt.Fprintf(b, "\n// The declarations below were generated from the constant %s.\n", s.constName)
+	fmt.Fprintf(b, "\n// The declarations below %s the constant %s.\n", verb, s.constName)
 	fmt.Fprintf(b, "// If the map literal fails to compile with a duplicate key, %s has\n// changed since then: run go generate. If the line above it fails, %s\n// is no longer a constant.\n", s.constName, s.constName)
 	fmt.Fprintf(b, "func _() {\n\tconst %s = \"\"", n.fresh)
 	for _, line := range strings.SplitAfter(s.text, "\n") {
@@ -329,9 +517,13 @@ func emitHierarchy(b *bytes.Buffer, s *spec, n emitNames) {
 	fmt.Fprintf(b, "func %sInit(%s *%s) error {\n", s.name, n.leaf, leaf)
 	fmt.Fprintf(b, "\treturn %s.Init(%s, %sRefs(%s)...)\n}\n", s.name, n.leaf, s.name, n.leaf)
 
-	fmt.Fprintf(b, "\n// %sInitPlan binds one object through a Plan prepared from %s or\n// converted from such a Plan, dynamic or precomputed. A Plan of another\n// definition is rejected by Init, because the references carry the lineage\n// of %s.\n", s.name, s.name, s.name)
-	fmt.Fprintf(b, "func %sInitPlan(%s %s, %s *%s) error {\n", s.name, n.plan, planType, n.leaf, leaf)
-	fmt.Fprintf(b, "\treturn %s.Init(%s, %sRefs(%s)...)\n}\n", n.plan, n.leaf, s.name, n.leaf)
+	if !s.omitInitPlan {
+		fmt.Fprintf(b, "\n// %sInitPlan binds one object through a Plan prepared from %s or\n// converted from such a Plan, dynamic or precomputed. A Plan of another\n// definition is rejected by Init, because the references carry the lineage\n// of %s.\n", s.name, s.name, s.name)
+		fmt.Fprintf(b, "func %sInitPlan(%s %s, %s *%s) error {\n", s.name, n.plan, planType, n.leaf, leaf)
+		fmt.Fprintf(b, "\treturn %s.Init(%s, %sRefs(%s)...)\n}\n", n.plan, n.leaf, s.name, n.leaf)
+	}
+
+	emitProbes(b, s, n)
 
 	if len(s.existingUses) != 0 {
 		fmt.Fprintf(b, "\n// Each existing interface the registrations or forwarders of %s use must\n// still have exactly the method it identifies. If an assignment below fails\n// to compile, it has changed since this file was generated: run go generate,\n// or correct its existing line.\n", s.name)
@@ -343,6 +535,122 @@ func emitHierarchy(b *bytes.Buffer, s *spec, n emitNames) {
 		}
 		b.WriteString("}\n")
 	}
+}
+
+// emitProbes writes one probe per level after the root, for its parent
+// field, and one per component, for the first field of its path in the
+// owning node. The references select those fields by name, and a field that
+// is promoted from an embedded struct still compiles there, although the
+// library accepts only fields the struct declares itself: a promoted parent
+// field means a level between the two is missing from the specification.
+//
+// Each probe embeds the struct beside a field of the same name two levels
+// down, of type struct{}, as the holder guard does. A field the struct
+// declares itself is the shallowest; one promoted from one level down makes
+// the selector ambiguous, and one promoted from deeper selects the decoy,
+// whose address has the wrong type. The struct is embedded through a local
+// alias, because an embedded field is named after its type, and a node type
+// named like the field would otherwise be what the selector finds. Later
+// steps of a path are in types the specification does not name, so only the
+// first step is probed.
+func emitProbes(b *bytes.Buffer, s *spec, n emitNames) {
+	type probe struct {
+		comment         string
+		owner, field    string // the struct, and the field it must declare
+		selector, typed string // what the probe selects, and its type
+	}
+	// In an output whose hierarchy takes lines from other constants, each
+	// probe's comment also names the constants where the fix can go.
+	shared := len(s.takenConstants()) != 0
+	var probes []probe
+	for index, level := range s.levels {
+		if index > 0 {
+			parent := s.levels[index-1].node
+			comment := fmt.Sprintf("%s declares its parent field %s, of type %s.", level.node, level.parent, parent)
+			if shared {
+				// A level missing before the first level of a constant whose
+				// levels follow another's can go in either constant.
+				comment += " Its level is in " + level.line.spec.constName
+				if before := s.levels[index-1].line.spec; before != level.line.spec {
+					comment += ", after the levels of " + before.constName
+				}
+				comment += "."
+			}
+			probes = append(probes, probe{
+				comment: comment,
+				owner:   level.node, field: level.parent, selector: level.parent, typed: parent,
+			})
+		}
+		for _, slot := range level.slots[1:] {
+			first, _, _ := strings.Cut(slot.path, ".")
+			comment := fmt.Sprintf("%s declares the field %s of its component %s.", level.node, first, slot.path)
+			if shared {
+				comment += " " + slot.place()
+			}
+			probes = append(probes, probe{
+				comment: comment,
+				owner:   level.node, field: first, selector: slot.path, typed: slot.provider,
+			})
+		}
+	}
+	if len(probes) == 0 {
+		return
+	}
+	if shared {
+		b.WriteString("\n// Each probe below compiles only while a struct declares a field itself, as\n// the library requires: a level's parent field, and the first field of each\n// component's path. If a selector below is ambiguous or has another type,\n// that field is gone, has another type, or is reached only through another\n// embedded struct; for a parent field, a level between the two is then\n// missing from one of the constants that the probe's comment names.\n// Regenerating writes the same probes, so first correct a constant that the\n// probe's comment names, or the struct; then run go generate.\n")
+	} else {
+		fmt.Fprintf(b, "\n// Each probe below compiles only while a struct declares a field itself, as\n// the library requires: a level's parent field, and the first field of each\n// component's path. If a selector below is ambiguous or has another type,\n// that field is gone, has another type, or is reached only through another\n// embedded struct; for a parent field, a level between the two is then\n// missing from %s. Regenerating writes the same probes, so first correct\n// the levels or paths of %s, or the struct; then run go generate.\n", s.constName, s.constName)
+	}
+	for _, p := range probes {
+		local := make(map[string]bool)
+		for name := range n.avoid {
+			local[name] = true
+		}
+		local[p.field] = true
+		name, decoy, deeper, subject := free("probe", local), free("decoy", local), free("deeper", local), free("subject", local)
+		fmt.Fprintf(b, "\n// %s\nfunc _() {\n", p.comment)
+		fmt.Fprintf(b, "\ttype %s = %s\n\ttype %s struct{ %s struct{} }\n\ttype %s struct{ %s }\n", subject, p.owner, decoy, p.field, deeper, decoy)
+		fmt.Fprintf(b, "\tvar %s struct {\n\t\t*%s\n\t\t%s\n\t}\n\tvar _ *%s = &%s.%s\n}\n", name, subject, deeper, p.typed, name, p.selector)
+	}
+}
+
+// place names the constants that hold a component slot's lines, each once,
+// in written-out order, with the constant of the use line for a part's
+// line: the sentence a probe's comment ends with.
+func (sl slot) place() string {
+	type written struct {
+		spec   *spec
+		number int
+	}
+	var places []string
+	var holders []*spec
+	lines := make(map[written]bool)
+	for _, line := range sl.lines {
+		lines[written{line.spec, line.number}] = true
+		if slices.Contains(holders, line.spec) {
+			continue
+		}
+		holders = append(holders, line.spec)
+		place := line.spec.constName
+		if line.usedIn != nil {
+			// The fix can also be at the use line: the part may be used at
+			// a level whose node lacks the field.
+			place += ", used in " + line.usedIn.constName
+		}
+		places = append(places, place)
+	}
+	if len(lines) == 1 {
+		return "Its component line is in " + places[0] + "."
+	}
+	// A comma closes each "used in" clause that another place follows.
+	sentence := "Its component lines are in " + places[0]
+	for index, place := range places[1:] {
+		if strings.Contains(places[index], ", used in ") {
+			sentence += ","
+		}
+		sentence += " and in " + place
+	}
+	return sentence + "."
 }
 
 // emitWrapper writes the public wrapper type and one forwarder per public

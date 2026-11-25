@@ -115,6 +115,9 @@ func expected(dir string, files []string, contents map[string][]byte) (map[strin
 	if err != nil {
 		return nil, err
 	}
+	if err := resolve(sources, packages); err != nil {
+		return nil, err
+	}
 	if err := analyze(sources, packages); err != nil {
 		return nil, err
 	}
@@ -136,7 +139,7 @@ func expected(dir string, files []string, contents map[string][]byte) (map[strin
 				packages[source.pkg].declaredIn[name] = append(packages[source.pkg].declaredIn[name], source.name)
 			}
 			if strings.HasSuffix(source.name, "_test.go") && s.name != "" {
-				for _, name := range []string{s.name + "Refs", s.name + "Init", s.name + "InitPlan"} {
+				for _, name := range s.helpers() {
 					if testFunction(name) {
 						return nil, errorAt(s.pos, "%s would generate the function %s in a test file, which go test treats as a test, benchmark, fuzz target, or example; rename hierarchy %s", s.constName, name, s.name)
 					}
@@ -364,13 +367,14 @@ func existingUses(source *sourceFile, s *spec, pkg *pkgInfo) ([]existingUse, err
 	for _, level := range s.levels {
 		for _, slot := range level.slots {
 			for index, expr := range slot.ops {
-				key := pkg.index.typeKey(expr, s.qualifier)
+				line := slot.lines[index]
+				key := pkg.index.typeKey(expr, line.qualifier)
 				if len(declarations[key]) == 0 || guarded[expr] || seen[expr] {
 					continue
 				}
 				op, missing := representative(key)
 				if missing != "" {
-					return nil, s.lineError(slot.lines[index], "registration %s needs a guard in the output of %s that ties it to its method, but the signature of every existing line that names its interface uses a name some builds of %s lack; the first, %s: %s, has the signature at %s, which uses %s, declared only in %s: declare %s in a non-test file without build constraints or a platform suffix, or name the interface with an existing line in %s", expr, source.name, source.name, op.pos, op.decl, op.method.pos, missing, strings.Join(pkg.declaredIn[missing], ", "), missing, source.name)
+					return nil, line.errorf("registration %s needs a guard in the output of %s that ties it to its method, but the signature of every existing line that names its interface uses a name some builds of %s lack; the first, %s: %s, has the signature at %s, which uses %s, declared only in %s: declare %s in a non-test file without build constraints or a platform suffix, or name the interface with an existing line in %s", expr, source.name, source.name, op.pos, op.decl, op.method.pos, missing, strings.Join(pkg.declaredIn[missing], ", "), missing, source.name)
 				}
 				add(expr, op)
 			}
@@ -410,16 +414,17 @@ func canonicalDispatch(s *spec, ix *packageIndex, ops []operation) error {
 	}
 	type registration struct {
 		expr, key, method string
-		line              int
+		line              specLine
 	}
 	var registrations []registration
 	for _, level := range s.levels {
 		for _, slot := range level.slots {
 			for index, expr := range slot.ops {
-				r := registration{expr: expr, key: ix.typeKey(expr, s.qualifier), line: slot.lines[index]}
+				line := slot.lines[index]
+				r := registration{expr: expr, key: ix.typeKey(expr, line.qualifier), line: line}
 				r.method = methodOf[r.key]
 				if r.method == "" {
-					r.method, _ = ix.singleMethod(expr, s.qualifier)
+					r.method, _ = ix.singleMethod(expr, line.qualifier)
 				}
 				registrations = append(registrations, r)
 			}
@@ -435,7 +440,7 @@ func canonicalDispatch(s *spec, ix *packageIndex, ops []operation) error {
 			}
 			confirmed++
 			if r.key != op.key {
-				return s.lineError(r.line, "wrapper %s forwards %s through %s, but hierarchy %s registers %s as %s; one interface identifies an operation: write `existing %s %s` on the operations line that lists %s",
+				return r.line.errorf("wrapper %s forwards %s through %s, but hierarchy %s registers %s as %s; one interface identifies an operation: write `existing %s %s` on the operations line that lists %s",
 					w.name, name, op.typ, s.name, name, r.expr, name, r.expr, w.public)
 			}
 			if pair := [2]string{op.typ, r.expr}; r.expr != op.typ && !paired[pair] {
@@ -448,7 +453,7 @@ func canonicalDispatch(s *spec, ix *packageIndex, ops []operation) error {
 		}
 		for _, r := range registrations {
 			if r.method == "" {
-				return s.lineError(r.line, "wrapper %s forwards %s through %s, but the generator cannot tell which operation %s identifies; if it is %s, write `existing %s %s` on the operations line that lists %s",
+				return r.line.errorf("wrapper %s forwards %s through %s, but the generator cannot tell which operation %s identifies; if it is %s, write `existing %s %s` on the operations line that lists %s",
 					w.name, name, op.typ, r.expr, name, name, r.expr, w.public)
 			}
 		}
@@ -555,7 +560,7 @@ func loadSources(dir string, files []string, contents map[string][]byte) ([]*sou
 			if err != nil {
 				continue
 			}
-			entry := fileImport{path: path}
+			entry := fileImport{path: path, pos: fset.Position(imported.Pos())}
 			if imported.Name != nil {
 				entry.name = imported.Name.Name
 			}

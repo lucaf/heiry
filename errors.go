@@ -62,8 +62,13 @@ func (e *Error) Error() string {
 	}
 	if e.levelKnown() {
 		level := "level " + strconv.Itoa(e.Level)
-		if e.Level == -1 {
+		switch {
+		case e.Level == -1:
 			level += " (unknown owner)"
+		case e.Code == MissingMethods && e.Category != "":
+			// Only validation names a contract category. The form dispatch
+			// raises carries the caller's level, not the target's.
+			level += " (the target; no level has a valid registration)"
 		}
 		parts = append(parts, level)
 	}

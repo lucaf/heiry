@@ -100,6 +100,74 @@ func hierarchyInitPlan(plan *heiry.Plan[cachedRepository], leaf *cachedRepositor
 	return plan.Init(leaf, hierarchyRefs(leaf)...)
 }
 
+// Each probe below compiles only while a struct declares a field itself, as
+// the library requires: a level's parent field, and the first field of each
+// component's path. If a selector below is ambiguous or has another type,
+// that field is gone, has another type, or is reached only through another
+// embedded struct; for a parent field, a level between the two is then
+// missing from hierarchySpec. Regenerating writes the same probes, so first correct
+// the levels or paths of hierarchySpec, or the struct; then run go generate.
+
+// repository declares the field store of its component store.
+func _() {
+	type subject = repository
+	type decoy struct{ store struct{} }
+	type deeper struct{ decoy }
+	var probe struct {
+		*subject
+		deeper
+	}
+	var _ *store = &probe.store
+}
+
+// repository declares the field log of its component log.
+func _() {
+	type subject = repository
+	type decoy struct{ log struct{} }
+	type deeper struct{ decoy }
+	var probe struct {
+		*subject
+		deeper
+	}
+	var _ *auditLog = &probe.log
+}
+
+// cachedRepository declares its parent field repository, of type repository.
+func _() {
+	type subject = cachedRepository
+	type decoy struct{ repository struct{} }
+	type deeper struct{ decoy }
+	var probe struct {
+		*subject
+		deeper
+	}
+	var _ *repository = &probe.repository
+}
+
+// cachedRepository declares the field cache of its component cache.
+func _() {
+	type subject = cachedRepository
+	type decoy struct{ cache struct{} }
+	type deeper struct{ decoy }
+	var probe struct {
+		*subject
+		deeper
+	}
+	var _ *cache = &probe.cache
+}
+
+// cachedRepository declares the field stamper of its component stamper.
+func _() {
+	type subject = cachedRepository
+	type decoy struct{ stamper struct{} }
+	type deeper struct{ decoy }
+	var probe struct {
+		*subject
+		deeper
+	}
+	var _ *stamper = &probe.stamper
+}
+
 // wrapper is the public wrapper of hierarchy. It holds the object in a named field,
 // so nothing is promoted onto it, and forwards every operation of Public
 // through a virtual call.

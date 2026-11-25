@@ -43,6 +43,15 @@ func (f *fileInfo) dotImport() bool {
 type fileImport struct {
 	name string // explicit name, or "" when the import has none
 	path string
+	pos  token.Position
+}
+
+// binding describes the import as its file declares it, with its position.
+func (i fileImport) binding() string {
+	if i.name == "" {
+		return fmt.Sprintf("%s: import %q", i.pos, i.path)
+	}
+	return fmt.Sprintf("%s: import %s %q", i.pos, i.name, i.path)
 }
 
 // A method is one method of a contract, as written.
@@ -213,12 +222,12 @@ func (ix *packageIndex) method(file *fileInfo, name *ast.Ident, fn *ast.FuncType
 			return false
 		}
 		seen[pkg.Name] = true
-		path, found := file.importPath(pkg.Name)
+		entry, found := file.importOf(pkg.Name)
 		if !found {
 			failure = errorAt(m.pos, "cannot tell which import of %s provides %s; give that import the explicit name %s", file.name, pkg.Name, pkg.Name)
 			return false
 		}
-		m.imports = append(m.imports, specImport{name: pkg.Name, path: path})
+		m.imports = append(m.imports, specImport{name: pkg.Name, path: entry.path, written: entry.binding()})
 		return false
 	})
 	return m, failure
@@ -227,17 +236,24 @@ func (ix *packageIndex) method(file *fileInfo, name *ast.Ident, fn *ast.FuncType
 // importPath finds the import a package identifier refers to: by explicit
 // name, or by the last element of an unnamed import's path.
 func (f *fileInfo) importPath(name string) (string, bool) {
+	entry, found := f.importOf(name)
+	return entry.path, found
+}
+
+// importOf finds the import declaration a package identifier refers to, as
+// importPath does.
+func (f *fileInfo) importOf(name string) (fileImport, bool) {
 	for _, declared := range f.imports {
 		if declared.name == name {
-			return declared.path, true
+			return declared, true
 		}
 	}
 	for _, declared := range f.imports {
 		if declared.name == "" && declared.path[strings.LastIndexByte(declared.path, '/')+1:] == name {
-			return declared.path, true
+			return declared, true
 		}
 	}
-	return "", false
+	return fileImport{}, false
 }
 
 // resolveOperations fills an operation set from the package's contracts.
@@ -441,10 +457,11 @@ func (ix *packageIndex) singleMethod(expr string, qualifier func(string) (string
 // embeddedNodes returns the names of the directly embedded heiry.Node value
 // fields of the leaf type. It reads the struct the leaf is declared as,
 // following local aliases and type definitions, such as type node record,
-// and generic instantiations to their generic declaration. An alias of
-// heiry.Node declared in the package, such as type Dispatch = heiry.Node,
-// embeds under the alias name. When the struct cannot be read, it returns
-// the reason instead.
+// and generic instantiations to their generic declaration, and drops
+// parentheses around the leaf, an alias's right side, and a declared type.
+// An alias of heiry.Node declared in the package, such as
+// type Dispatch = heiry.Node, embeds under the alias name. When the struct
+// cannot be read, it returns the reason instead.
 func (ix *packageIndex) embeddedNodes(leaf string, qualifier func(string) (string, bool)) ([]string, string) {
 	text := leaf
 	for depth := 0; depth < 32; depth++ {
@@ -452,6 +469,7 @@ func (ix *packageIndex) embeddedNodes(leaf string, qualifier func(string) (strin
 		if err != nil {
 			break
 		}
+		expr = ast.Unparen(expr)
 		// An instantiation has the fields of its generic declaration; a Node
 		// value field does not depend on the type arguments.
 		switch index := expr.(type) {
@@ -469,7 +487,7 @@ func (ix *packageIndex) embeddedNodes(leaf string, qualifier func(string) (strin
 			break
 		}
 		decl := decls[0]
-		structure, isStruct := decl.spec.Type.(*ast.StructType)
+		structure, isStruct := ast.Unparen(decl.spec.Type).(*ast.StructType)
 		if !isStruct {
 			// An alias or a definition from another type: read that one, in
 			// the file that declares it.

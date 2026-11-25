@@ -134,7 +134,7 @@ var staleCases = []staleCase{
 	{
 		name:   "widen a level's private contract",
 		before: same, after: replace("level mid parent=base\n", "level mid parent=base public=Public private=WidePrivate\n"),
-		oldOutput: "base one", newOutput: "error: MissingMethods: target main.top, level 2, private Size capability, expected func() int",
+		oldOutput: "base one", newOutput: "error: MissingMethods: target main.top, level 2 (the target; no level has a valid registration), private Size capability, expected func() int",
 	},
 	{
 		name:   "add a level to the hierarchy",

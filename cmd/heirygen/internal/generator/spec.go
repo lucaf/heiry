@@ -20,6 +20,35 @@ type spec struct {
 	leaf    string // leaf type expression
 	levels  []level
 	wrapper *wrapperDecl
+	// omitInitPlan is set by omit=InitPlan: the Plan helper is not generated.
+	omitInitPlan bool
+
+	// The chain part, a named run of levels that generates no declaration.
+	// chain is empty when the spec has none. A spec holds at most one
+	// hierarchy, chain, or part.
+	chain     string
+	chainLine int
+	// from names the hierarchy or chain whose levels come first, "" for
+	// none. Until the levels are assembled, levels holds only the spec's own;
+	// then it starts with those of the spec that from= names.
+	from string
+
+	// The part part: a named group of component lines, which use lines add
+	// to levels. part is empty when the spec has none.
+	part       string
+	partLine   int
+	components []componentLine
+
+	// takers lists, in file and line order, the hierarchies that take this
+	// constant's lines: a hierarchy's or chain's levels through from=, and a
+	// part's component lines through use. Each comes with the from= and use
+	// steps from it to this constant. takenLines holds the lines they take:
+	// the header line and every line of the constant's own levels or, for a
+	// part, of its component lines. Both are set once the links between
+	// specifications are checked, so that a later diagnostic at such a line
+	// lists them (ADR 0014).
+	takers     []taker
+	takenLines map[int]bool
 
 	constName string // name of the specification constant
 	text      string // exact specification text
@@ -36,7 +65,19 @@ type spec struct {
 type specImport struct {
 	name, path string
 	used       bool
-	line       int // specification line, 0 for imports a signature needs
+	line       int   // specification line, 0 for imports a signature needs
+	spec       *spec // the constant of an import line
+	// written describes an import a signature needs, as its Go file
+	// declares it, with its position.
+	written string
+}
+
+// binding describes where an import's name is bound to its path.
+func (i specImport) binding() string {
+	if i.spec != nil {
+		return fmt.Sprintf("%s, line %d: import %s %q", i.spec.constName, i.line, i.name, i.path)
+	}
+	return i.written
 }
 
 // A typeRef is one type expression of a specification and its line.
@@ -107,18 +148,118 @@ type wrapperDecl struct {
 }
 
 type level struct {
-	node            string // node type expression
-	parent          string // parent field name, "" for the root
-	public, private string // effective contracts, carried forward when omitted
-	slots           []slot // slots[0] is always the node slot
+	node            string   // node type expression
+	parent          string   // parent field name, "" for the root
+	public, private string   // effective contracts, carried forward when omitted
+	slots           []slot   // slots[0] is always the node slot
+	line            specLine // the level line
+	// contracts is the line that writes public= and private=; a level that
+	// inherits them keeps the line of the level they come from, whose
+	// constant's imports they are read with.
+	contracts specLine
+	// items are the level's component and use lines in written order, from
+	// which the slots are built again when a use line adds a part's lines.
+	items []levelItem
 }
 
-// A slot is the level's node (path ".") or one component.
+// A componentLine is one component line, as written.
+type componentLine struct {
+	path, provider string
+	ops            []string
+	line           int
+}
+
+// A levelItem is one component or use line of a level.
+type levelItem struct {
+	component *componentLine // nil for a use line
+	use       string         // the part a use line names
+	part      *spec          // that part, once resolved
+	line      int
+}
+
+// A slot is the level's node (path ".") or one component. Its provider is
+// written on the level line for the node slot. For a component, it is
+// spelled on every line that adds to the slot, and read on each with that
+// line's constant's imports.
 type slot struct {
 	path     string
 	provider string // provider type expression
 	ops      []string
-	lines    []int // the specification line of each operation
+	lines    []specLine // the line of each operation
+}
+
+// A specLine is one line of a specification constant. A level and each of
+// its registrations keep the line and the constant they are written in, so
+// that their type expressions are read with that constant's imports and a
+// diagnostic about one names that constant's line.
+type specLine struct {
+	spec   *spec // the constant the line is written in
+	number int   // the line's number in that constant's text, from 1
+	// path lists the from= and use steps from the constant whose levels
+	// hold this copy of the line to the line's own constant, empty for an
+	// own line.
+	path []string
+	// usedIn is the constant of the use line that added a part's line.
+	usedIn *spec
+	// of is the hierarchy whose assembled levels hold this copy of the
+	// line, for the checks that run per hierarchy; nil otherwise.
+	of *spec
+}
+
+// A taker is a hierarchy that takes a constant's lines, a hierarchy's or
+// chain's levels through from= or a part's component lines through use,
+// and the from= and use steps from it to that constant.
+type taker struct {
+	spec *spec
+	path []string
+}
+
+// takersOf returns the hierarchies that take a line of the constant.
+func (s *spec) takersOf(line int) []taker {
+	if s.takenLines[line] {
+		return s.takers
+	}
+	return nil
+}
+
+// errorf reports a problem with the line. A problem found in the checks of
+// one hierarchy names it, when it takes the line, and lists the other
+// hierarchies that take the line after "also taken by". Any other problem
+// is reported as lineError does.
+func (l specLine) errorf(format string, args ...any) *Error {
+	if l.of == nil {
+		return l.spec.lineError(l.number, format, args...)
+	}
+	var parts, others []string
+	if l.spec != l.of && len(l.path) != 0 {
+		parts = append(parts, "taken by "+l.of.constName+" through "+strings.Join(l.path, ", "))
+	}
+	for _, t := range l.spec.takersOf(l.number) {
+		if t.spec != l.of {
+			others = append(others, t.spec.constName)
+		}
+	}
+	if len(others) != 0 {
+		parts = append(parts, "also taken by "+listNames(others))
+	}
+	if len(parts) == 0 {
+		return errorAt(l.spec.lines.position(l.number), "%s, line %d: %s", l.spec.constName, l.number, fmt.Sprintf(format, args...))
+	}
+	return errorAt(l.spec.lines.position(l.number), "%s, line %d (%s): %s", l.spec.constName, l.number, strings.Join(parts, "; "), fmt.Sprintf(format, args...))
+}
+
+// listNames joins names as "a", "a and b", or "a, b and c".
+func listNames(names []string) string {
+	if len(names) < 2 {
+		return strings.Join(names, "")
+	}
+	return strings.Join(names[:len(names)-1], ", ") + " and " + names[len(names)-1]
+}
+
+// qualifier resolves a package name that the line uses to its import path,
+// through the imports of the line's constant.
+func (l specLine) qualifier(name string) (string, bool) {
+	return l.spec.qualifier(name)
 }
 
 // A lineMap gives the file position of a line of the specification text.
@@ -163,8 +304,18 @@ func errorAt(pos token.Position, format string, args ...any) *Error {
 	return &Error{Pos: pos, Msg: fmt.Sprintf(format, args...)}
 }
 
-// lineError reports a problem with one line of a specification.
+// lineError reports a problem with one line of a specification. Once the
+// links between specifications are checked, a problem at a line that
+// hierarchies take names no hierarchy, so it lists them all after "taken
+// by", each with its path.
 func (s *spec) lineError(line int, format string, args ...any) *Error {
+	if takers := s.takersOf(line); len(takers) != 0 {
+		entries := make([]string, len(takers))
+		for index, t := range takers {
+			entries[index] = t.spec.constName + " through " + strings.Join(t.path, ", ")
+		}
+		return errorAt(s.lines.position(line), "%s, line %d (taken by %s): %s", s.constName, line, strings.Join(entries, ", and by "), fmt.Sprintf(format, args...))
+	}
 	return errorAt(s.lines.position(line), "%s, line %d: %s", s.constName, line, fmt.Sprintf(format, args...))
 }
 
@@ -173,17 +324,25 @@ func (s *spec) lineError(line int, format string, args ...any) *Error {
 //	import <name> "<path>"
 //	operations <Contract>... [prefix=<p>] [suffix=<s>]
 //	existing <Method> <Type>
-//	hierarchy <Name> <LeafType>
+//	hierarchy <Name> <LeafType> [from=<Name>] [omit=InitPlan]
+//	chain <Name> [from=<Name>]
+//	part <Name>
 //	level <NodeType> [parent=<Field>] [public=<Type> private=<Type>]
 //	node <Operation>...
 //	component <path> <ProviderType> <Operation>...
+//	use <Part>
 //	wrapper <Type> [field=<name>] [holder=<Field>]
 //
 // Blank lines and lines starting with // are ignored. Types are Go type
 // expressions without spaces. An existing line belongs to the operations
-// line above it; level, node, component and wrapper lines belong to the
-// hierarchy. The registrations, paths, parents and contracts of a hierarchy
-// come from this text alone.
+// line above it; level, node, component, use and wrapper lines belong to
+// the hierarchy, and level, node, component and use lines to the chain; only
+// component lines follow a part line. The registrations, paths, parents and
+// contracts of a hierarchy come from this text, from the levels that from=
+// names, and from the component lines of the parts that use lines name
+// (ADR 0014). With from=, the
+// first own level follows a level of another constant, so its default
+// parent field and contracts are set when the levels are assembled.
 func parseSpec(s *spec) error {
 	fail := func(line int, format string, args ...any) error {
 		return s.lineError(line, format, args...)
@@ -215,10 +374,29 @@ func parseSpec(s *spec) error {
 			continue
 		}
 		keyword, args := fields[0], fields[1:]
+		// Only component lines follow a part line.
+		if s.part != "" {
+			switch keyword {
+			case "hierarchy", "chain", "part":
+				return fail(number, "a specification holds at most one hierarchy, chain, or part; use another constant for another one")
+			case "import", "operations", "existing":
+				return fail(number, "only component lines follow a part line: write the %s line before it", keyword)
+			case "level", "node", "use", "wrapper":
+				return fail(number, "only component lines follow a part line: a part holds no %s line", keyword)
+			}
+		}
 		switch keyword {
-		case "level", "node", "component", "wrapper":
-			if s.name == "" {
-				return fail(number, "%s needs a preceding line: hierarchy <Name> <LeafType>", keyword)
+		case "level", "node", "component", "wrapper", "use":
+			if s.name == "" && s.chain == "" && s.part == "" {
+				// Only a hierarchy has a wrapper line, and a part line can
+				// precede a component line too.
+				switch keyword {
+				case "wrapper":
+					return fail(number, "%s needs a preceding line: hierarchy <Name> <LeafType>", keyword)
+				case "component":
+					return fail(number, "%s needs a preceding line: hierarchy <Name> <LeafType>, chain <Name>, or part <Name>", keyword)
+				}
+				return fail(number, "%s needs a preceding line: hierarchy <Name> <LeafType> or chain <Name>", keyword)
 			}
 		}
 		if keyword != "existing" && keyword != "operations" {
@@ -230,11 +408,67 @@ func parseSpec(s *spec) error {
 			if s.name != "" {
 				return fail(number, "a specification describes at most one hierarchy; use another constant for another one")
 			}
-			if len(args) != 2 || !token.IsIdentifier(args[0]) {
-				return fail(number, "want: hierarchy <Name> <LeafType>")
+			if s.chain != "" {
+				return fail(number, "a specification holds at most one hierarchy, chain, or part; use another constant for another one")
+			}
+			if len(args) < 2 || !token.IsIdentifier(args[0]) || strings.Contains(args[1], "=") {
+				return fail(number, "want: hierarchy <Name> <LeafType> [from=<Name>] [omit=InitPlan]")
+			}
+			values, err := options(number, "hierarchy", args[2:], "from", "omit")
+			if err != nil {
+				return err
+			}
+			if from, given := values["from"]; given {
+				if !token.IsIdentifier(from) || from == "_" {
+					return fail(number, "from= takes the name of a hierarchy or chain")
+				}
+				s.from = from
+			}
+			if omit, given := values["omit"]; given {
+				if omit != "InitPlan" {
+					return fail(number, "omit= takes InitPlan, the only helper that can be left out")
+				}
+				s.omitInitPlan = true
 			}
 			s.name, s.leaf, s.hierarchyLine = args[0], args[1], number
 			s.typeRefs = append(s.typeRefs, typeRef{args[1], number})
+		case "part":
+			if s.name != "" || s.chain != "" {
+				return fail(number, "a specification holds at most one hierarchy, chain, or part; use another constant for another one")
+			}
+			if len(args) != 1 || !token.IsIdentifier(args[0]) || args[0] == "_" {
+				return fail(number, "want: part <Name>")
+			}
+			s.part, s.partLine = args[0], number
+		case "use":
+			if current == nil {
+				return fail(number, "a use line needs a level line above it")
+			}
+			if s.wrapper != nil {
+				return fail(number, "the wrapper line follows the last level")
+			}
+			if len(args) != 1 || !token.IsIdentifier(args[0]) || args[0] == "_" {
+				return fail(number, "want: use <Part>")
+			}
+			current.items = append(current.items, levelItem{use: args[0], line: number})
+		case "chain":
+			if s.name != "" || s.chain != "" {
+				return fail(number, "a specification holds at most one hierarchy, chain, or part; use another constant for another one")
+			}
+			if len(args) == 0 || !token.IsIdentifier(args[0]) || args[0] == "_" {
+				return fail(number, "want: chain <Name> [from=<Name>]")
+			}
+			values, err := options(number, "chain", args[1:], "from")
+			if err != nil {
+				return err
+			}
+			if from, given := values["from"]; given {
+				if !token.IsIdentifier(from) || from == "_" {
+					return fail(number, "from= takes the name of a hierarchy or chain")
+				}
+				s.from = from
+			}
+			s.chain, s.chainLine = args[0], number
 		case "import":
 			if len(s.levels) != 0 || len(s.operations) != 0 {
 				return fail(number, "import lines precede operations and levels")
@@ -246,7 +480,7 @@ func parseSpec(s *spec) error {
 			if err != nil || path == "" {
 				return fail(number, `want: import <name> "<path>"`)
 			}
-			s.imports = append(s.imports, specImport{name: args[0], path: path, line: number})
+			s.imports = append(s.imports, specImport{name: args[0], path: path, line: number, spec: s})
 		case "operations":
 			set = &operationSet{line: number}
 			var named []string
@@ -294,7 +528,10 @@ func parseSpec(s *spec) error {
 			if err != nil {
 				return err
 			}
-			next := level{node: args[0], parent: values["parent"], public: values["public"], private: values["private"]}
+			next := level{node: args[0], parent: values["parent"], public: values["public"], private: values["private"], line: specLine{spec: s, number: number}}
+			if next.public != "" {
+				next.contracts = next.line
+			}
 			s.typeRefs = append(s.typeRefs, typeRef{next.node, number})
 			if next.public != "" {
 				s.typeRefs = append(s.typeRefs, typeRef{next.public, number}, typeRef{next.private, number})
@@ -302,17 +539,21 @@ func parseSpec(s *spec) error {
 			if (next.public == "") != (next.private == "") {
 				return fail(number, "public= and private= are given together or not at all")
 			}
-			if len(s.levels) == 0 {
+			switch {
+			case len(s.levels) == 0 && s.from != "":
+				// The first own level after from= follows the last taken
+				// level; its defaults are set when the levels are assembled.
+			case len(s.levels) == 0:
 				if next.parent != "" {
 					return fail(number, "the root level has no parent")
 				}
 				if next.public == "" {
 					return fail(number, "the root level names public= and private=")
 				}
-			} else {
+			default:
 				previous := s.levels[len(s.levels)-1]
 				if next.public == "" {
-					next.public, next.private = previous.public, previous.private
+					next.public, next.private, next.contracts = previous.public, previous.private, previous.contracts
 				}
 				if next.parent == "" {
 					// An anonymous field is named after its type. This is
@@ -321,7 +562,7 @@ func parseSpec(s *spec) error {
 					next.parent = embeddedName(previous.node)
 				}
 				if !token.IsIdentifier(next.parent) {
-					return fail(number, "the parent field of %s cannot be derived from %s; write parent=<Field>", next.node, previous.node)
+					return next.line.errorf("the parent field of %s cannot be derived from %s; write parent=<Field>", next.node, previous.node)
 				}
 			}
 			next.slots = []slot{{path: ".", provider: next.node}}
@@ -340,9 +581,27 @@ func parseSpec(s *spec) error {
 			current.slots[0].ops = append(current.slots[0].ops, args...)
 			for _, op := range args {
 				s.typeRefs = append(s.typeRefs, typeRef{op, number})
-				current.slots[0].lines = append(current.slots[0].lines, number)
+				current.slots[0].lines = append(current.slots[0].lines, specLine{spec: s, number: number})
 			}
 		case "component":
+			if s.part != "" {
+				if len(args) < 3 {
+					return fail(number, "want: component <path> <ProviderType> <Operation>...")
+				}
+				if !validPath(args[0]) {
+					return fail(number, "%q is not a component path: use direct field names joined by dots; the node's own operations go on a node line", args[0])
+				}
+				for _, known := range s.components {
+					if known.path == args[0] && known.provider != args[1] {
+						return fail(number, "component %s is declared with provider types %s and %s", args[0], known.provider, args[1])
+					}
+				}
+				s.components = append(s.components, componentLine{path: args[0], provider: args[1], ops: args[2:], line: number})
+				for _, typ := range args[1:] {
+					s.typeRefs = append(s.typeRefs, typeRef{typ, number})
+				}
+				continue
+			}
 			if current == nil {
 				return fail(number, "a component line needs a level line above it")
 			}
@@ -369,13 +628,17 @@ func parseSpec(s *spec) error {
 			}
 			current.slots[index].ops = append(current.slots[index].ops, args[2:]...)
 			for range args[2:] {
-				current.slots[index].lines = append(current.slots[index].lines, number)
+				current.slots[index].lines = append(current.slots[index].lines, specLine{spec: s, number: number})
 			}
+			current.items = append(current.items, levelItem{component: &componentLine{path: args[0], provider: args[1], ops: args[2:], line: number}, line: number})
 			for _, typ := range args[1:] {
 				s.typeRefs = append(s.typeRefs, typeRef{typ, number})
 			}
 		case "wrapper":
-			if current == nil {
+			if s.chain != "" {
+				return fail(number, "a chain has no wrapper line; give the wrapper to a hierarchy that takes the chain's levels with from=")
+			}
+			if current == nil && s.from == "" {
 				return fail(number, "the wrapper line follows the last level")
 			}
 			if s.wrapper != nil {
@@ -411,20 +674,28 @@ func parseSpec(s *spec) error {
 				return fail(number, "field=%s must be unexported, as specification S8 requires of the wrapper's storage: write field=%s", w.field, unexported(w.field))
 			}
 		default:
-			return fail(number, "unknown keyword %q; the keywords are import, operations, existing, hierarchy, level, node, component, and wrapper", keyword)
+			return fail(number, "unknown keyword %q; the keywords are import, operations, existing, hierarchy, chain, part, level, node, component, use, and wrapper", keyword)
 		}
 	}
-	if s.name == "" && len(s.operations) == 0 {
-		return fail(1, "a specification has a hierarchy line, an operations line, or both")
+	if s.name == "" && s.chain == "" && s.part == "" && len(s.operations) == 0 {
+		return fail(1, "a specification has a hierarchy, chain, or part line, an operations line, or both")
 	}
-	if s.name != "" {
-		if len(s.levels) == 0 {
-			return fail(s.hierarchyLine, "hierarchy %s has no level", s.name)
-		}
-		if last := s.levels[len(s.levels)-1].node; last != s.leaf {
-			return fail(s.hierarchyLine, "the last level is %s but the leaf is %s", last, s.leaf)
-		}
+	if s.part != "" && len(s.components) == 0 {
+		return fail(s.partLine, "part %s has no component line", s.part)
 	}
+	// A hierarchy with from= may have no level of its own: it generates a
+	// second definition. A chain may not, with or without from=.
+	if s.name != "" && s.from == "" && len(s.levels) == 0 {
+		return fail(s.hierarchyLine, "hierarchy %s has no level", s.name)
+	}
+	if s.chain != "" && len(s.levels) == 0 {
+		if s.from == "" {
+			return fail(s.chainLine, "chain %s has no level", s.chain)
+		}
+		return fail(s.chainLine, "chain %s has no level of its own; write from=%s in the hierarchy instead", s.chain, s.from)
+	}
+	// The leaf is compared with the last level after every file is read,
+	// because the aliases the comparison follows may be declared in any file.
 	return s.checkTypes()
 }
 

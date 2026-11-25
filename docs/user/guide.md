@@ -116,6 +116,8 @@ var hierarchy = heiry.Define[tagged]().
 
 The chain can continue from any level handle, and the last handle can validate, prepare and initialize. `End()` returns the Definition when you need that type. The same calls can also be written as separate statements on saved level handles: a registration always goes to the handle's own level, and a new level is always added at the end.
 
+One level type can be used in several hierarchies, and a type can be the leaf of one hierarchy and a middle level of another. Each Definition has its own registrations, and an object's calls resolve in the hierarchy it was initialized through.
+
 ### Naming the parent field explicitly
 
 `Extend` and `ExtendWith` find the parent themselves: it is the one directly embedded value field whose type is the previous level's node type. If there is no such field, or more than one, validation reports `InvalidHierarchy`. More than one is possible only when the same type is embedded twice under different alias names. In that case, declare the level with `Level` and name the field:
@@ -410,10 +412,11 @@ if errors.Is(err, &heiry.Error{Code: heiry.MissingMethods}) {
 - Match on codes and fields. Message text is not stable.
 - `MustPrepare`, `MustPrecompute` and `MustInit` panic with the same error the plain variant returns.
 - When a reference names an owner type that is not a level of the hierarchy, `Level` is `-1`.
+- `MissingMethods` carries the target's level, the leaf's, because no level of the hierarchy registers the operation; a registration that validation rejects counts as none.
 
 ## Rules and limitations
 
-**Trust in registrations.** A registration is your statement that the provider owns that implementation. heiry checks the signature and where the provider lives, but it cannot tell a real override from a method that was merely promoted from an ancestor. Registering a level for a method it only inherits compiles, passes validation, and can make a parent call re-enter the same body forever.
+**Trust in registrations.** A registration is your statement that the provider owns that implementation. heiry checks the signature and where the provider lives, but it cannot tell a real override from a method that was merely promoted from an ancestor. Registering a level for a method it only inherits compiles, passes validation, and can make a parent call re-enter the same body forever. Nor can heiry tell whether an override was meant: for example, a derived level that registers a shared operation again replaces the shared code, checks included.
 
 **Copying.** Do not copy an initialized object, ancestor value or component: the copy's scopes still refer to the original. `go vet` reports ordinary copies of values containing a `heiry.Node`, but it cannot catch every copy. Copying a wrapper, a Plan pointer or a `Scope` is fine; these alias the original.
 

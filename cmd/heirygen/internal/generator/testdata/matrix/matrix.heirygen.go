@@ -79,6 +79,74 @@ func wideInitPlan(plan *heiry.Plan[crown], leaf *crown) error {
 	return plan.Init(leaf, wideRefs(leaf)...)
 }
 
+// Each probe below compiles only while a struct declares a field itself, as
+// the library requires: a level's parent field, and the first field of each
+// component's path. If a selector below is ambiguous or has another type,
+// that field is gone, has another type, or is reached only through another
+// embedded struct; for a parent field, a level between the two is then
+// missing from wideSpec. Regenerating writes the same probes, so first correct
+// the levels or paths of wideSpec, or the struct; then run go generate.
+
+// root declares the field left of its component left.
+func _() {
+	type subject = root
+	type decoy struct{ left struct{} }
+	type deeper struct{ decoy }
+	var probe struct {
+		*subject
+		deeper
+	}
+	var _ *tally = &probe.left
+}
+
+// root declares the field journal of its component journal.
+func _() {
+	type subject = root
+	type decoy struct{ journal struct{} }
+	type deeper struct{ decoy }
+	var probe struct {
+		*subject
+		deeper
+	}
+	var _ *journal[int] = &probe.journal
+}
+
+// branch declares its parent field Parent, of type root.
+func _() {
+	type subject = branch
+	type decoy struct{ Parent struct{} }
+	type deeper struct{ decoy }
+	var probe struct {
+		*subject
+		deeper
+	}
+	var _ *root = &probe.Parent
+}
+
+// crown declares its parent field branch, of type branch.
+func _() {
+	type subject = crown
+	type decoy struct{ branch struct{} }
+	type deeper struct{ decoy }
+	var probe struct {
+		*subject
+		deeper
+	}
+	var _ *branch = &probe.branch
+}
+
+// crown declares the field own of its component own.
+func _() {
+	type subject = crown
+	type decoy struct{ own struct{} }
+	type deeper struct{ decoy }
+	var probe struct {
+		*subject
+		deeper
+	}
+	var _ *tally = &probe.own
+}
+
 // The declarations below were generated from the constant narrowSpec.
 // If the map literal fails to compile with a duplicate key, narrowSpec has
 // changed since then: run go generate. If the line above it fails, narrowSpec
@@ -143,6 +211,62 @@ func narrowInitPlan(plan *heiry.Plan[crown], leaf *crown) error {
 	return plan.Init(leaf, narrowRefs(leaf)...)
 }
 
+// Each probe below compiles only while a struct declares a field itself, as
+// the library requires: a level's parent field, and the first field of each
+// component's path. If a selector below is ambiguous or has another type,
+// that field is gone, has another type, or is reached only through another
+// embedded struct; for a parent field, a level between the two is then
+// missing from narrowSpec. Regenerating writes the same probes, so first correct
+// the levels or paths of narrowSpec, or the struct; then run go generate.
+
+// root declares the field right of its component right.
+func _() {
+	type subject = root
+	type decoy struct{ right struct{} }
+	type deeper struct{ decoy }
+	var probe struct {
+		*subject
+		deeper
+	}
+	var _ *tally = &probe.right
+}
+
+// root declares the field shell of its component shell.inner.
+func _() {
+	type subject = root
+	type decoy struct{ shell struct{} }
+	type deeper struct{ decoy }
+	var probe struct {
+		*subject
+		deeper
+	}
+	var _ *tally = &probe.shell.inner
+}
+
+// branch declares its parent field Parent, of type root.
+func _() {
+	type subject = branch
+	type decoy struct{ Parent struct{} }
+	type deeper struct{ decoy }
+	var probe struct {
+		*subject
+		deeper
+	}
+	var _ *root = &probe.Parent
+}
+
+// crown declares its parent field branch, of type branch.
+func _() {
+	type subject = crown
+	type decoy struct{ branch struct{} }
+	type deeper struct{ decoy }
+	var probe struct {
+		*subject
+		deeper
+	}
+	var _ *branch = &probe.branch
+}
+
 // The declarations below were generated from the constant branchSpec.
 // If the map literal fails to compile with a duplicate key, branchSpec has
 // changed since then: run go generate. If the line above it fails, branchSpec
@@ -203,4 +327,48 @@ func standaloneInit(leaf *branch) error {
 // of standalone.
 func standaloneInitPlan(plan *heiry.Plan[branch], leaf *branch) error {
 	return plan.Init(leaf, standaloneRefs(leaf)...)
+}
+
+// Each probe below compiles only while a struct declares a field itself, as
+// the library requires: a level's parent field, and the first field of each
+// component's path. If a selector below is ambiguous or has another type,
+// that field is gone, has another type, or is reached only through another
+// embedded struct; for a parent field, a level between the two is then
+// missing from branchSpec. Regenerating writes the same probes, so first correct
+// the levels or paths of branchSpec, or the struct; then run go generate.
+
+// root declares the field left of its component left.
+func _() {
+	type subject = root
+	type decoy struct{ left struct{} }
+	type deeper struct{ decoy }
+	var probe struct {
+		*subject
+		deeper
+	}
+	var _ *tally = &probe.left
+}
+
+// root declares the field journal of its component journal.
+func _() {
+	type subject = root
+	type decoy struct{ journal struct{} }
+	type deeper struct{ decoy }
+	var probe struct {
+		*subject
+		deeper
+	}
+	var _ *journal[int] = &probe.journal
+}
+
+// branch declares its parent field Parent, of type root.
+func _() {
+	type subject = branch
+	type decoy struct{ Parent struct{} }
+	type deeper struct{ decoy }
+	var probe struct {
+		*subject
+		deeper
+	}
+	var _ *root = &probe.Parent
 }

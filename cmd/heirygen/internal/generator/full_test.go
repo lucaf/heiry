@@ -121,7 +121,7 @@ func TestStaleOperationsAndWrapper(t *testing.T) {
 			stale: "does not implement Private (missing method Wipe)",
 			// Nothing registers it: validation reports it at first use, as
 			// for a handwritten declaration.
-			output: "error: MissingMethods: target main.node, level 0, private Wipe capability, expected func()",
+			output: "error: MissingMethods: target main.node, level 0 (the target; no level has a valid registration), private Wipe capability, expected func()",
 		},
 		{
 			name: "change an operation's signature in the contract",
@@ -134,7 +134,7 @@ func TestStaleOperationsAndWrapper(t *testing.T) {
 			name: "change an embedded contract",
 			old:  "\tRead(key string) (string, bool)\n}", new: "\tRead(key string) (string, bool)\n\tScan() []string\n}",
 			stale:  "does not implement Public (missing method Scan)",
-			output: "error: MissingMethods: target main.node, level 0, public Scan capability, expected func() []string",
+			output: "error: MissingMethods: target main.node, level 0 (the target; no level has a valid registration), public Scan capability, expected func() []string",
 		},
 		{
 			name:  "add a handwritten method to the wrapper that exposes a private operation",

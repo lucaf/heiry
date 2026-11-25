@@ -10,6 +10,7 @@ var fixtures = []string{
 	"testdata/basic",
 	"testdata/components",
 	"testdata/matrix",
+	"testdata/chains",
 	"../../../../examples/generated",
 }
 

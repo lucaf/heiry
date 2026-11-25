@@ -92,6 +92,38 @@ func notifierInitPlan(plan *heiry.Plan[signed], leaf *signed) error {
 	return plan.Init(leaf, notifierRefs(leaf)...)
 }
 
+// Each probe below compiles only while a struct declares a field itself, as
+// the library requires: a level's parent field, and the first field of each
+// component's path. If a selector below is ambiguous or has another type,
+// that field is gone, has another type, or is reached only through another
+// embedded struct; for a parent field, a level between the two is then
+// missing from notifierSpec. Regenerating writes the same probes, so first correct
+// the levels or paths of notifierSpec, or the struct; then run go generate.
+
+// sender declares the field log of its component log.
+func _() {
+	type subject = sender
+	type decoy struct{ log struct{} }
+	type deeper struct{ decoy }
+	var probe struct {
+		*subject
+		deeper
+	}
+	var _ *journal = &probe.log
+}
+
+// signed declares its parent field sender, of type sender.
+func _() {
+	type subject = signed
+	type decoy struct{ sender struct{} }
+	type deeper struct{ decoy }
+	var probe struct {
+		*subject
+		deeper
+	}
+	var _ *sender = &probe.sender
+}
+
 // mailer is the public wrapper of notifier. It holds the object in a named field,
 // so nothing is promoted onto it, and forwards every operation of Public
 // through a virtual call.

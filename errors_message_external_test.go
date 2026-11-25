@@ -75,7 +75,11 @@ func TestR1ErrorMessageContext(t *testing.T) {
 		{"target and level 0 only", r1Diagnostic(t, reinitialized()),
 			`AlreadyInitialized: target heiry_test.r1DirectRoot, level 0`},
 		{"missing method", r1Diagnostic(t, missing()),
-			`MissingMethods: target heiry_test.r1DirectRootLeaf, level 1, public Read capability, expected func() int`},
+			`MissingMethods: target heiry_test.r1DirectRootLeaf, level 1 (the target; no level has a valid registration), public Read capability, expected func() int`},
+		// The form dispatch can raise names the caller's level, not the
+		// target's, so it carries no note.
+		{"missing method at dispatch", &heiry.Error{Code: heiry.MissingMethods, Capability: reflect.TypeFor[r1Read](), Level: 2},
+			`MissingMethods: level 2, capability heiry_test.r1Read`},
 		{"uninitialized scope", r1Diagnostic(t, uninitialized()),
 			`Uninitialized: capability heiry_test.r1Read`},
 		// An unset scope has no level, even in an error a caller builds.
