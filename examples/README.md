@@ -8,7 +8,7 @@ Each directory is a complete Go program that uses the heiry package through its 
 | [components](components/main.go) | Several providers at one level, grouped and individual registration, component references, ownership checks, and parent calls that skip sibling components | `go run ./examples/components` |
 | [lifecycle](lifecycle/main.go) | Declaration, eager and lazy preparation, Plan reuse across objects, dynamic and precomputed resolution, and setup errors | `go run ./examples/lifecycle` |
 | [comparison](comparison/main.go) | One application written with a hand-written self interface and with heiry, checked to behave the same | `go run ./examples/comparison` |
-| [generated](generated/main.go) | The optional heirygen command: a specification string, the operation interfaces, declaration, helpers, and wrapper it writes into [main.heirygen.go](generated/main.heirygen.go), lazy and precomputed initialization, and a handwritten method on the generated wrapper | `go run ./examples/generated` |
+| [generated](generated/main.go) | The optional heirygen command: a specification string, the operation interfaces, declaration, helpers, wrapper, and compile-time probes it writes into [main.heirygen.go](generated/main.heirygen.go), lazy and precomputed initialization, and a handwritten method on the generated wrapper | `go run ./examples/generated` |
 
 Every program prints deterministic output. The exact expected output is the `// Output:` block of the `Example` function in each directory's `main_test.go`, and `go test` compares the real output with it:
 

@@ -13,7 +13,7 @@ Go embedding reuses fields and methods, but a method of an embedded type cannot 
 - Ancestors are embedded **by value**, so one allocated object holds all the state.
 - Calls stay ordinary typed Go method calls on an interface. There is no reflective invocation and no `unsafe`.
 
-heiry becomes worth its cost when levels are assembled from several components that need parent calls, when the same provider types are reused at different levels or in different hierarchies, or when a project wants one uniform set of validation, diagnostics and object checks across many hierarchies. For a small hierarchy in one package, plain embedding or a hand-written self interface is usually simpler and faster; see [alternatives](alternatives.md).
+heiry may be worth its cost in one case: a component that makes parent calls, stored at a level that later levels extend, and reused at several levels or in several hierarchies. Each stored component's parent calls then resolve from the level that stores it, where a hand-written design wires a link for each place. That case has not been measured. In the cases that have been, plain Go needed less code and ran faster: plain embedding or a hand-written self interface is usually the simpler choice. [Alternatives](alternatives.md#when-the-simpler-approach-is-better) gives the measurements and says when each approach fits.
 
 ## Running the examples
 
@@ -427,7 +427,7 @@ if errors.Is(err, &heiry.Error{Code: heiry.MissingMethods}) {
 - Finish declaring a Definition before using it from several goroutines. Each declaration call is synchronized, but a sequence of them is not a transaction.
 - Initializing the same object from two goroutines is not supported.
 
-**Authoring cost.** You write one interface per operation, the two contracts per level, each registration, one forwarder per public operation, and the references for every object. The optional [heirygen](generation.md) command can write the interfaces, registrations, references, and forwarders from a specification string; you still write the contracts, types, bodies, and constructors.
+**Authoring cost.** You write one interface per operation, the two contracts per level, each registration, one forwarder per public operation, and the references for every object. The optional [heirygen](generation.md) command can write the interfaces, registrations, references, and forwarders from a specification string; you still write the contracts, types, bodies, and constructors. Specifications of one package can share levels and components, with `chain`, `from=`, `part`, and `use`.
 
 **Not supported in this version:**
 

@@ -27,9 +27,9 @@ Virtual and parent calls end in ordinary interface method calls. heiry uses no r
 
 ## Who is this for
 
-heiry becomes worth its cost when levels are assembled from several components that need parent calls, when the same provider types are reused at different levels or in different hierarchies, or when a project wants one uniform set of validation, diagnostics and object checks across many hierarchies. For a small hierarchy in one package, plain embedding or a hand-written self interface is usually simpler and faster. [Alternatives](docs/user/alternatives.md#when-the-simpler-approach-is-better) says when each approach fits.
+heiry may be worth its cost in one case: a component that makes parent calls, stored at a level that later levels extend, and reused at several levels or in several hierarchies. Each stored component's parent calls then resolve from the level that stores it, where a hand-written design wires a link for each place. That case has not been measured. In the cases that have been, plain Go needed less code and ran faster: plain embedding or a hand-written self interface is usually the simpler choice. [Alternatives](docs/user/alternatives.md#when-the-simpler-approach-is-better) gives the measurements and says when each approach fits.
 
-The [comparison example](examples/comparison/withheiry.go) shows the simplest form of the first case: one component that makes a parent call. Its strict level stores a limit component, which rejects long items and passes the others to the check below its level:
+The [comparison example](examples/comparison/withheiry.go) shows this case in its simplest form, without reuse: one component that makes a parent call, at a level that another level extends. Its strict level stores a limit component, which rejects long items and passes the others to the check below its level:
 
 ```go
 // hLimiter is a component of the strict level. Its scope records that level,
@@ -112,9 +112,9 @@ The [examples index](examples/README.md) lists five runnable programs, with the 
 
 ## Limitations
 
-- **Authoring cost:** one interface per operation, explicit registrations, a hand-written forwarder per public operation, and explicit references for every object. The optional [heirygen](docs/user/generation.md) command can write these from a specification string, through the same API.
+- **Authoring cost:** one interface per operation, explicit registrations, a hand-written forwarder per public operation, and explicit references for every object. The optional [heirygen](docs/user/generation.md) command can write these from a specification string, through the same API. Specifications of one package can share levels and components, with `chain`, `from=`, `part`, and `use`.
 - **Run-time cost:** each virtual or parent call does a lookup that a plain interface call does not.
-- **Checks at preparation, not compilation:** hierarchy completeness is validated when a declaration is prepared.
+- **Checks at preparation, not compilation:** hierarchy completeness is validated when a declaration is prepared. heirygen's outputs also check at compile time that each level's parent field, and the first field of each component's path, is declared directly in its own struct, so a specification that leaves out a level between two others fails the build.
 - **Trust in registrations:** heiry cannot tell a real override from a method merely inherited by promotion.
 - **Scope:** single inheritance through value embedding only. Deriving levels across packages is not supported.
 - **Generator platforms:** heirygen is supported on Linux, including WSL2 on the Linux file system, and on macOS. Native Windows is not supported or tested. The library and generated code are plain Go.
@@ -124,7 +124,7 @@ The [user guide](docs/user/guide.md) covers these in detail, and the [generation
 ## Documentation
 
 - [User guide](docs/user/guide.md): concepts, declaration, lifecycle, dispatch, components, errors and limitations, with diagrams.
-- [Generating declarations with heirygen](docs/user/generation.md): the optional generator, its specification string, and its guards.
+- [Generating declarations with heirygen](docs/user/generation.md): the optional generator, its specification string, sharing levels and components between specifications, and its guards.
 - [Alternatives and future possibilities](docs/user/alternatives.md): comparison with a self interface, and possible future work.
 - [Examples](examples/README.md): runnable programs.
 - [Changelog](CHANGELOG.md): what each release contains.
