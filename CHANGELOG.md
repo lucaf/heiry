@@ -2,7 +2,7 @@
 
 This file lists what each release of heiry contains. Versions follow [semantic versioning](https://semver.org/); before `v1.0.0`, any release may change the API.
 
-## Unreleased
+## v0.3.0 — 2026-11-26
 
 - **Breaking: the aliases are removed,** as [ADR 0015](docs/decisions/0015-remove-aliases.md) records. No check is lost, and heirygen's output is unchanged. To migrate:
   - `BindNode[T](w)` and `BindNodeGroup(w, ...)` become `Bind[T](w, ".")` and `BindGroup(w, ".", ...)`.
