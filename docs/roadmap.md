@@ -589,12 +589,12 @@ Code existence, documentation alone, empty package runs, and tests of a separate
 
 ## V3. Third release (`v0.2.1`)
 
-- **Status:** In progress — the release preparation is uncommitted in the working tree on `main`. Completion needs the owner's commit, the `v0.2.1` tag on that commit, and a CI run on it green, as reported by the owner.
+- **Status:** Completed — committed by the owner as `ea08c81`, which is on main and carries the `v0.2.1` tag, and the CI run on that commit is green.
 - **Objective:** Publish `v0.2.1`. The last number goes up because the release holds the [fixes after the outside review](#fixes-after-the-outside-review-of-v020): generator names refused before they fail the build, `heirygen -h` exiting 0, clearer messages, and no new API. A specification that named a declaration after a predeclared identifier that no code uses generated and compiled with `v0.2.0` and is now refused, which the changelog says.
 - **Scope and authorization:** On 2026-11-25 the owner authorized the `v0.2.1` release at `379135a`: the changelog's "Unreleased" section becomes `v0.2.1`, the fixes entry above is closed with the owner's CI report, and this entry records the release.
 - **Changes:** The [changelog](../CHANGELOG.md)'s "Unreleased" heading becomes `v0.2.1 — 2026-11-25`, with its entries unchanged and no new "Unreleased" section. The fixes entry above is Completed on the owner's report that CI on `379135a` is green.
 - **Verification:** A documentation-only change, checked as AGENTS.md requires: the documentation checker, its tests, and `git diff --check` pass.
-- **CI status and evidence:** Not yet run for V3. The owner commits, tags, pushes, and reports the result; record it here with its commit.
+- **CI status and evidence:** Green: the "Project checks" run 45688502494 on commit `ea08c81` completed with success on 2026-11-25, as read with `gh run view`.
 
 ## Deferred investigations
 
