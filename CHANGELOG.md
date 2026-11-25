@@ -2,7 +2,7 @@
 
 This file lists what each release of heiry contains. Versions follow [semantic versioning](https://semver.org/); before `v1.0.0`, any release may change the API.
 
-## Unreleased
+## v0.2.1 — 2026-11-25
 
 - **heirygen refuses more generated names:** `init`, a hierarchy named `_`, any predeclared identifier such as `error` or `len`, and a name that an import binds in a file of the package, including its test files of the same package clause. All were generated before. `init`, `_`, an import's name, and a predeclared name that generated or handwritten code uses then failed `go build`, sometimes with errors in handwritten files; a predeclared name that no code uses compiled, and is now refused as a precaution. An unnamed import's name is read from its path, so a package whose name differs from its path can still clash, as can a name that a dot import provides; the build reports those. A name equal to the path's element is refused although the import does not bind it.
 - **`heirygen -h` exits 0:** it printed the usage and exited 2, as for a usage error.
