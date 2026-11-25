@@ -20,7 +20,7 @@ func r1Diagnostic(t *testing.T, err error) *heiry.Error {
 
 func r1RootDefinition() *heiry.Definition[r1DirectRootLeaf] {
 	d := heiry.Define[r1DirectRootLeaf]()
-	d.Level[r1DirectRoot, r1Read, r1Empty]("").BindNode[r1Read]((*r1DirectRoot)(nil)).Extend[r1DirectRootLeaf]()
+	d.Level[r1DirectRoot, r1Read, r1Empty]("").Bind[r1Read]((*r1DirectRoot)(nil), ".").End().Extend[r1DirectRootLeaf]()
 	return d
 }
 
@@ -37,19 +37,19 @@ func TestR1ErrorMessageContext(t *testing.T) {
 	}
 	holder := func() error {
 		d := heiry.Define[r1HiddenRootLeaf]()
-		d.Level[r1HiddenRoot, r1Read, r1Empty]("").BindNode[r1Read]((*r1HiddenRoot)(nil)).Extend[r1HiddenRootLeaf]()
+		d.Level[r1HiddenRoot, r1Read, r1Empty]("").Bind[r1Read]((*r1HiddenRoot)(nil), ".").End().Extend[r1HiddenRootLeaf]()
 		return d.Validate()
 	}
 	missing := func() error {
 		d := heiry.Define[r1DirectRootLeaf]()
-		d.Level[r1DirectRoot, r1Read, r1Empty]("").Extend[r1DirectRootLeaf]()
+		d.Level[r1DirectRoot, r1Read, r1Empty]("").End().Extend[r1DirectRootLeaf]()
 		return d.Validate()
 	}
 	// A second Init of a single-level object names nothing but its target and
 	// level 0, which levelKnown keeps for a code that always concerns a level.
 	reinitialized := func() error {
 		d := heiry.Define[r1DirectRoot]()
-		d.Level[r1DirectRoot, r1Read, r1Empty]("").BindNode[r1Read]((*r1DirectRoot)(nil))
+		d.Level[r1DirectRoot, r1Read, r1Empty]("").Bind[r1Read]((*r1DirectRoot)(nil), ".")
 		x := &r1DirectRoot{}
 		if err := d.Init(x, d.NodeProvider(x)); err != nil {
 			return err
@@ -117,13 +117,11 @@ func TestR1ErrorMessageContext(t *testing.T) {
 func TestStickyDeclarationErrorsNameTheirReason(t *testing.T) {
 	const reason = "already prepared"
 	d := heiry.Define[r1DirectRootLeaf]()
-	root := d.Level[r1DirectRoot, r1Read, r1Empty]("").BindNode[r1Read]((*r1DirectRoot)(nil))
-	root.Extend[r1DirectRootLeaf]()
+	root := d.Level[r1DirectRoot, r1Read, r1Empty]("").Bind[r1Read]((*r1DirectRoot)(nil), ".")
+	d.Extend[r1DirectRootLeaf]()
 	plan := d.MustPrepare()
 	root.Bind[r1Read]((*r1DirectRoot)(nil), ".")
-	root.BindNode[r1Read]((*r1DirectRoot)(nil))
 	root.BindGroup((*r1DirectRoot)(nil), ".", heiry.Of[r1Read]())
-	root.BindNodeGroup((*r1DirectRoot)(nil), heiry.Of[r1Read]())
 	d.Level[r1DirectRootLeaf, r1Read, r1Empty]("r1DirectRoot")
 	d.Extend[r1DirectRootLeaf]()
 	d.ExtendWith[r1DirectRootLeaf, r1Read, r1Empty]()
@@ -132,8 +130,8 @@ func TestStickyDeclarationErrorsNameTheirReason(t *testing.T) {
 		t.Fatalf("Validate = %v, want InvalidDeclaration", err)
 	}
 	joined, ok := err.(interface{ Unwrap() []error })
-	if !ok || len(joined.Unwrap()) != 7 {
-		t.Fatalf("Validate = %v, want the 7 refused calls", err)
+	if !ok || len(joined.Unwrap()) != 5 {
+		t.Fatalf("Validate = %v, want the 5 refused calls", err)
 	}
 	for _, item := range joined.Unwrap() {
 		diagnostic := r1Diagnostic(t, item)
@@ -151,8 +149,6 @@ func TestStickyDeclarationErrorsNameTheirReason(t *testing.T) {
 	first.Extend[r1DirectRootLeaf]()
 	firstWith := heiry.Define[r1DirectRootLeaf]()
 	firstWith.ExtendWith[r1DirectRootLeaf, r1Read, r1Empty]()
-	empty := heiry.Define[r1DirectRootLeaf]()
-	empty.Level[r1DirectRootLeaf, r1Read, r1Empty]("").BindNodeGroup((*r1DirectRootLeaf)(nil))
 	emptyPath := heiry.Define[r1DirectRootLeaf]()
 	emptyPath.Level[r1DirectRootLeaf, r1Read, r1Empty]("").BindGroup((*r1DirectRootLeaf)(nil), ".")
 	for _, tc := range []struct {
@@ -162,7 +158,6 @@ func TestStickyDeclarationErrorsNameTheirReason(t *testing.T) {
 	}{
 		{"Extend first", first.Validate(), "cause: the Definition has no level to extend: declare the root with Level"},
 		{"ExtendWith first", firstWith.Validate(), "cause: the Definition has no level to extend: declare the root with Level"},
-		{"empty BindNodeGroup", empty.Validate(), "cause: the group names no operation: pass at least one Of token"},
 		{"empty BindGroup", emptyPath.Validate(), "cause: the group names no operation: pass at least one Of token"},
 	} {
 		var diagnostic *heiry.Error

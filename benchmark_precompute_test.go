@@ -153,16 +153,16 @@ func pbLevelSpecs[Leaf any]() []pbLevelSpec[Leaf] {
 	type def = *Definition[Leaf]
 	type handle = *LevelHandle[Leaf]
 	return []pbLevelSpec[Leaf]{
-		{nil, func(h handle, ops []OperationToken) { h.BindNodeGroup((*pbL0)(nil), ops...) }},
-		{func(d def) handle { return d.Extend[pbL1]() }, func(h handle, ops []OperationToken) { h.BindNodeGroup((*pbL1)(nil), ops...) }},
-		{func(d def) handle { return d.Extend[pbL2]() }, func(h handle, ops []OperationToken) { h.BindNodeGroup((*pbL2)(nil), ops...) }},
-		{func(d def) handle { return d.Extend[pbL3]() }, func(h handle, ops []OperationToken) { h.BindNodeGroup((*pbL3)(nil), ops...) }},
-		{func(d def) handle { return d.Extend[pbL4]() }, func(h handle, ops []OperationToken) { h.BindNodeGroup((*pbL4)(nil), ops...) }},
-		{func(d def) handle { return d.Extend[pbL5]() }, func(h handle, ops []OperationToken) { h.BindNodeGroup((*pbL5)(nil), ops...) }},
-		{func(d def) handle { return d.Extend[pbL6]() }, func(h handle, ops []OperationToken) { h.BindNodeGroup((*pbL6)(nil), ops...) }},
-		{func(d def) handle { return d.Extend[pbL7]() }, func(h handle, ops []OperationToken) { h.BindNodeGroup((*pbL7)(nil), ops...) }},
-		{func(d def) handle { return d.Extend[pbL8]() }, func(h handle, ops []OperationToken) { h.BindNodeGroup((*pbL8)(nil), ops...) }},
-		{func(d def) handle { return d.Extend[pbL9]() }, func(h handle, ops []OperationToken) { h.BindNodeGroup((*pbL9)(nil), ops...) }},
+		{nil, func(h handle, ops []OperationToken) { h.BindGroup((*pbL0)(nil), ".", ops...) }},
+		{func(d def) handle { return d.Extend[pbL1]() }, func(h handle, ops []OperationToken) { h.BindGroup((*pbL1)(nil), ".", ops...) }},
+		{func(d def) handle { return d.Extend[pbL2]() }, func(h handle, ops []OperationToken) { h.BindGroup((*pbL2)(nil), ".", ops...) }},
+		{func(d def) handle { return d.Extend[pbL3]() }, func(h handle, ops []OperationToken) { h.BindGroup((*pbL3)(nil), ".", ops...) }},
+		{func(d def) handle { return d.Extend[pbL4]() }, func(h handle, ops []OperationToken) { h.BindGroup((*pbL4)(nil), ".", ops...) }},
+		{func(d def) handle { return d.Extend[pbL5]() }, func(h handle, ops []OperationToken) { h.BindGroup((*pbL5)(nil), ".", ops...) }},
+		{func(d def) handle { return d.Extend[pbL6]() }, func(h handle, ops []OperationToken) { h.BindGroup((*pbL6)(nil), ".", ops...) }},
+		{func(d def) handle { return d.Extend[pbL7]() }, func(h handle, ops []OperationToken) { h.BindGroup((*pbL7)(nil), ".", ops...) }},
+		{func(d def) handle { return d.Extend[pbL8]() }, func(h handle, ops []OperationToken) { h.BindGroup((*pbL8)(nil), ".", ops...) }},
+		{func(d def) handle { return d.Extend[pbL9]() }, func(h handle, ops []OperationToken) { h.BindGroup((*pbL9)(nil), ".", ops...) }},
 	}
 }
 

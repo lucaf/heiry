@@ -220,7 +220,7 @@ func r1Rejected() []struct {
 	}{
 		{r1Case("level node", func() *heiry.Definition[r1HiddenRootLeaf] {
 			d := heiry.Define[r1HiddenRootLeaf]()
-			d.Level[r1HiddenRoot, r1Read, r1Empty]("").BindNode[r1Read]((*r1HiddenRoot)(nil)).Extend[r1HiddenRootLeaf]()
+			d.Level[r1HiddenRoot, r1Read, r1Empty]("").Bind[r1Read]((*r1HiddenRoot)(nil), ".").End().Extend[r1HiddenRootLeaf]()
 			return d
 		}, func(d *heiry.Definition[r1HiddenRootLeaf]) (*heiry.Node, r1Read, error) {
 			x := &r1HiddenRootLeaf{r1HiddenRoot: r1HiddenRoot{value: 1}}
@@ -229,7 +229,7 @@ func r1Rejected() []struct {
 		}), 0, "r1HiddenRoot.r1hidden", &heiry.Error{Code: heiry.MissingNode, Level: 0, Target: reflect.TypeFor[r1HiddenRootLeaf](), Path: "r1HiddenRoot.r1hidden", Expected: reflect.TypeFor[heiry.Node]()}},
 		{r1Case("component", func() *heiry.Definition[r1HiddenOwnerLeaf] {
 			d := heiry.Define[r1HiddenOwnerLeaf]()
-			d.Level[r1HiddenOwner, r1Read, r1Empty]("").Bind[r1Read]((*r1HiddenStore)(nil), "store").Extend[r1HiddenOwnerLeaf]()
+			d.Level[r1HiddenOwner, r1Read, r1Empty]("").Bind[r1Read]((*r1HiddenStore)(nil), "store").End().Extend[r1HiddenOwnerLeaf]()
 			return d
 		}, func(d *heiry.Definition[r1HiddenOwnerLeaf]) (*heiry.Node, r1Read, error) {
 			x := &r1HiddenOwnerLeaf{r1HiddenOwner: r1HiddenOwner{store: r1HiddenStore{value: 1}}}
@@ -239,7 +239,7 @@ func r1Rejected() []struct {
 		// Without a holder field the path keeps naming the Node it lacks.
 		{r1Case("level node without a holder", func() *heiry.Definition[r1BareRootLeaf] {
 			d := heiry.Define[r1BareRootLeaf]()
-			d.Level[r1BareRoot, r1Read, r1Empty]("").BindNode[r1Read]((*r1BareRoot)(nil)).Extend[r1BareRootLeaf]()
+			d.Level[r1BareRoot, r1Read, r1Empty]("").Bind[r1Read]((*r1BareRoot)(nil), ".").End().Extend[r1BareRootLeaf]()
 			return d
 		}, func(d *heiry.Definition[r1BareRootLeaf]) (*heiry.Node, r1Read, error) {
 			x := &r1BareRootLeaf{r1BareRoot: r1BareRoot{value: 1}}
@@ -248,7 +248,7 @@ func r1Rejected() []struct {
 		}), 0, "r1BareRoot.Node", &heiry.Error{Code: heiry.MissingNode, Level: 0, Target: reflect.TypeFor[r1BareRootLeaf](), Path: "r1BareRoot.Node", Expected: reflect.TypeFor[heiry.Node]()}},
 		{r1Case("component without a holder", func() *heiry.Definition[r1BareOwnerLeaf] {
 			d := heiry.Define[r1BareOwnerLeaf]()
-			d.Level[r1BareOwner, r1Read, r1Empty]("").Bind[r1Read]((*r1BareStore)(nil), "store").Extend[r1BareOwnerLeaf]()
+			d.Level[r1BareOwner, r1Read, r1Empty]("").Bind[r1Read]((*r1BareStore)(nil), "store").End().Extend[r1BareOwnerLeaf]()
 			return d
 		}, func(d *heiry.Definition[r1BareOwnerLeaf]) (*heiry.Node, r1Read, error) {
 			x := &r1BareOwnerLeaf{r1BareOwner: r1BareOwner{store: r1BareStore{value: 1}}}
@@ -258,7 +258,7 @@ func r1Rejected() []struct {
 		// With two holders the path also names Node, not one of them.
 		{r1Case("level node with two holders", func() *heiry.Definition[r1TwoRootLeaf] {
 			d := heiry.Define[r1TwoRootLeaf]()
-			d.Level[r1TwoRoot, r1Read, r1Empty]("").BindNode[r1Read]((*r1TwoRoot)(nil)).Extend[r1TwoRootLeaf]()
+			d.Level[r1TwoRoot, r1Read, r1Empty]("").Bind[r1Read]((*r1TwoRoot)(nil), ".").End().Extend[r1TwoRootLeaf]()
 			return d
 		}, func(d *heiry.Definition[r1TwoRootLeaf]) (*heiry.Node, r1Read, error) {
 			x := &r1TwoRootLeaf{r1TwoRoot: r1TwoRoot{value: 1}}
@@ -267,7 +267,7 @@ func r1Rejected() []struct {
 		}), 0, "r1TwoRoot.Node", nil},
 		{r1Case("component with two holders", func() *heiry.Definition[r1TwoOwnerLeaf] {
 			d := heiry.Define[r1TwoOwnerLeaf]()
-			d.Level[r1TwoOwner, r1Read, r1Empty]("").Bind[r1Read]((*r1TwoStore)(nil), "store").Extend[r1TwoOwnerLeaf]()
+			d.Level[r1TwoOwner, r1Read, r1Empty]("").Bind[r1Read]((*r1TwoStore)(nil), "store").End().Extend[r1TwoOwnerLeaf]()
 			return d
 		}, func(d *heiry.Definition[r1TwoOwnerLeaf]) (*heiry.Node, r1Read, error) {
 			x := &r1TwoOwnerLeaf{r1TwoOwner: r1TwoOwner{store: r1TwoStore{value: 1}}}
@@ -281,7 +281,7 @@ func r1Accepted() []r1Holder {
 	return []r1Holder{
 		r1Case("exported alias level node", func() *heiry.Definition[r1ShownRootLeaf] {
 			d := heiry.Define[r1ShownRootLeaf]()
-			d.Level[r1ShownRoot, r1Read, r1Empty]("").BindNode[r1Read]((*r1ShownRoot)(nil)).Extend[r1ShownRootLeaf]()
+			d.Level[r1ShownRoot, r1Read, r1Empty]("").Bind[r1Read]((*r1ShownRoot)(nil), ".").End().Extend[r1ShownRootLeaf]()
 			return d
 		}, func(d *heiry.Definition[r1ShownRootLeaf]) (*heiry.Node, r1Read, error) {
 			x := &r1ShownRootLeaf{r1ShownRoot: r1ShownRoot{value: 1}}
@@ -290,7 +290,7 @@ func r1Accepted() []r1Holder {
 		}),
 		r1Case("direct level node", func() *heiry.Definition[r1DirectRootLeaf] {
 			d := heiry.Define[r1DirectRootLeaf]()
-			d.Level[r1DirectRoot, r1Read, r1Empty]("").BindNode[r1Read]((*r1DirectRoot)(nil)).Extend[r1DirectRootLeaf]()
+			d.Level[r1DirectRoot, r1Read, r1Empty]("").Bind[r1Read]((*r1DirectRoot)(nil), ".").End().Extend[r1DirectRootLeaf]()
 			return d
 		}, func(d *heiry.Definition[r1DirectRootLeaf]) (*heiry.Node, r1Read, error) {
 			x := &r1DirectRootLeaf{r1DirectRoot: r1DirectRoot{value: 1}}
@@ -299,7 +299,7 @@ func r1Accepted() []r1Holder {
 		}),
 		r1Case("exported alias component in an unexported field", func() *heiry.Definition[r1ShownOwnerLeaf] {
 			d := heiry.Define[r1ShownOwnerLeaf]()
-			d.Level[r1ShownOwner, r1Read, r1Empty]("").Bind[r1Read]((*r1ShownStore)(nil), "store").Extend[r1ShownOwnerLeaf]()
+			d.Level[r1ShownOwner, r1Read, r1Empty]("").Bind[r1Read]((*r1ShownStore)(nil), "store").End().Extend[r1ShownOwnerLeaf]()
 			return d
 		}, func(d *heiry.Definition[r1ShownOwnerLeaf]) (*heiry.Node, r1Read, error) {
 			x := &r1ShownOwnerLeaf{r1ShownOwner: r1ShownOwner{store: r1ShownStore{value: 1}}}
@@ -308,7 +308,7 @@ func r1Accepted() []r1Holder {
 		}),
 		r1Case("direct component in an unexported field", func() *heiry.Definition[r1DirectOwnerLeaf] {
 			d := heiry.Define[r1DirectOwnerLeaf]()
-			d.Level[r1DirectOwner, r1Read, r1Empty]("").Bind[r1Read]((*r1DirectStore)(nil), "store").Extend[r1DirectOwnerLeaf]()
+			d.Level[r1DirectOwner, r1Read, r1Empty]("").Bind[r1Read]((*r1DirectStore)(nil), "store").End().Extend[r1DirectOwnerLeaf]()
 			return d
 		}, func(d *heiry.Definition[r1DirectOwnerLeaf]) (*heiry.Node, r1Read, error) {
 			x := &r1DirectOwnerLeaf{r1DirectOwner: r1DirectOwner{store: r1DirectStore{value: 1}}}

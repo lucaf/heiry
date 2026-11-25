@@ -96,25 +96,26 @@ A declaration lists the levels from root to leaf. It involves no object:
 ```go
 var hierarchy = heiry.Define[tagged]().
 	Level[base, Public, Private]("").
-	BindNode[Processor]((*base)(nil)).
-	BindNode[Describer]((*base)(nil)).
-	BindNode[Validator]((*base)(nil)).
-	BindNode[Transformer]((*base)(nil)).
+	Bind[Processor]((*base)(nil), ".").
+	Bind[Describer]((*base)(nil), ".").
+	Bind[Validator]((*base)(nil), ".").
+	Bind[Transformer]((*base)(nil), ".").End().
 	Extend[limited]().
-	BindNode[Validator]((*limited)(nil)).
+	Bind[Validator]((*limited)(nil), ".").End().
 	Extend[tagged]().
-	BindNode[Processor]((*tagged)(nil)).
-	BindNode[Describer]((*tagged)(nil)).
-	BindNode[Transformer]((*tagged)(nil))
+	Bind[Processor]((*tagged)(nil), ".").
+	Bind[Describer]((*tagged)(nil), ".").
+	Bind[Transformer]((*tagged)(nil), ".").End()
 ```
 
 - `Define[Leaf]()` starts a Definition. The last level's node type must be `Leaf`.
 - `Level[Node, Public, Private](parentField)` declares the root, with `""` as its parent field.
 - `Extend[Node]()` adds the next level with the same contracts as the level before it.
 - `ExtendWith[Node, Public, Private]()` adds the next level with new contracts.
-- `BindNode[Operation](witness)` registers that this level's own node implements one operation. The witness is a typed nil pointer; only its type is kept.
+- `Bind[Operation](witness, ".")` registers that this level's own node implements one operation. The witness is a typed nil pointer; only its type is kept.
+- `End()` returns from a level to the Definition. A chain writes it after each level, before the next level or any other Definition call.
 
-The chain can continue from any level handle, and the last handle can validate, prepare and initialize. `End()` returns the Definition when you need that type. The same calls can also be written as separate statements on saved level handles: a registration always goes to the handle's own level, and a new level is always added at the end.
+The declaration can also be written as separate statements: levels are added on the Definition, always at the end of the chain, and a saved level handle's registrations always go to its own level.
 
 One level type can be used in several hierarchies, and a type can be the leaf of one hierarchy and a middle level of another. Each Definition has its own registrations, and an object's calls resolve in the hierarchy it was initialized through.
 
@@ -142,24 +143,22 @@ Registration is always explicit. A level that lists nothing for an operation inh
 
 ### Typed and grouped registration
 
-There are two ways to register, each with a form for the node and a form for a component:
+There are two ways to register. The path is `"."` for the level's own node, or a component's field path:
 
-| | The level's own node | A component, by field path |
-| --- | --- | --- |
-| One operation, checked by the compiler | `BindNode[Operation](witness)` | `Bind[Operation](witness, path)` |
-| Several operations, checked at validation | `BindNodeGroup(witness, operations...)` | `BindGroup(witness, path, operations...)` |
+| | Form |
+| --- | --- |
+| One operation, checked by the compiler | `Bind[Operation](witness, path)` |
+| Several operations, checked at validation | `BindGroup(witness, path, operations...)` |
 
-With the individual forms the compiler checks that the witness type implements `Operation`.
+With `Bind` the compiler checks that the witness type implements `Operation`.
 
-The grouped forms register several operations for one provider in a single call. From the declaration in the [components example](../../examples/components/main.go), without the rest of the chain:
+`BindGroup` registers several operations for one provider in a single call. From the declaration in the [components example](../../examples/components/main.go), without the rest of the chain:
 
 ```go
 BindGroup((*store)(nil), "store", heiry.Of[Getter](), heiry.Of[Putter]())
 ```
 
 Here the compiler checks only that the witness is a pointer. Whether the provider implements each listed operation is checked when the Definition is validated. Calls made through either form are equally typed: `receiver.Node.Virtual[Getter]()` returns a `Getter`.
-
-`BindNode(w)` and `BindNodeGroup(w, ...)` are exactly `Bind(w, ".")` and `BindGroup(w, ".", ...)`; the path `"."` means the node itself.
 
 ## Components
 

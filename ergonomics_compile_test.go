@@ -18,8 +18,6 @@ func TestErgonomicsExternalFixtures(t *testing.T) {
 		path, expected string
 	}{
 		{"./testdata/e1negativeshadow", "cannot index t.Parent"},
-		{"./testdata/e2negativebindnode", "BindNode[read]: *leaf does not implement read"},
-		{"./testdata/e2negativegroup", "BindNodeGroup, type leaf of leaf{} does not match *Provider"},
 	} {
 		negative := exec.Command("go", "test", tc.path)
 		output, err := negative.CombinedOutput()

@@ -48,16 +48,16 @@ type view struct{ state *leaf }
 func (v *view) Read() int       { return v.state.Node.Virtual[read]().Read() }
 func (v *view) Write(value int) { v.state.Node.Virtual[write]().Write(value) }
 
-// hierarchy is a level handle: the chain needs no End, and the handle
-// prepares and initializes through its definition.
+// hierarchy is the Definition; the chain returns to it with End after each
+// level.
 var hierarchy = heiry.Define[leaf]().
 	Level[root, rootPublic, private]("").
-	BindNodeGroup((*root)(nil), heiry.Of[read](), heiry.Of[secret]()).
-	Extend[middle]().
+	BindGroup((*root)(nil), ".", heiry.Of[read](), heiry.Of[secret]()).End().
+	Extend[middle]().End().
 	ExtendWith[leaf, leafPublic, private]().
-	BindNode[read]((*leaf)(nil)).
-	BindNode[write]((*leaf)(nil)).
-	BindNode[secret]((*leaf)(nil))
+	Bind[read]((*leaf)(nil), ".").
+	Bind[write]((*leaf)(nil), ".").
+	Bind[secret]((*leaf)(nil), ".").End()
 
 func newLeaf(rootValue, leafValue int) *leaf {
 	return &leaf{middle: middle{root: root{value: rootValue}}, value: leafValue}
@@ -70,7 +70,7 @@ func TestExternalConciseDeclarationAndHolderDispatch(t *testing.T) {
 	}
 	for name, plan := range map[string]*heiry.Plan[leaf]{"dynamic": dynamic, "precomputed": dynamic.MustPrecompute()} {
 		x := newLeaf(2, 3)
-		// References come from the handle and from the Plan; both share one lineage.
+		// References come from the definition and from the Plan; both share one lineage.
 		err := plan.Init(x, hierarchy.NodeProvider(&x.middle.root), plan.NodeProvider(&x.middle), hierarchy.NodeProvider(x))
 		if err != nil {
 			t.Fatalf("%s Init: %v", name, err)
@@ -91,12 +91,12 @@ func TestExternalConciseDeclarationAndHolderDispatch(t *testing.T) {
 	}
 	y := newLeaf(1, 1)
 	if err := hierarchy.Init(y, hierarchy.NodeProvider(&y.middle.root), hierarchy.NodeProvider(&y.middle), hierarchy.NodeProvider(y)); err != nil {
-		t.Fatalf("Init through the handle: %v", err)
+		t.Fatalf("Init through the definition: %v", err)
 	}
 	other := newLeaf(1, 1)
 	err = hierarchy.Init(other, hierarchy.NodeProvider(&y.middle.root), hierarchy.NodeProvider(&other.middle), hierarchy.NodeProvider(other))
 	if !errors.Is(err, &heiry.Error{Code: heiry.ProviderOwnership}) || other.Node.Scope() != (heiry.Scope{}) {
-		t.Fatalf("foreign node through the handle: %v", err)
+		t.Fatalf("foreign node through the definition: %v", err)
 	}
 }
 

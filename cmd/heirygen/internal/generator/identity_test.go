@@ -280,9 +280,9 @@ func TestHandwrittenDuplicateOfAGeneratedOperation(t *testing.T) {
 	both := heiry.Define[leaf]().
 		Level[base, Public, Private]("").
 		Bind[DescribeOp]((*base)(nil), ".").
-		Bind[DetailOp]((*base)(nil), ".").
+		Bind[DetailOp]((*base)(nil), ".").End().
 		Level[leaf, Public, Private]("base").
-		Bind[Detailer]((*leaf)(nil), ".")
+		Bind[Detailer]((*leaf)(nil), ".").End()
 	var diagnostic *heiry.Error
 	if errors.As(both.Validate(), &diagnostic) {
 		fmt.Println("both registered:", diagnostic.Code)

@@ -186,8 +186,8 @@ var e1Sink any
 // functions on the same holder, for a virtual and a parent lookup.
 func BenchmarkNodeDispatchForms(b *testing.B) {
 	d := Define[e1AliasLeaf]()
-	d.Level[e1Root, e1Read, e1Empty]("").BindNode[e1Read]((*e1Root)(nil))
-	d.Level[e1AliasLeaf, e1Read, e1Empty]("e1Root").BindNode[e1Read]((*e1AliasLeaf)(nil))
+	d.Level[e1Root, e1Read, e1Empty]("").Bind[e1Read]((*e1Root)(nil), ".")
+	d.Level[e1AliasLeaf, e1Read, e1Empty]("e1Root").Bind[e1Read]((*e1AliasLeaf)(nil), ".")
 	dynamic := d.MustPrepare()
 	for _, mode := range []struct {
 		name string

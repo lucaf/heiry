@@ -1,6 +1,6 @@
 # ADR 0012 — Additive authoring conveniences
 
-Status: accepted by the project owner on 2026-11-18 as additions on the `ergonomic-refactor` branch. No existing API is removed or changed.
+Status: accepted by the project owner on 2026-11-18 as additions on the `ergonomic-refactor` branch. No existing API is removed or changed. Partly superseded on 2026-11-25 by [ADR 0015](0015-remove-aliases.md), which removed `BindNode`, `BindNodeGroup`, and the level-handle forwarders.
 
 Decision: four additions shorten authoring without moving any check from compilation to run time and without changing initialization.
 

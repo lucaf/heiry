@@ -49,15 +49,15 @@ func (f *formal) Sign() string { return " (" + f.title + ")" }
 
 // declare describes the hierarchy. It needs no object and runs no
 // application code; the result holds only types, paths and registrations.
-// BindNodeGroup registers several operations for a level's own node; the
-// declaration's validation checks that the node implements each of them.
-// End returns the definition from the last level handle.
+// BindGroup with the path "." registers several operations for a level's own
+// node; the declaration's validation checks that the node implements each of
+// them. End returns from each level to the definition.
 func declare() *heiry.Definition[formal] {
 	return heiry.Define[formal]().
 		Level[plain, Public, Private]("").
-		BindNodeGroup((*plain)(nil), heiry.Of[Greeter](), heiry.Of[Signer]()).
+		BindGroup((*plain)(nil), ".", heiry.Of[Greeter](), heiry.Of[Signer]()).End().
 		Extend[formal]().
-		BindNodeGroup((*formal)(nil), heiry.Of[Greeter](), heiry.Of[Signer]()).
+		BindGroup((*formal)(nil), ".", heiry.Of[Greeter](), heiry.Of[Signer]()).
 		End()
 }
 
@@ -146,9 +146,9 @@ func run(out io.Writer) error {
 	// involved. Here nothing implements Sign.
 	_, err = heiry.Define[formal]().
 		Level[plain, Public, Private]("").
-		BindNode[Greeter]((*plain)(nil)).
+		Bind[Greeter]((*plain)(nil), ".").End().
 		Extend[formal]().
-		BindNode[Greeter]((*formal)(nil)).
+		Bind[Greeter]((*formal)(nil), ".").End().
 		Prepare()
 	var diagnostic *heiry.Error
 	if !errors.As(err, &diagnostic) {

@@ -115,10 +115,10 @@ type cachedRepository struct {
 var hierarchy = heiry.Define[cachedRepository]().
 	Level[repository, Public, Private]("").
 	BindGroup((*store)(nil), "store", heiry.Of[Getter](), heiry.Of[Putter]()).
-	Bind[Recorder]((*auditLog)(nil), "log").
+	Bind[Recorder]((*auditLog)(nil), "log").End().
 	Extend[cachedRepository]().
 	BindGroup((*cache)(nil), "cache", heiry.Of[Getter](), heiry.Of[Putter]()).
-	Bind[Recorder]((*stamper)(nil), "stamper")
+	Bind[Recorder]((*stamper)(nil), "stamper").End()
 
 func newObject() *cachedRepository {
 	r := &cachedRepository{}

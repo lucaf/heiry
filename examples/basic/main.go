@@ -108,20 +108,21 @@ func (t *tagged) Transform(msg string) string {
 
 // hierarchy is declared once, without any object. The root names its
 // contracts; each Extend adds the next level, which keeps those contracts and
-// finds its parent among its embedded fields. BindNode states that the level's
-// own node implements one operation, and the compiler checks that it does.
+// finds its parent among its embedded fields. Bind with the path "." states
+// that the level's own node implements one operation, and the compiler checks
+// that it does. End returns from a level to the definition.
 var hierarchy = heiry.Define[tagged]().
 	Level[base, Public, Private]("").
-	BindNode[Processor]((*base)(nil)).
-	BindNode[Describer]((*base)(nil)).
-	BindNode[Validator]((*base)(nil)).
-	BindNode[Transformer]((*base)(nil)).
+	Bind[Processor]((*base)(nil), ".").
+	Bind[Describer]((*base)(nil), ".").
+	Bind[Validator]((*base)(nil), ".").
+	Bind[Transformer]((*base)(nil), ".").End().
 	Extend[limited]().
-	BindNode[Validator]((*limited)(nil)).
+	Bind[Validator]((*limited)(nil), ".").End().
 	Extend[tagged]().
-	BindNode[Processor]((*tagged)(nil)).
-	BindNode[Describer]((*tagged)(nil)).
-	BindNode[Transformer]((*tagged)(nil))
+	Bind[Processor]((*tagged)(nil), ".").
+	Bind[Describer]((*tagged)(nil), ".").
+	Bind[Transformer]((*tagged)(nil), ".").End()
 
 // newTagged is an ordinary constructor: it allocates one object and sets its
 // fields. Init then checks the object against the hierarchy and gives every

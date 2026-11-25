@@ -78,12 +78,12 @@ func (f *hFancy) Prefix() string { return "* " }
 // level. The component is registered directly; no forwarder is needed.
 var fancy = heiry.Define[hFancy]().
 	Level[hBase, hPublic, hPrivate]("").
-	BindNodeGroup((*hBase)(nil), heiry.Of[Rendering](), heiry.Of[Checking](), heiry.Of[Prefixing]()).
+	BindGroup((*hBase)(nil), ".", heiry.Of[Rendering](), heiry.Of[Checking](), heiry.Of[Prefixing]()).End().
 	Extend[hStrict]().
-	Bind[Checking]((*hLimiter)(nil), "limits").
+	Bind[Checking]((*hLimiter)(nil), "limits").End().
 	Extend[hFancy]().
-	BindNode[Rendering]((*hFancy)(nil)).
-	BindNode[Prefixing]((*hFancy)(nil))
+	Bind[Rendering]((*hFancy)(nil), ".").
+	Bind[Prefixing]((*hFancy)(nil), ".").End()
 
 // heiryRenderer is the public wrapper.
 type heiryRenderer struct{ state *hFancy }

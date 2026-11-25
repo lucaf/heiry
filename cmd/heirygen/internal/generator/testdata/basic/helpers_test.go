@@ -94,8 +94,8 @@ func TestHelpersMatchTheHandwrittenIdiom(t *testing.T) {
 		Bind[ProcessOp]((*base)(nil), ".").
 		Bind[DescribeOp]((*base)(nil), ".").
 		Bind[ValidateOp]((*base)(nil), ".").
-		Bind[TransformOp]((*base)(nil), ".").
-		Level[limited, Public, Private]("base")
+		Bind[TransformOp]((*base)(nil), ".").End().
+		Level[limited, Public, Private]("base").End()
 	for _, o := range []*tagged{a, b} {
 		if err := inner.Init(&o.limited, inner.NodeProvider(&o.limited.base), inner.NodeProvider(&o.limited)); err != nil {
 			t.Fatal(err)
@@ -231,9 +231,9 @@ func TestForeignPlanIsRejected(t *testing.T) {
 		Bind[ProcessOp]((*base)(nil), ".").
 		Bind[DescribeOp]((*base)(nil), ".").
 		Bind[ValidateOp]((*base)(nil), ".").
-		Bind[TransformOp]((*base)(nil), ".").
-		Level[limited, Public, Private]("base").
-		Level[tagged, Public, Private]("limited").
+		Bind[TransformOp]((*base)(nil), ".").End().
+		Level[limited, Public, Private]("base").End().
+		Level[tagged, Public, Private]("limited").End().
 		MustPrepare()
 	o := &tagged{}
 	if got := code(t, other.Init(o, hierarchyRefs(o)...)); got != heiry.BindingMismatch {
@@ -270,11 +270,11 @@ func TestConcurrentFirstUseThroughHelpers(t *testing.T) {
 		Bind[ProcessOp]((*base)(nil), ".").
 		Bind[DescribeOp]((*base)(nil), ".").
 		Bind[ValidateOp]((*base)(nil), ".").
-		Bind[TransformOp]((*base)(nil), ".").
+		Bind[TransformOp]((*base)(nil), ".").End().
 		Level[limited, Public, Private]("base").
-		Bind[ValidateOp]((*limited)(nil), ".").
+		Bind[ValidateOp]((*limited)(nil), ".").End().
 		Level[tagged, Public, Private]("limited").
-		Bind[DescribeOp]((*tagged)(nil), ".")
+		Bind[DescribeOp]((*tagged)(nil), ".").End()
 	const workers = 16
 	objects := make([]*tagged, workers)
 	errs := make(chan error, 2*workers)

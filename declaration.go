@@ -113,56 +113,6 @@ func (d *Definition[Leaf]) extend(node, public, private reflect.Type) *LevelHand
 // End returns the definition while preserving this handle's level identity.
 func (l *LevelHandle[Leaf]) End() *Definition[Leaf] { return l.definition }
 
-// The methods below forward to the handle's definition, so a declaration
-// chain can continue from a level handle and End is optional. A level added
-// through any handle is appended to the end of the definition's chain.
-
-// Level appends a level to the handle's definition. See Definition.Level.
-func (l *LevelHandle[Leaf]) Level[Node, Public, Private any](parentField string) *LevelHandle[Leaf] {
-	return l.definition.Level[Node, Public, Private](parentField)
-}
-
-// Extend appends a level to the handle's definition. See Definition.Extend.
-func (l *LevelHandle[Leaf]) Extend[Node any]() *LevelHandle[Leaf] {
-	return l.definition.Extend[Node]()
-}
-
-// ExtendWith appends a level to the handle's definition. See Definition.ExtendWith.
-func (l *LevelHandle[Leaf]) ExtendWith[Node, Public, Private any]() *LevelHandle[Leaf] {
-	return l.definition.ExtendWith[Node, Public, Private]()
-}
-
-// Validate checks the handle's definition. See Definition.Validate.
-func (l *LevelHandle[Leaf]) Validate() error { return l.definition.Validate() }
-
-// Prepare prepares the handle's definition. See Definition.Prepare.
-func (l *LevelHandle[Leaf]) Prepare() (*Plan[Leaf], error) { return l.definition.Prepare() }
-
-// MustPrepare panics with the error returned by Prepare.
-func (l *LevelHandle[Leaf]) MustPrepare() *Plan[Leaf] { return l.definition.MustPrepare() }
-
-// Init binds one leaf through the handle's definition. See Definition.Init.
-func (l *LevelHandle[Leaf]) Init(leaf *Leaf, refs ...ProviderRef[Leaf]) error {
-	return l.definition.Init(leaf, refs...)
-}
-
-// MustInit panics with the error returned by Init and otherwise returns leaf.
-func (l *LevelHandle[Leaf]) MustInit(leaf *Leaf, refs ...ProviderRef[Leaf]) *Leaf {
-	return l.definition.MustInit(leaf, refs...)
-}
-
-// NodeProvider creates a node reference for the handle's definition. See
-// Definition.NodeProvider.
-func (l *LevelHandle[Leaf]) NodeProvider[Node any](ptr *Node) ProviderRef[Leaf] {
-	return l.definition.NodeProvider(ptr)
-}
-
-// ComponentProvider creates a component reference for the handle's
-// definition. See Definition.ComponentProvider.
-func (l *LevelHandle[Leaf]) ComponentProvider[Node, Provider any](providerPath string, ptr *Provider) ProviderRef[Leaf] {
-	return l.definition.ComponentProvider[Node](providerPath, ptr)
-}
-
 // Bind records an explicit typed operation for this level. The witness value
 // is reduced to type metadata and is never retained.
 func (l *LevelHandle[Leaf]) Bind[Operation any](provider Operation, providerPath string) *LevelHandle[Leaf] {
@@ -245,18 +195,6 @@ func (l *LevelHandle[Leaf]) BindGroup[Provider any](provider *Provider, provider
 		})
 	}
 	return l
-}
-
-// BindNode records an explicit typed operation supplied by this level's own
-// node. It is Bind with the provider path ".".
-func (l *LevelHandle[Leaf]) BindNode[Operation any](witness Operation) *LevelHandle[Leaf] {
-	return l.Bind[Operation](witness, ".")
-}
-
-// BindNodeGroup records several explicit operations supplied by this level's
-// own node. It is BindGroup with the provider path ".".
-func (l *LevelHandle[Leaf]) BindNodeGroup[Provider any](witness *Provider, operations ...OperationToken) *LevelHandle[Leaf] {
-	return l.BindGroup(witness, ".", operations...)
 }
 
 func validCapability(capability reflect.Type) bool {

@@ -57,7 +57,7 @@ The constructor sets `f.self = f`. That assignment compiles only if the leaf imp
 
 **Self interface.** The compiler checks that the leaf has every operation with the right signature, at the single assignment to `self`. A missing or mistyped method does not build. This is the strongest check available and heiry does not match it.
 
-**heiry.** The compiler checks every call made through `Virtual` and `Parent`, and that each `Bind` or `BindNode` witness implements its operation. It does not check that the hierarchy is complete, that a grouped registration's provider implements each listed operation, or that contracts extend correctly. Those are checked when the Definition is prepared, and reported as typed errors before any object is initialized. The outputs of [heirygen](generation.md) also check at compile time, through probes, that each level's parent field, and the first field of each component's path, is declared directly in its own struct.
+**heiry.** The compiler checks every call made through `Virtual` and `Parent`, and that each `Bind` witness implements its operation. It does not check that the hierarchy is complete, that a grouped registration's provider implements each listed operation, or that contracts extend correctly. Those are checked when the Definition is prepared, and reported as typed errors before any object is initialized. The outputs of [heirygen](generation.md) also check at compile time, through probes, that each level's parent field, and the first field of each component's path, is declared directly in its own struct.
 
 ## What initialization checks
 

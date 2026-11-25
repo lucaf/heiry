@@ -88,10 +88,10 @@ func Example() {
 	// private one; no object is involved yet.
 	hierarchy := heiry.Define[dog]().
 		Level[animal, Speaker, Namer]("").
-		BindNode[Speaker]((*animal)(nil)).
-		BindNode[Namer]((*animal)(nil)).
+		Bind[Speaker]((*animal)(nil), ".").
+		Bind[Namer]((*animal)(nil), ".").End().
 		Extend[dog]().
-		BindNode[Namer]((*dog)(nil))
+		Bind[Namer]((*dog)(nil), ".").End()
 
 	// Allocate an object as usual, then bind it. The first Init also
 	// validates the declaration.
